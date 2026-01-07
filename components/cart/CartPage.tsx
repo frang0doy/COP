@@ -55,7 +55,7 @@ export default function CartPage() {
         Carrito de Compras
       </motion.h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         {/* Lista de productos */}
         <div className="lg:col-span-2 space-y-4">
           <AnimatePresence>
@@ -71,24 +71,24 @@ export default function CartPage() {
                   ease: [0.22, 1, 0.36, 1]
                 }}
                 layout
-                className="bg-white rounded-lg shadow-md p-6 flex items-center space-x-4 hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200"
+                className="bg-white rounded-lg shadow-md p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200"
               >
                 {/* Imagen */}
-                <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-gray-400 text-xs">Imagen</span>
                 </div>
 
                 {/* Información */}
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                  <p className="text-black font-bold">
+                <div className="flex-1 w-full sm:w-auto">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
+                  <p className="text-black font-bold text-lg sm:text-xl">
                     ${item.price.toLocaleString('es-MX')}
                   </p>
-                  <p className="text-sm text-gray-500">Stock disponible: {item.stock}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Stock disponible: {item.stock}</p>
                 </div>
 
                 {/* Controles de cantidad */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
                   <motion.button
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                     whileHover={{ scale: 1.1 }}

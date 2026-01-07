@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Link href={`/productos/${product.id}`}>
         <div className="bg-white border border-gray-200 overflow-hidden hover:border-black transition-all duration-300 h-full flex flex-col group cursor-pointer hover:shadow-lg">
           {/* Imagen del producto */}
-          <div className="relative h-64 bg-gray-100 overflow-hidden">
+          <div className="relative h-48 sm:h-56 md:h-64 bg-gray-100 overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center text-gray-400">
               {product.image ? (
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -52,7 +52,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <motion.div 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute top-2 right-2 bg-black text-white px-3 py-1 text-xs font-semibold"
+                className="absolute top-2 right-2 bg-black text-white px-2 py-1 md:px-3 md:py-1 text-xs font-semibold"
               >
                 Sin Stock
               </motion.div>
@@ -60,21 +60,21 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Información del producto */}
-          <div className="p-4 flex-1 flex flex-col">
+          <div className="p-3 md:p-4 flex-1 flex flex-col">
             <span className="text-xs text-gray-500 font-medium tracking-wider uppercase">{product.category}</span>
-            <h3 className="text-lg font-semibold text-black mt-2 mb-2 line-clamp-2 group-hover:text-gray-600 transition-colors">
+            <h3 className="text-base md:text-lg font-semibold text-black mt-2 mb-2 line-clamp-2 group-hover:text-gray-600 transition-colors">
               {product.name}
             </h3>
-            <p className="text-sm text-gray-600 mb-4 flex-1 line-clamp-2">
+            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 flex-1 line-clamp-2">
               {product.description}
             </p>
 
             <div className="mt-auto">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl font-bold text-black">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <span className="text-xl md:text-2xl font-bold text-black">
                   ${product.price.toLocaleString('es-MX')}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-xs md:text-sm text-gray-500">
                   Stock: {product.stock}
                 </span>
               </div>
@@ -84,14 +84,15 @@ export default function ProductCard({ product }: ProductCardProps) {
                 disabled={isOutOfStock}
                 whileHover={!isOutOfStock ? { scale: 1.02 } : {}}
                 whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
-                className={`w-full flex items-center justify-center space-x-2 px-4 py-2 border-2 font-semibold transition-colors ${
+                className={`w-full flex items-center justify-center space-x-2 px-3 py-2 md:px-4 md:py-2 border-2 text-sm md:text-base font-semibold transition-colors ${
                   isOutOfStock
                     ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                     : 'bg-black text-white border-black hover:bg-gray-900'
                 }`}
               >
                 <ShoppingCart className="w-4 h-4" />
-                <span>{isOutOfStock ? 'Sin Stock' : 'Agregar al Carrito'}</span>
+                <span className="hidden sm:inline">{isOutOfStock ? 'Sin Stock' : 'Agregar al Carrito'}</span>
+                <span className="sm:hidden">{isOutOfStock ? 'Sin Stock' : 'Agregar'}</span>
               </motion.button>
             </div>
           </div>

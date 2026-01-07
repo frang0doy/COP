@@ -214,17 +214,17 @@ export default function ProductsList() {
   return (
     <div>
       {/* Filtros y Búsqueda */}
-      <div className="mb-12 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
+      <div className="mb-8 md:mb-12 space-y-4 md:space-y-6">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-6 items-start lg:items-center">
           {/* Búsqueda */}
           <div className="flex-1 relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
             <input
               type="text"
               placeholder="Buscar productos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 focus:border-black transition-colors bg-white"
+              className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 border-2 border-gray-200 focus:border-black transition-colors bg-white text-sm md:text-base"
             />
             {searchTerm && (
               <button
@@ -242,7 +242,7 @@ export default function ProductsList() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full lg:w-64 pl-12 pr-10 py-3 border-2 border-gray-200 focus:border-black transition-colors appearance-none bg-white cursor-pointer"
+              className="w-full lg:w-64 pl-10 md:pl-12 pr-8 md:pr-10 py-2.5 md:py-3 border-2 border-gray-200 focus:border-black transition-colors appearance-none bg-white cursor-pointer text-sm md:text-base"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>

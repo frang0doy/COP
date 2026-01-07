@@ -24,7 +24,7 @@ export default function CTA() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-32 bg-gray-100 overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-32 bg-gray-100 overflow-hidden">
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"
@@ -65,20 +65,20 @@ export default function CTA() {
           >
             Descubre nuestra amplia gama de productos de construcción y encuentra todo lo que necesitas en un solo lugar.
           </AnimatedParagraph>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
               <Link
                 href="/productos"
-                className="group bg-black text-white px-12 py-5 text-lg font-medium hover:bg-gray-900 transition-colors duration-300 flex items-center justify-center space-x-3"
+                className="group bg-black text-white px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium hover:bg-gray-900 transition-colors duration-300 flex items-center justify-center space-x-3 w-full sm:w-auto"
               >
                 <span>EXPLORAR PRODUCTOS</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
               <Link
                 href="/contacto"
-                className="bg-transparent text-black px-12 py-5 text-lg font-medium border-2 border-black hover:bg-black hover:text-white transition-all duration-300"
+                className="bg-transparent text-black px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium border-2 border-black hover:bg-black hover:text-white transition-all duration-300 w-full sm:w-auto text-center block"
               >
                 CONTACTAR ASESOR
               </Link>

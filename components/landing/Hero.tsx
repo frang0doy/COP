@@ -47,10 +47,10 @@ export default function Hero() {
         style={{ opacity }}
         className="relative z-10 w-full"
       >
-        <div className="flex items-center min-h-screen">
+        <div className="flex items-center min-h-screen py-20 md:py-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-black mb-8 leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-black mb-6 md:mb-8 leading-tight tracking-tight"
             >
               {["Somos tu mejor", "aliado en", "construcción"].map((line, lineIndex) => (
                 <motion.span 
@@ -87,12 +87,12 @@ export default function Hero() {
                 ease: [0.16, 1, 0.3, 1],
                 delay: 0.9
               }}
-              className="mt-8"
+              className="mt-6 md:mt-8"
             >
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/productos"
-                  className="group inline-flex items-center space-x-3 bg-white text-black px-8 py-4 text-base font-medium hover:bg-gray-100 transition-colors duration-300"
+                  className="group inline-flex items-center space-x-3 bg-white text-black px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium hover:bg-gray-100 transition-colors duration-300 w-full sm:w-auto justify-center"
                 >
                   <span>VER PRODUCTOS</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

@@ -51,18 +51,18 @@ export default function ContactForm() {
       transition={{ duration: 0.6 }}
       className="w-full"
     >
-      <div className="text-center mb-12">
-        <h2 className="text-4xl md:text-5xl font-light text-black mb-4">
+      <div className="text-center mb-8 md:mb-12">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-black mb-3 md:mb-4">
           Envíanos un Mensaje
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
           Estamos aquí para ayudarte. Completa el formulario y nos pondremos en contacto contigo a la brevedad.
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 md:p-12">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 md:p-8 lg:p-12">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             {/* Nombre */}
             <div className="group">
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
@@ -96,7 +96,7 @@ export default function ContactForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             {/* Teléfono */}
             <div className="group">
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
@@ -137,7 +137,7 @@ export default function ContactForm() {
             </label>
             <textarea
               required
-              rows={6}
+              rows={5}
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-black focus:ring-0 transition-all bg-white resize-none placeholder-gray-400"
@@ -151,7 +151,7 @@ export default function ContactForm() {
             disabled={isSubmitting}
             whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
             whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-            className="w-full bg-black text-white py-4 px-6 border-2 border-black font-semibold hover:bg-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 text-lg group"
+            className="w-full bg-black text-white py-3 md:py-4 px-6 border-2 border-black font-semibold hover:bg-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 text-base md:text-lg group"
           >
             <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             <span>{isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}</span>

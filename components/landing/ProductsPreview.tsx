@@ -48,7 +48,7 @@ export default function ProductsPreview() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-32 bg-gray-100">
+    <section ref={ref} className="relative py-16 md:py-32 bg-gray-100">
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"
@@ -101,7 +101,7 @@ export default function ProductsPreview() {
           </motion.div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {featuredProducts.map((product, index) => (
             <motion.div
               key={product.id}
@@ -119,21 +119,21 @@ export default function ProductsPreview() {
               <Link href={`/productos/${product.id}`}>
                 <div className="bg-white border border-gray-200 overflow-hidden hover:border-black transition-all duration-300 hover:shadow-lg">
                   {/* Imagen del producto - aquí irá la imagen real con color */}
-                  <div className="relative h-80 bg-gray-100 overflow-hidden">
+                  <div className="relative h-64 md:h-80 bg-gray-100 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-100 group-hover:from-gray-300 group-hover:to-gray-200 transition-all duration-500 group-hover:scale-110" />
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
                       Imagen del Producto
                     </div>
                   </div>
-                  <div className="p-6">
-                    <span className="text-xs text-gray-500 font-medium tracking-wider uppercase block mb-3">
+                  <div className="p-4 md:p-6">
+                    <span className="text-xs text-gray-500 font-medium tracking-wider uppercase block mb-2 md:mb-3">
                       {product.category}
                     </span>
-                    <h3 className="text-xl font-semibold text-black mb-4 group-hover:text-gray-600 transition-colors">
+                    <h3 className="text-lg md:text-xl font-semibold text-black mb-3 md:mb-4 group-hover:text-gray-600 transition-colors">
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-black">
+                      <span className="text-xl md:text-2xl font-bold text-black">
                         ${product.price.toLocaleString('es-MX')}
                       </span>
                       <span className="text-black inline-flex items-center group-hover:translate-x-2 transition-transform">

@@ -46,7 +46,7 @@ export default function Features() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-32 bg-gray-100 overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-32 bg-gray-100 overflow-hidden">
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"
@@ -87,7 +87,7 @@ export default function Features() {
           </AnimatedParagraph>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
@@ -104,18 +104,18 @@ export default function Features() {
                 whileHover={{ y: -4 }}
                 className="group"
               >
-                <div className="bg-white p-8 border border-gray-200 hover:border-black transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg">
+                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-black transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg">
                   <motion.div 
-                    className="w-16 h-16 border-2 border-black rounded-full flex items-center justify-center mb-6 group-hover:bg-black transition-all duration-300"
+                    className="w-12 h-12 md:w-16 md:h-16 border-2 border-black rounded-full flex items-center justify-center mb-4 md:mb-6 group-hover:bg-black transition-all duration-300"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    <Icon className="w-8 h-8 text-black group-hover:text-white transition-colors duration-300" />
+                    <Icon className="w-6 h-6 md:w-8 md:h-8 text-black group-hover:text-white transition-colors duration-300" />
                   </motion.div>
-                  <h3 className="text-xl font-semibold text-black mb-4 group-hover:text-gray-700 transition-colors">
+                  <h3 className="text-lg md:text-xl font-semibold text-black mb-3 md:mb-4 group-hover:text-gray-700 transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>

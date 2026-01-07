@@ -37,6 +37,7 @@ const testimonials = [
 export default function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -45,6 +46,15 @@ export default function Testimonials() {
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -100])
   const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Auto-rotación del carrusel
   useEffect(() => {
@@ -78,7 +88,7 @@ export default function Testimonials() {
   }
 
   return (
-    <section ref={ref} className="relative py-32 bg-black text-white overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-32 bg-black text-white overflow-hidden">
       {/* Divider superior */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gray-800" />
       
@@ -96,17 +106,17 @@ export default function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
           <AnimatedTitle
             as="h2"
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 tracking-tight leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 tracking-tight leading-tight"
             delay={0.2}
           >
             LO QUE DICEN NUESTROS CLIENTES
           </AnimatedTitle>
           <AnimatedParagraph
-            className="text-lg md:text-xl text-gray-400 font-light leading-relaxed"
+            className="text-base md:text-lg lg:text-xl text-gray-400 font-light leading-relaxed"
             delay={0.4}
           >
             Profesionales que confían en COP para sus proyectos
@@ -115,12 +125,16 @@ export default function Testimonials() {
 
         {/* Carrusel con card siempre centrada */}
         <div className="relative">
-          <div className="overflow-hidden">
-            <div className="flex items-center justify-center relative" style={{ minHeight: '500px' }}>
+          <div className="overflow-hidden px-4 md:px-0">
+            <div className="flex items-center justify-center relative" style={{ minHeight: typeof window !== 'undefined' && window.innerWidth < 640 ? '400px' : '500px' }}>
               <motion.div
-                className="flex items-center gap-6"
+                className="flex items-center gap-4 md:gap-6"
                 animate={{
-                  x: `calc(50% - 12rem - ${currentIndex * 25.5}rem)`,
+                  x: windowWidth < 640 
+                    ? `calc(50% - 8.75rem - ${currentIndex * 17.5}rem)`
+                    : windowWidth < 768
+                    ? `calc(50% - 10rem - ${currentIndex * 20}rem)`
+                    : `calc(50% - 12rem - ${currentIndex * 25.5}rem)`,
                 }}
                 transition={{
                   type: 'spring',
@@ -139,7 +153,7 @@ export default function Testimonials() {
                   return (
                     <motion.div
                       key={index}
-                      className="flex-shrink-0 w-80 md:w-96"
+                      className="flex-shrink-0 w-[280px] sm:w-80 md:w-96 px-2"
                       animate={{
                         scale: isActive ? 1 : isVisible ? 0.85 : 0.7,
                         opacity: isActive ? 1 : isVisible ? 0.5 : 0.2,
@@ -156,20 +170,22 @@ export default function Testimonials() {
                       }}
                       style={{ cursor: isActive ? 'default' : isVisible ? 'pointer' : 'default' }}
                     >
-                      <div className={`bg-gray-900 border transition-all duration-300 ${
+                      <div className={`bg-gray-900 border transition-all duration-300 h-full flex flex-col justify-between ${
                         isActive 
-                          ? 'border-white p-8' 
-                          : 'border-gray-800 p-6 hover:border-gray-700'
+                          ? 'border-white p-6 md:p-8' 
+                          : 'border-gray-800 p-4 md:p-6 hover:border-gray-700'
                       }`}>
-                        <Quote className="w-8 h-8 mb-6 opacity-50" />
-                        <p className="text-gray-300 mb-6 leading-relaxed italic text-base">
+                        <Quote className={`w-6 h-6 md:w-8 md:h-8 mb-4 md:mb-6 opacity-50 flex-shrink-0`} />
+                        <p className={`text-gray-300 mb-4 md:mb-6 leading-relaxed italic flex-1 ${
+                          isActive ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+                        }`}>
                           "{testimonial.text}"
                         </p>
-                        <div className="border-t border-gray-800 pt-4">
-                          <div className="font-semibold text-white text-lg">
+                        <div className="border-t border-gray-800 pt-3 md:pt-4">
+                          <div className={`font-semibold text-white ${isActive ? 'text-base md:text-lg' : 'text-sm md:text-base'}`}>
                             {testimonial.name}
                           </div>
-                          <div className="text-sm text-gray-400 mt-1">{testimonial.role}</div>
+                          <div className="text-xs md:text-sm text-gray-400 mt-1">{testimonial.role}</div>
                         </div>
                       </div>
                     </motion.div>
@@ -180,14 +196,14 @@ export default function Testimonials() {
           </div>
 
           {/* Controles */}
-          <div className="flex items-center justify-center gap-4 mt-12">
+          <div className="flex items-center justify-center gap-3 md:gap-4 mt-8 md:mt-12">
             <button
               onClick={goToPrevious}
               disabled={isTransitioning}
-              className="w-12 h-12 border-2 border-white flex items-center justify-center hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-10 h-10 md:w-12 md:h-12 border-2 border-white flex items-center justify-center hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Testimonio anterior"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
             </button>
 
             {/* Indicadores */}
@@ -199,7 +215,7 @@ export default function Testimonials() {
                   disabled={isTransitioning}
                   className={`h-2 transition-all duration-300 ${
                     index === currentIndex 
-                      ? 'w-8 bg-white' 
+                      ? 'w-6 md:w-8 bg-white' 
                       : 'w-2 bg-gray-600 hover:bg-gray-400'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                   aria-label={`Ir al testimonio ${index + 1}`}
@@ -210,10 +226,10 @@ export default function Testimonials() {
             <button
               onClick={goToNext}
               disabled={isTransitioning}
-              className="w-12 h-12 border-2 border-white flex items-center justify-center hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-10 h-10 md:w-12 md:h-12 border-2 border-white flex items-center justify-center hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Siguiente testimonio"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
             </button>
           </div>
         </div>
