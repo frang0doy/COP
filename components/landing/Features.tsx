@@ -2,29 +2,29 @@
 
 import { useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-import { Award, Shield, Truck, Headphones } from 'lucide-react'
+import { Paintbrush, Building2, CheckCircle, Sparkles } from 'lucide-react'
 import AnimatedTitle from '@/components/ui/AnimatedTitle'
 import AnimatedParagraph from '@/components/ui/AnimatedParagraph'
 
 const features = [
   {
-    icon: Award,
-    title: 'Formulación Europea',
-    description: 'Productos desarrollados con los más altos estándares internacionales.',
-  },
-  {
-    icon: Shield,
-    title: 'Producto 100% Mexicano',
-    description: 'Fabricado en México con calidad premium para el mercado local.',
-  },
-  {
-    icon: Truck,
+    icon: Paintbrush,
     title: 'Recubrimientos de Alta Calidad',
-    description: 'Resultados confiables en cada proyecto de construcción.',
+    description: 'Productos desarrollados con los más altos estándares para resultados duraderos.',
   },
   {
-    icon: Headphones,
-    title: 'Resultados Confiables',
+    icon: Building2,
+    title: 'Para Profesionales',
+    description: 'Soluciones confiables para cada proyecto de construcción en México, Argentina y Cuba.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Acabados Perfectos',
+    description: 'Resultados impecables que transforman cualquier espacio.',
+  },
+  {
+    icon: CheckCircle,
+    title: 'Calidad Garantizada',
     description: 'Asesoría técnica profesional para garantizar el éxito de tu obra.',
   },
 ]
@@ -46,7 +46,7 @@ export default function Features() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-16 md:py-32 bg-gray-100 overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-24 bg-gray-100 overflow-hidden">
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"
@@ -104,7 +104,7 @@ export default function Features() {
                 whileHover={{ y: -4 }}
                 className="group"
               >
-                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-black transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg">
+                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-black transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg flex flex-col items-center text-center">
                   <motion.div 
                     className="w-12 h-12 md:w-16 md:h-16 border-2 border-black rounded-full flex items-center justify-center mb-4 md:mb-6 group-hover:bg-black transition-all duration-300"
                     whileHover={{ scale: 1.1, rotate: 5 }}

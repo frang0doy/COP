@@ -24,7 +24,7 @@ export default function CTA() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-16 md:py-32 bg-gray-100 overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-24 bg-gray-100 overflow-hidden">
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"

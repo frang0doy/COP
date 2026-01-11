@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, X, ShoppingCart, User } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
@@ -11,16 +12,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
   const { data: session } = useSession()
   const { itemsCount } = useCart()
+  
+  // Detectar si estamos en la página de inicio
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
+    // Si no estamos en la página de inicio, el header siempre es negro
+    if (!isHomePage) {
+      setScrolled(true)
+      return
+    }
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+      // Cambiar a negro más temprano (aproximadamente 50% del viewport)
+      setScrolled(window.scrollY > window.innerHeight * 0.5)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isHomePage])
 
   return (
     <motion.nav
@@ -30,58 +42,61 @@ export default function Navbar() {
         duration: 0.6,
         ease: [0.22, 1, 0.36, 1]
       }}
-      className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-        scrolled ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-black'
+      className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out ${
+        scrolled ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20 md:h-24">
           {/* Logo */}
-          <Link href="/" className="flex items-center group">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="relative h-10 w-24 md:h-16 md:w-40 flex items-center justify-center"
-            >
+          <Link href="/" className="flex items-center">
+            <div className="relative h-10 w-24 md:h-16 md:w-40 flex items-center justify-center">
               <Image
                 src="/images/logocop.png"
                 alt="COP - Materiales de Construcción"
                 width={160}
                 height={64}
-                className="object-contain"
+                className="object-contain drop-shadow-lg"
                 priority
                 unoptimized
               />
-            </motion.div>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
-              className="text-white/80 hover:text-white transition-colors relative group"
+              className={`transition-colors relative group ${
+                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
+              }`}
             >
               Inicio
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="/productos"
-              className="text-white/80 hover:text-white transition-colors relative group"
+              className={`transition-colors relative group ${
+                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
+              }`}
             >
               Productos
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="/empresa"
-              className="text-white/80 hover:text-white transition-colors relative group"
+              className={`transition-colors relative group ${
+                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
+              }`}
             >
               Empresa
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="/contacto"
-              className="text-white/80 hover:text-white transition-colors relative group"
+              className={`transition-colors relative group ${
+                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
+              }`}
             >
               Contacto
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
@@ -89,7 +104,9 @@ export default function Navbar() {
 
             {/* Cart */}
             <Link href="/carrito" className="relative group">
-              <ShoppingCart className="w-6 h-6 text-white/80 group-hover:text-white transition-colors" />
+              <ShoppingCart className={`w-6 h-6 transition-colors drop-shadow-lg ${
+                scrolled ? 'text-white/80 group-hover:text-white' : 'text-white/90 group-hover:text-white'
+              }`} />
               {itemsCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}

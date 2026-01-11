@@ -92,3 +92,6 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 Para más información sobre Next.js, consulta la [documentación oficial](https://nextjs.org/docs).
 
+
+
+

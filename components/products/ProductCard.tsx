@@ -1,31 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useCart } from '@/context/CartContext'
-import { ShoppingCart } from 'lucide-react'
 import { motion } from 'framer-motion'
-import type { Product } from './ProductsList'
+import { ArrowRight } from 'lucide-react'
+import type { Product } from './catalog'
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCart()
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault()
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      stock: product.stock,
-    })
-  }
-
-  const isOutOfStock = product.stock === 0
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,69 +19,52 @@ export default function ProductCard({ product }: ProductCardProps) {
         duration: 0.4,
         ease: [0.22, 1, 0.36, 1]
       }}
-      whileHover={{ y: -4 }}
     >
-      <Link href={`/productos/${product.id}`}>
-        <div className="bg-white border border-gray-200 overflow-hidden hover:border-black transition-all duration-300 h-full flex flex-col group cursor-pointer hover:shadow-lg">
+      <div className="h-full">
+        <div className="bg-white border border-gray-200 overflow-hidden h-full flex flex-col group">
           {/* Imagen del producto */}
           <div className="relative h-48 sm:h-56 md:h-64 bg-gray-100 overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center text-gray-400">
               {product.image ? (
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-100 group-hover:from-gray-300 group-hover:to-gray-200 transition-all duration-500 group-hover:scale-110" />
+                <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-100" />
               )}
             </div>
-            {isOutOfStock && (
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute top-2 right-2 bg-black text-white px-2 py-1 md:px-3 md:py-1 text-xs font-semibold"
-              >
-                Sin Stock
-              </motion.div>
+            {product.isNew && (
+              <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 text-xs font-semibold">
+                Nuevo producto
+              </div>
             )}
           </div>
 
           {/* Información del producto */}
           <div className="p-3 md:p-4 flex-1 flex flex-col">
-            <span className="text-xs text-gray-500 font-medium tracking-wider uppercase">{product.category}</span>
-            <h3 className="text-base md:text-lg font-semibold text-black mt-2 mb-2 line-clamp-2 group-hover:text-gray-600 transition-colors">
-              {product.name}
+            <h3 className="text-base md:text-lg font-semibold text-black line-clamp-2">
+              <span className="relative inline-block">
+                {product.name}
+                {/* Subrayado deslizante */}
+                <span className="pointer-events-none absolute left-0 -bottom-1 h-[2px] w-full origin-left scale-x-0 bg-black transition-transform duration-300 group-hover:scale-x-100" />
+              </span>
             </h3>
-            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 flex-1 line-clamp-2">
-              {product.description}
-            </p>
 
             <div className="mt-auto">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-xl md:text-2xl font-bold text-black">
                   ${product.price.toLocaleString('es-MX')}
                 </span>
-                <span className="text-xs md:text-sm text-gray-500">
-                  Stock: {product.stock}
-                </span>
+                <Link
+                  href={`/productos/${product.id}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-sm font-semibold transition-transform duration-200 hover:scale-[1.03] hover:border-black"
+                >
+                  Ver
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
-
-              <motion.button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                whileHover={!isOutOfStock ? { scale: 1.02 } : {}}
-                whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
-                className={`w-full flex items-center justify-center space-x-2 px-3 py-2 md:px-4 md:py-2 border-2 text-sm md:text-base font-semibold transition-colors ${
-                  isOutOfStock
-                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    : 'bg-black text-white border-black hover:bg-gray-900'
-                }`}
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="hidden sm:inline">{isOutOfStock ? 'Sin Stock' : 'Agregar al Carrito'}</span>
-                <span className="sm:hidden">{isOutOfStock ? 'Sin Stock' : 'Agregar'}</span>
-              </motion.button>
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }

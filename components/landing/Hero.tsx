@@ -1,56 +1,211 @@
 'use client'
 
-import { useRef } from 'react'
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useScroll, useTransform, PanInfo, useMotionValue, animate } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+
+const images = [
+  '/images/cop1.jpg',
+  '/images/cop2.png',
+  '/images/cop3.png',
+]
+
+const SLIDE_DURATION = 5000 // 5 segundos por slide
 
 export default function Hero() {
-  const ref = useRef<HTMLDivElement>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const x = useMotionValue(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const sectionRef = useRef<HTMLDivElement>(null)
+  
   const { scrollYProgress } = useScroll({
-    target: ref,
+    target: sectionRef,
     offset: ['start start', 'end start'],
   })
 
-  // Parallax más suave con spring
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  })
+  // Removemos el parallax de las imágenes - deben quedarse fijas
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
+  const contentY = useTransform(scrollYProgress, [0, 0.3], [0, -30])
 
-  const y = useTransform(smoothProgress, [0, 1], ['0%', '60%'])
-  const opacity = useTransform(smoothProgress, [0, 0.6], [1, 0])
-  const scale = useTransform(smoothProgress, [0, 1], [1, 0.95])
+  // Calcular constraints del drag basado en el viewport
+  const [dragConstraints, setDragConstraints] = useState({ left: -1920, right: 0 })
+
+  useEffect(() => {
+    const updateConstraints = () => {
+      if (typeof window === 'undefined') return
+      const viewportWidth = window.innerWidth
+      setDragConstraints({
+        left: -((images.length - 1) * viewportWidth),
+        right: 0
+      })
+    }
+
+    updateConstraints()
+    window.addEventListener('resize', updateConstraints)
+    return () => window.removeEventListener('resize', updateConstraints)
+  }, [])
+
+  // Auto-play del slider
+  useEffect(() => {
+    if (isDragging) return
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length)
+      setProgress(0)
+    }, SLIDE_DURATION)
+
+    return () => clearInterval(interval)
+  }, [isDragging])
+
+  // Progress bar animation
+  useEffect(() => {
+    if (isDragging) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+      return
+    }
+
+    setProgress(0)
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return 0
+        }
+        return prev + (100 / (SLIDE_DURATION / 100))
+      })
+    }, 100)
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+    }
+  }, [currentIndex, isDragging])
+
+  // Animar el cambio de slide
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const viewportWidth = window.innerWidth
+    const targetX = -(currentIndex * viewportWidth)
+    
+    const controls = animate(x, targetX, {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    })
+    return controls.stop
+  }, [currentIndex, x])
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setIsDragging(false)
+    const threshold = 100
+
+    // Permitir ir hacia atrás o adelante con loop
+    if (info.offset.x > threshold) {
+      // Arrastró hacia la derecha - ir a slide anterior
+      if (currentIndex > 0) {
+        setCurrentIndex(currentIndex - 1)
+      } else {
+        // Si está en el primero, ir al último (loop)
+        setCurrentIndex(images.length - 1)
+      }
+    } else if (info.offset.x < -threshold) {
+      // Arrastró hacia la izquierda - ir a slide siguiente
+      if (currentIndex < images.length - 1) {
+        setCurrentIndex(currentIndex + 1)
+      } else {
+        // Si está en el último, ir al primero (loop)
+        setCurrentIndex(0)
+      }
+    } else {
+      // No se movió lo suficiente - volver a la posición actual
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920
+      const targetX = -(currentIndex * viewportWidth)
+      animate(x, targetX, {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+      })
+    }
+    setProgress(0)
+  }
+
+  const handleDragStart = () => {
+    setIsDragging(true)
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current)
+    }
+  }
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index)
+    setProgress(0)
+  }
 
   return (
     <section 
-      ref={ref}
+      ref={sectionRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{ marginTop: 0, paddingTop: 0 }}
     >
-      {/* Imagen de fondo con parallax mejorado */}
-      <motion.div
-        style={{ y, scale }}
-        className="absolute inset-0 z-0"
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-gray-100 to-gray-200">
-          {/* Placeholder para imagen - aquí irá la imagen real */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="w-full h-full bg-gradient-to-br from-gray-200 via-gray-150 to-gray-100" />
-          </div>
+      {/* Slider de imágenes - sin parallax, fijas */}
+      <div className="absolute inset-0 z-0">
+        <div className="relative w-full h-full overflow-hidden">
+          <motion.div
+            ref={containerRef}
+            drag="x"
+            dragConstraints={dragConstraints}
+            dragElastic={0.1}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            style={{ 
+              x,
+              display: 'flex',
+              width: `${images.length * 100}vw`,
+              height: '100%',
+            }}
+            className="relative h-full flex cursor-grab active:cursor-grabbing"
+          >
+            {images.map((image, index) => (
+              <div
+                key={index}
+                className="relative flex-shrink-0"
+                style={{ 
+                  width: '100vw',
+                  height: '100%',
+                }}
+              >
+                <Image
+                  src={image}
+                  alt={`Slide ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  priority={index === 0}
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+            ))}
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Contenido principal con animaciones mejoradas */}
-      <motion.div
-        style={{ opacity }}
+      {/* Contenido principal */}
+      <motion.div 
+        style={{ opacity: contentOpacity, y: contentY }}
         className="relative z-10 w-full"
       >
         <div className="flex items-center min-h-screen py-20 md:py-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-black mb-6 md:mb-8 leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-white mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-lg"
             >
               {["Somos tu mejor", "aliado en", "construcción"].map((line, lineIndex) => (
                 <motion.span 
@@ -101,8 +256,66 @@ export default function Hero() {
             </motion.div>
           </div>
         </div>
-
       </motion.div>
+
+      {/* Indicadores con progress bar */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex items-center space-x-2">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goToSlide(index)}
+            className="relative w-8 h-8 flex items-center justify-center group"
+            aria-label={`Ir a slide ${index + 1}`}
+          >
+            {/* Círculo exterior */}
+            <svg
+              className="w-8 h-8 transform -rotate-90"
+              viewBox="0 0 32 32"
+            >
+              {/* Círculo de fondo (gris claro) */}
+              <circle
+                cx="16"
+                cy="16"
+                r="14"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.3)"
+                strokeWidth="1.5"
+              />
+              {/* Progress bar (negro) */}
+              {index === currentIndex ? (
+                <motion.circle
+                  cx="16"
+                  cy="16"
+                  r="14"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: progress / 100 }}
+                  transition={{ duration: 0.1, ease: 'linear' }}
+                />
+              ) : (
+                <circle
+                  cx="16"
+                  cy="16"
+                  r="14"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="1.5"
+                  strokeDasharray={`${index < currentIndex ? 87.96 : 0} 87.96`}
+                />
+              )}
+            </svg>
+            {/* Círculo interior (negro sólido) */}
+            <div
+              className={`absolute w-2 h-2 rounded-full transition-all ${
+                index === currentIndex ? 'bg-black scale-125' : 'bg-black/50 group-hover:bg-black/75'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
     </section>
   )
 }
