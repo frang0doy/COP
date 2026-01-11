@@ -88,7 +88,7 @@ export default function Testimonials() {
   }
 
   return (
-    <section ref={ref} className="relative py-16 md:py-32 bg-black text-white overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-24 bg-black text-white overflow-hidden">
       {/* Divider superior */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gray-800" />
       
