@@ -84,7 +84,6 @@ export default function CartPage() {
                   <p className="text-black font-bold text-lg sm:text-xl">
                     ${item.price.toLocaleString('es-MX')}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-500">Stock disponible: {item.stock}</p>
                 </div>
 
                 {/* Controles de cantidad */}
@@ -100,10 +99,9 @@ export default function CartPage() {
                   <span className="w-12 text-center font-semibold">{item.quantity}</span>
                   <motion.button
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    disabled={item.quantity >= item.stock}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition-colors"
                   >
                     <Plus className="w-4 h-4 text-gray-700" />
                   </motion.button>

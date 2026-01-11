@@ -1,20 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { Menu, X, ShoppingCart, User } from 'lucide-react'
+import { Menu, ShoppingCart, User } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
   const { itemsCount } = useCart()
+  const menuRef = useRef<HTMLDivElement | null>(null)
   
   // Detectar si estamos en la página de inicio
   const isHomePage = pathname === '/'
@@ -34,6 +35,34 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isHomePage])
 
+  // Cerrar menú al navegar/cambiar ruta
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [pathname])
+
+  // Cerrar menú con click afuera / Escape
+  useEffect(() => {
+    if (!isMenuOpen) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMenuOpen(false)
+    }
+    const onPointerDown = (e: MouseEvent | PointerEvent) => {
+      const target = e.target as Node | null
+      if (!target) return
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [isMenuOpen])
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -43,7 +72,7 @@ export default function Navbar() {
         ease: [0.22, 1, 0.36, 1]
       }}
       className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out ${
-        scrolled ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+        scrolled || isMenuOpen ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,64 +92,109 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className={`transition-colors relative group ${
-                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
-              }`}
-            >
-              Inicio
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/productos"
-              className={`transition-colors relative group ${
-                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
-              }`}
-            >
-              Productos
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/empresa"
-              className={`transition-colors relative group ${
-                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
-              }`}
-            >
-              Empresa
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/contacto"
-              className={`transition-colors relative group ${
-                scrolled ? 'text-white/80 hover:text-white' : 'text-white/90 hover:text-white drop-shadow-lg'
-              }`}
-            >
-              Contacto
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300" />
-            </Link>
+          {/* Acciones (mantener logo + carrito + iniciar sesión). El resto se mueve al menú. */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Menú (nuevo) */}
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={isMenuOpen}
+                className={[
+                  'inline-flex h-10 items-center gap-2 px-4 border font-semibold transition-all',
+                  scrolled
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+                ].join(' ')}
+              >
+                <Menu className="w-4 h-4" />
+                Menú
+              </button>
 
-            {/* Cart */}
-            <Link href="/carrito" className="relative group">
-              <ShoppingCart className={`w-6 h-6 transition-colors drop-shadow-lg ${
-                scrolled ? 'text-white/80 group-hover:text-white' : 'text-white/90 group-hover:text-white'
-              }`} />
-              {itemsCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-white text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
-                >
-                  {itemsCount}
-                </motion.span>
-              )}
-            </Link>
+              <AnimatePresence>
+                {isMenuOpen && (
+                  <>
+                    {/* Backdrop suave */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[90] bg-black/30"
+                      onClick={() => setIsMenuOpen(false)}
+                    />
 
-            {/* User Menu */}
+                    {/* Panel */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-3 w-[min(92vw,420px)] z-[100]"
+                      role="menu"
+                    >
+                      <div className="bg-black/95 border border-white/10 shadow-2xl overflow-hidden">
+                        <div className="p-5">
+                          <p className="text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
+                            Navegación
+                          </p>
+                          <p className="text-lg font-semibold text-white mt-1">
+                            ¿A dónde querés ir?
+                          </p>
+                        </div>
+
+                        <div className="px-3 pb-3">
+                          {[
+                            { href: '/', label: 'Inicio' },
+                            { href: '/productos', label: 'Productos' },
+                            { href: '/empresa', label: 'Empresa' },
+                            { href: '/contacto', label: 'Contacto' },
+                          ].map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                              role="menuitem"
+                            >
+                              <span className="text-base font-semibold">{item.label}</span>
+                              <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                            </Link>
+                          ))}
+                        </div>
+
+                        {session && (
+                          <div className="border-t border-white/10 p-3">
+                            <Link
+                              href="/perfil"
+                              onClick={() => setIsMenuOpen(false)}
+                              className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                              role="menuitem"
+                            >
+                              Mi Perfil
+                            </Link>
+                            <button
+                              onClick={() => {
+                                signOut()
+                                setIsMenuOpen(false)
+                              }}
+                              className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                              role="menuitem"
+                            >
+                              Salir
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Iniciar sesión (dejar como está) / Perfil */}
             {session ? (
-              <div className="flex items-center space-x-4">
+              <div className="hidden sm:flex items-center space-x-4">
                 <Link
                   href="/perfil"
                   className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
@@ -138,105 +212,38 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/login"
-                className="bg-white text-black px-6 py-2 hover:bg-gray-100 transition-colors font-semibold"
+                className="h-10 inline-flex items-center bg-white text-black px-6 hover:bg-gray-100 transition-colors font-semibold"
               >
                 Iniciar Sesión
               </Link>
             )}
-          </div>
 
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white/80 hover:text-white transition-colors"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            {/* Carrito (enmarcado como botón) */}
+            <Link
+              href="/carrito"
+              className={[
+                'relative inline-flex h-10 items-center justify-center px-4 border transition-all',
+                scrolled
+                  ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                  : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+              ].join(' ')}
+              aria-label="Carrito"
+              title="Carrito"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {itemsCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-white text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                >
+                  {itemsCount}
+                </motion.span>
+              )}
+            </Link>
+          </div>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-black border-t border-white/10"
-          >
-            <div className="px-4 pt-2 pb-3 space-y-1">
-              <Link
-                href="/"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-              >
-                Inicio
-              </Link>
-              <Link
-                href="/productos"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-              >
-                Productos
-              </Link>
-              <Link
-                href="/empresa"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-              >
-                Empresa
-              </Link>
-              <Link
-                href="/contacto"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-              >
-                Contacto
-              </Link>
-              <Link
-                href="/carrito"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded flex items-center justify-between transition-colors"
-              >
-                <span>Carrito</span>
-                {itemsCount > 0 && (
-                  <span className="bg-white text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                    {itemsCount}
-                  </span>
-                )}
-              </Link>
-              {session ? (
-                <>
-                  <Link
-                    href="/perfil"
-                    onClick={() => setIsOpen(false)}
-                    className="block px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-                  >
-                    Mi Perfil
-                  </Link>
-                  <button
-                    onClick={() => {
-                      signOut()
-                      setIsOpen(false)
-                    }}
-                    className="block w-full text-left px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
-                  >
-                    Salir
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 bg-white text-black rounded text-center transition-colors font-semibold"
-                >
-                  Iniciar Sesión
-                </Link>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.nav>
   )
 }

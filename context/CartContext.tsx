@@ -49,20 +49,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existingItem = prevItems.find((i) => i.id === item.id)
       
       if (existingItem) {
-        const newQuantity = existingItem.quantity + 1
-        if (newQuantity > item.stock) {
-          toast.error('No hay suficiente stock disponible')
-          return prevItems
-        }
         toast.success('Cantidad actualizada en el carrito')
         return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: newQuantity } : i
+          i.id === item.id ? { ...i, quantity: existingItem.quantity + 1 } : i
         )
       } else {
-        if (item.stock < 1) {
-          toast.error('Producto sin stock disponible')
-          return prevItems
-        }
         toast.success('Producto agregado al carrito')
         return [...prevItems, { ...item, quantity: 1 }]
       }
@@ -83,11 +74,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prevItems) => {
       const item = prevItems.find((i) => i.id === id)
       if (!item) return prevItems
-
-      if (quantity > item.stock) {
-        toast.error('No hay suficiente stock disponible')
-        return prevItems
-      }
 
       return prevItems.map((i) =>
         i.id === id ? { ...i, quantity } : i

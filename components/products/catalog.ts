@@ -100,11 +100,453 @@ export interface Product {
   image?: string
   sku: string
   technicalSheet?: string
+  technicalSummary?: TechnicalSummary
   isNew?: boolean
 }
 
+export type TechnicalSummary = {
+  rendimiento?: string
+  almacenaje?: string
+  presentacion?: string
+  conservacion?: string
+  colores?: string
+  usos?: string
+  observaciones?: string
+}
+
+const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {
+  // Nombres que no matchean 1:1 con el nombre de imagen / slug normalizado
+  18: 'textucop_ficha.png', // imagen: textucopL.png
+  22: 'revoque4en1_ficha.png', // imagen: revoque_4en1.png
+  33: 'plastibond_ficha.png', // imagen: plastiband.png
+  34: 'laca_polim_mate_ficha.png', // imagen: laca_poli_mate1.png
+  35: 'laca_polim_brillosa.png', // imagen: laca_poli_brillo1.png (archivo sin _ficha)
+}
+
+function stripDiacritics(input: string) {
+  // NFD separa letras y diacríticos; luego removemos los diacríticos.
+  return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function normalizeToSheetBase(input: string) {
+  const noDiacritics = stripDiacritics(input)
+  return (
+    noDiacritics
+      .toLowerCase()
+      .replace(/\.[a-z0-9]+$/i, '') // extensión si existe
+      .replace(/^[\\/]/, '')
+      .replace(/[^a-z0-9]+/g, '_') // espacios y símbolos -> "_"
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_')
+      // versiones/sufijos típicos en nombres de imágenes: "...4", "...1", etc.
+      .replace(/_\d+$/g, '')
+  )
+}
+
+function computeTechnicalSheet(product: Product): string | undefined {
+  const overrideFile = TECH_SHEET_OVERRIDES_BY_ID[product.id]
+  if (overrideFile) {
+    return `/documents/fichas-tecnicas/${overrideFile}`
+  }
+
+  // Preferimos derivar desde la imagen (suele coincidir con el archivo de ficha).
+  const imageBase = product.image ? product.image.split('/').pop() ?? '' : ''
+  const candidatesBase = [
+    imageBase ? normalizeToSheetBase(imageBase) : '',
+    normalizeToSheetBase(product.name),
+  ].filter(Boolean)
+
+  for (const base of candidatesBase) {
+    return `/documents/fichas-tecnicas/${base}_ficha.png`
+  }
+
+  return undefined
+}
+
+const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
+  // Adhesivos
+  1: {
+    rendimiento: '4 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos: 'Colocación de piezas cerámicas de alta absorción sobre carpetas o revoques interiores.',
+  },
+  2: {
+    rendimiento: '4 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos: 'Colocación de porcelanatos en pisos y paredes interiores o exteriores.',
+  },
+  3: {
+    rendimiento: '4 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos: 'Colocación de grandes formatos y/o sobre pisos existentes sin retirar el revestimiento anterior.',
+  },
+  4: {
+    rendimiento: '15 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos: 'Elevación de mampostería (ladrillo cerámico/block/arcilla) en muros interiores/exteriores no estructurales.',
+  },
+  5: {
+    rendimiento: '80 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco, gris natural y gris oscuro.',
+    usos: 'Relleno de juntas entre piezas cerámicas, pisos y azulejos.',
+  },
+  6: {
+    rendimiento: '15 m² por balde de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco marfil.',
+    usos: 'Adhesivo acrílico listo para usar; recomendado para trabajos de colocación en interiores/exteriores no estructurales.',
+    observaciones: 'Nuevo producto.',
+  },
+  7: {
+    rendimiento: '15 m² por balde de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    usos: 'Adhesivo listo para usar; elevación de mampostería en muros interiores/exteriores no estructurales.',
+    observaciones: 'Nuevo producto.',
+  },
+
+  // Estucados
+  9: {
+    rendimiento: '15 m² por balde de 15 kg (a 2 mm de espesor).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 15 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Gris natural/plata/perla/oscuro, marrón, chukum, blanco y negro.',
+    usos:
+      'Aplicación sobre revoque fino, placas de cartón yeso, base coat y fibrocemento; recomendado sellar previamente según soporte.',
+  },
+  10: {
+    rendimiento: '20 m² por bolsa de 25 kg (a 2 mm de espesor).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris natural, gris oscuro, blanco.',
+    usos:
+      'Aplicación sobre revoque fino, placas de cartón yeso, base coat y fibrocemento; recomendado sellar previamente según soporte.',
+  },
+  11: {
+    rendimiento: '15 m² por balde de 5 kg (a tres manos).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 5 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Marrón, azul, rojo, gris, amarillo, verde, negro, chukum y blanco mármol.',
+    usos:
+      'Aplicación sobre Concreto Aparente Blanco o sobre Redimix, con sellado previo.',
+  },
+  12: {
+    rendimiento: '12 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Arena, blanco y gris.',
+    usos:
+      'Uso en paredes/pisos/piscinas/duchas; para piscinas, aplicar sobre revoque grueso con sellado previo.',
+  },
+  13: {
+    rendimiento: '10 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Arena.',
+    usos:
+      'Aplicación sobre revoque fino, revoque grueso alisado y base coat con sellado previo.',
+    observaciones: 'Nuevo producto.',
+  },
+  14: {
+    rendimiento: '15 m² por bolsa de 25 kg (a 2 mm de espesor).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris natural, arena y gris oscuro.',
+    usos:
+      'Aplicación sobre revoque fino, placas de cartón yeso, base coat, fibrocemento y yeso con sellado previo.',
+    observaciones: 'Nuevo producto.',
+  },
+
+  // Selladores y pinturas / masillas
+  15: {
+    rendimiento: '30 m² por balde de 10 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 10 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Azul.',
+    usos: 'Fijador mordiente para la preparación de superficies lisas.',
+  },
+  33: {
+    rendimiento: '50 m² por balde de 10 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 10 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Transparente.',
+    usos:
+      'Sellador al agua para preparación de superficies previo a morteros y revestimientos.',
+  },
+  37: {
+    rendimiento: '50 m² por balde de 10 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 10 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
+    usos:
+      'Pintura látex al agua con color incorporado para preparación de superficies.',
+  },
+  38: {
+    rendimiento: '50 m² por balde de 20 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 20 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Arena, chocolate, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
+    usos:
+      'Pintura látex al agua con color incorporado para paredes, revoques y mampostería (con sellado previo).',
+  },
+  39: {
+    rendimiento: '50 m² por balde de 20 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 20 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
+    usos:
+      'Pintura látex de alto poder cubritivo para paredes, revoques y mampostería (con sellado previo).',
+    observaciones: 'Nuevo producto.',
+  },
+  40: {
+    rendimiento: '50 m² por balde de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 30 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco.',
+    usos:
+      'Pasta base acrílica para juntas en construcción en seco y corrección de imperfecciones (con sellado previo).',
+  },
+  41: {
+    rendimiento: '15 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco o gris.',
+    usos:
+      'Mortero para alisar y nivelar superficies, preparando la base para pintura (con sellado previo).',
+    observaciones: 'Nuevo producto.',
+  },
+
+  // Revestimientos
+  16: {
+    rendimiento: '8–15 m² por balde de 25 kg (según método).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores:
+      'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
+    usos:
+      'Aplicación sobre revoque fino/grueso alisado, placas de cartón yeso, base coat y fibrocemento (con sellado previo).',
+  },
+  17: {
+    rendimiento: '8–15 m² por balde de 25 kg (según método).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco marfil.',
+    usos:
+      'Aplicación sobre revoque fino/grueso alisado, placas de cartón yeso, base coat y fibrocemento (con sellado previo).',
+  },
+  18: {
+    rendimiento: '10 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco, arena.',
+    usos:
+      'Aplicación sobre revoque fino, revoque grueso alisado y base coat (con sellado previo).',
+  },
+  19: {
+    rendimiento: '7 m² por balde de 25 kg (según método).',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Negro, dálmata, verona, paraná.',
+    usos: 'Aplicación sobre revoque fino (con sellado previo).',
+    observaciones: 'Nuevo producto.',
+  },
+  20: {
+    rendimiento: '10 m² por bolsa de 20 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 20 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco.',
+    usos:
+      'Aplicación en pisos con exposición directa al sol donde se requiera baja transmitancia térmica y alta reflectancia.',
+    observaciones: 'Nuevo producto.',
+  },
+
+  // Revoques
+  21: {
+    rendimiento: '10 m² por balde de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco.',
+    usos:
+      'Nivelación de carpetas y muebles previo a Microtex o Cuarzotex (con sellado previo).',
+    observaciones: 'Nuevo producto.',
+  },
+  22: {
+    rendimiento: '8 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco.',
+    usos:
+      'Aplicación sobre revoque fino, revoque grueso alisado y base coat (con sellado previo).',
+  },
+  23: {
+    rendimiento: '10 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Aplicación sobre block/ladrillo hueco y revoques gruesos (con sellado previo).',
+  },
+  24: {
+    rendimiento: '8 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Aplicación sobre poliestireno, placas de yeso, hormigón celular y revoque grueso (con sellado previo).',
+  },
+  25: {
+    rendimiento: '8 m² por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Nivelación sobre carpetas cementicias, placas de yeso, pisos, concreto o cerámicos/azulejos existentes (con sellado previo).',
+  },
+  26: {
+    rendimiento: '3 m² a 1 cm de espesor por bolsa de 25 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Blanco.',
+    usos:
+      'Aplicación en muros interiores de block, ladrillo u hormigón (con sellado previo).',
+  },
+  27: {
+    rendimiento: '20 m² por bolsa de 25 kg (a 3 mm de espesor).',
+    almacenaje: 'Almacenar en su envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 25 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris natural.',
+    usos:
+      'Interior y exterior sobre hormigones y morteros; terminación símil hormigón o reparación.',
+    observaciones: 'Nuevo producto.',
+  },
+
+  // Impermeabilizables
+  28: {
+    rendimiento: '10 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Impermeabilización en techos, balcones, baños, piscinas, cisternas y tanques de agua.',
+  },
+  29: {
+    rendimiento: '10 m² por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Tratamiento anti salitre para prevenir o reparar eflorescencias y humedades ascendentes por capilaridad.',
+  },
+  30: {
+    rendimiento: '30 m² con rodillo / 12 m² con llana por bolsa de 30 kg.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Bolsa de 30 kg.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
+    usos:
+      'Cisternas, techos, terrazas, baños y juntas de placas para evitar fisuras.',
+  },
+  31: {
+    rendimiento: '20 m² por balde de 20 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 20 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco y rojo.',
+    usos:
+      'Impermeabilización acrílica para techos, tinglados y terrazas; paredes exteriores con protección extra.',
+  },
+  32: {
+    rendimiento: '20 m² por balde de 20 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 20 lt.',
+    conservacion: '12 meses desde la fecha de fabricación.',
+    colores: 'Blanco y rojo.',
+    usos:
+      'Impermeabilización poliuretánica para techos y terrazas; paredes exteriores con protección extra.',
+  },
+
+  // Laca y barnices
+  34: {
+    rendimiento: '16 m² por balde de 4 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 4 lt y de 1 lt.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Transparente.',
+    usos:
+      'Barniz poliuretánico mate para revestimientos cementicios/acrílicos y madera, con alta resistencia a abrasión y manchado.',
+  },
+  35: {
+    rendimiento: '16 m² por balde de 4 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 4 lt y de 1 lt.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Transparente.',
+    usos:
+      'Barniz poliuretánico brilloso para revestimientos cementicios/acrílicos y madera, con alta resistencia a abrasión y manchado.',
+  },
+  36: {
+    rendimiento: '20 m² por balde de 4 lt.',
+    almacenaje: 'Envase original herméticamente cerrado.',
+    presentacion: 'Balde de 4 lt.',
+    conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Transparente.',
+    usos:
+      'Silicón hidrófugo incoloro para protección de revestimientos acrílicos/cementicios (microcemento, estucados, ladrillos vistos, tejas).',
+  },
+}
+
 // Nota: en esta etapa (solo diseño) los productos están mockeados. Luego vendrán de API/DB.
-export const PRODUCTS: Product[] = [
+const RAW_PRODUCTS: Product[] = [
   // Adhesivos (1-8)
   {
     id: 1,
@@ -532,5 +974,11 @@ export const PRODUCTS: Product[] = [
     image: '/Foto-productos/skim_coat.png',
   },
 ]
+
+export const PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({
+  ...p,
+  technicalSheet: computeTechnicalSheet(p),
+  technicalSummary: TECHNICAL_SUMMARY_BY_ID[p.id],
+}))
 
 

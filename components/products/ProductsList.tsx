@@ -26,8 +26,7 @@ export default function ProductsList() {
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+          p.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 

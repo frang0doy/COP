@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { Download } from 'lucide-react'
 import AnimatedTitle from '@/components/ui/AnimatedTitle'
 import AnimatedParagraph from '@/components/ui/AnimatedParagraph'
 
@@ -67,13 +67,14 @@ export default function CTA() {
           </AnimatedParagraph>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link
-                href="/productos"
+              <a
+                href="/documents/fichas-tecnicas/catalogoCOP.pdf"
+                download
                 className="group bg-black text-white px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium hover:bg-gray-900 transition-colors duration-300 flex items-center justify-center space-x-3 w-full sm:w-auto"
               >
-                <span>EXPLORAR PRODUCTOS</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-              </Link>
+                <span>DESCARGAR CATÁLOGO</span>
+                <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+              </a>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
               <Link
