@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -12,10 +13,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [menuPanelStyle, setMenuPanelStyle] = useState<React.CSSProperties>({})
   const pathname = usePathname()
   const { data: session } = useSession()
   const { itemsCount } = useCart()
-  const menuRef = useRef<HTMLDivElement | null>(null)
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const menuPanelRef = useRef<HTMLDivElement | null>(null)
   
   // Detectar si estamos en la página de inicio
   const isHomePage = pathname === '/'
@@ -50,7 +53,9 @@ export default function Navbar() {
     const onPointerDown = (e: MouseEvent | PointerEvent) => {
       const target = e.target as Node | null
       if (!target) return
-      if (menuRef.current && !menuRef.current.contains(target)) {
+      const clickedButton = menuButtonRef.current?.contains(target) ?? false
+      const clickedPanel = menuPanelRef.current?.contains(target) ?? false
+      if (!clickedButton && !clickedPanel) {
         setIsMenuOpen(false)
       }
     }
@@ -61,6 +66,36 @@ export default function Navbar() {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('pointerdown', onPointerDown)
     }
+  }, [isMenuOpen])
+
+  // Posicionar el panel exactamente debajo del botón "Menú" (aunque esté en portal)
+  useEffect(() => {
+    if (!isMenuOpen) return
+
+    const updatePosition = () => {
+      const btn = menuButtonRef.current
+      if (!btn) return
+
+      const rect = btn.getBoundingClientRect()
+      const gap = 12
+      const margin = 16
+      const panelWidth = Math.min(420, Math.max(280, window.innerWidth - margin * 2))
+
+      // Alinear con el borde derecho del botón, y clamplear dentro del viewport
+      const desiredLeft = rect.right - panelWidth
+      const left = Math.max(margin, Math.min(desiredLeft, window.innerWidth - panelWidth - margin))
+      const top = rect.bottom + gap
+
+      setMenuPanelStyle({
+        top,
+        left,
+        width: panelWidth,
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    return () => window.removeEventListener('resize', updatePosition)
   }, [isMenuOpen])
 
   return (
@@ -75,6 +110,90 @@ export default function Navbar() {
         scrolled || isMenuOpen ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}
     >
+      {/* Backdrop + panel en portal para que el blur afecte a TODA la pantalla (no queda limitado por el transform del nav) */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isMenuOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-md"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+
+                <motion.div
+                  ref={menuPanelRef}
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  className="fixed z-[100]"
+                  style={menuPanelStyle}
+                  role="menu"
+                >
+                  <div className="bg-black/95 border border-white/10 shadow-2xl overflow-hidden">
+                    <div className="p-5">
+                      <p className="text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
+                        Navegación
+                      </p>
+                      <p className="text-lg font-semibold text-white mt-1">
+                        ¿A dónde querés ir?
+                      </p>
+                    </div>
+
+                    <div className="px-3 pb-3">
+                      {[
+                        { href: '/', label: 'Inicio' },
+                        { href: '/productos', label: 'Productos' },
+                        { href: '/empresa', label: 'Empresa' },
+                        { href: '/contacto', label: 'Contacto' },
+                      ].map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMenuOpen(false)}
+                          className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                          role="menuitem"
+                        >
+                          <span className="text-base font-semibold">{item.label}</span>
+                          <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                        </Link>
+                      ))}
+                    </div>
+
+                    {session && (
+                      <div className="border-t border-white/10 p-3">
+                        <Link
+                          href="/perfil"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                          role="menuitem"
+                        >
+                          Mi Perfil
+                        </Link>
+                        <button
+                          onClick={() => {
+                            signOut()
+                            setIsMenuOpen(false)
+                          }}
+                          className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                          role="menuitem"
+                        >
+                          Salir
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20 md:h-24">
           {/* Logo */}
@@ -95,12 +214,13 @@ export default function Navbar() {
           {/* Acciones (mantener logo + carrito + iniciar sesión). El resto se mueve al menú. */}
           <div className="flex items-center gap-3 sm:gap-4">
             {/* Menú (nuevo) */}
-            <div className="relative" ref={menuRef}>
+            <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={isMenuOpen}
+                ref={menuButtonRef}
                 className={[
                   'inline-flex h-10 items-center gap-2 px-4 border font-semibold transition-all',
                   scrolled
@@ -111,85 +231,6 @@ export default function Navbar() {
                 <Menu className="w-4 h-4" />
                 Menú
               </button>
-
-              <AnimatePresence>
-                {isMenuOpen && (
-                  <>
-                    {/* Backdrop suave */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-[90] bg-black/30"
-                      onClick={() => setIsMenuOpen(false)}
-                    />
-
-                    {/* Panel */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 mt-3 w-[min(92vw,420px)] z-[100]"
-                      role="menu"
-                    >
-                      <div className="bg-black/95 border border-white/10 shadow-2xl overflow-hidden">
-                        <div className="p-5">
-                          <p className="text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
-                            Navegación
-                          </p>
-                          <p className="text-lg font-semibold text-white mt-1">
-                            ¿A dónde querés ir?
-                          </p>
-                        </div>
-
-                        <div className="px-3 pb-3">
-                          {[
-                            { href: '/', label: 'Inicio' },
-                            { href: '/productos', label: 'Productos' },
-                            { href: '/empresa', label: 'Empresa' },
-                            { href: '/contacto', label: 'Contacto' },
-                          ].map((item) => (
-                            <Link
-                              key={item.href}
-                              href={item.href}
-                              onClick={() => setIsMenuOpen(false)}
-                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
-                              role="menuitem"
-                            >
-                              <span className="text-base font-semibold">{item.label}</span>
-                              <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
-                            </Link>
-                          ))}
-                        </div>
-
-                        {session && (
-                          <div className="border-t border-white/10 p-3">
-                            <Link
-                              href="/perfil"
-                              onClick={() => setIsMenuOpen(false)}
-                              className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
-                              role="menuitem"
-                            >
-                              Mi Perfil
-                            </Link>
-                            <button
-                              onClick={() => {
-                                signOut()
-                                setIsMenuOpen(false)
-                              }}
-                              className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
-                              role="menuitem"
-                            >
-                              Salir
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* Iniciar sesión (dejar como está) / Perfil */}

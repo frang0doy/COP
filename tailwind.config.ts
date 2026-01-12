@@ -24,9 +24,14 @@ const config: Config = {
           900: '#171717',
           950: '#0a0a0a',
         },
+        brand: {
+          orange: 'var(--brand-orange)',
+          blue: 'var(--brand-blue)',
+          white: 'var(--brand-white)',
+        },
       },
       fontFamily: {
-        sans: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out',

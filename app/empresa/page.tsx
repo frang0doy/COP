@@ -8,6 +8,9 @@ import { Mail, Phone, Clock, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function EmpresaPage() {
+  const addressLine1 = `31°26'41.6"S 64°05'43.4"W`
+  const addressLine2 = 'Córdoba, Argentina'
+
   return (
     <main className="min-h-screen pt-24 bg-gray-100">
       <Navbar />
@@ -24,7 +27,7 @@ export default function EmpresaPage() {
             {' '}
             <AnimatedTitle
               as="span"
-              className="text-orange-500"
+              className="text-brand-orange"
               delay={0.5}
             >
               COP
@@ -36,7 +39,7 @@ export default function EmpresaPage() {
               className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed"
               delay={0.4}
             >
-              En <span className="text-orange-500 font-semibold">COP</span> creamos revestimientos decorativos innovadores para brindar la calidad y espíritu que cada proyecto merece.
+              En <span className="text-brand-orange font-semibold">COP</span> creamos revestimientos decorativos innovadores para brindar la calidad y espíritu que cada proyecto merece.
             </AnimatedParagraph>
             
             <AnimatedParagraph
@@ -59,49 +62,50 @@ export default function EmpresaPage() {
           {/* Información de contacto */}
           <div className="space-y-8">
             <motion.a
-              href="https://maps.google.com/?q=Sta.+Bárbara,+X5006+Córdoba,+Argentina"
+              href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start space-x-3 md:space-x-4 group hover:text-orange-500 transition-colors cursor-pointer"
+              className="flex items-start space-x-3 md:space-x-4 group hover:text-brand-orange transition-colors cursor-pointer"
               whileHover={{ x: 4 }}
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500 transition-colors">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-brand-orange transition-colors">
                 <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-sm md:text-base text-black group-hover:text-orange-500 transition-colors mb-1">Dirección</p>
+                <p className="font-semibold text-sm md:text-base text-black group-hover:text-brand-orange transition-colors mb-1">Dirección</p>
                 <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                  Sta. Bárbara, X5006<br />
-                  Córdoba, Argentina
+                  {addressLine1}
+                  <br />
+                  {addressLine2}
                 </p>
               </div>
             </motion.a>
 
             <motion.a
-              href="mailto:infocoprecubrimientos@gmail.com"
-              className="flex items-start space-x-3 md:space-x-4 group hover:text-orange-500 transition-colors cursor-pointer"
+              href="mailto:pedidoscoprecubrimientos@gmail.com"
+              className="flex items-start space-x-3 md:space-x-4 group hover:text-brand-orange transition-colors cursor-pointer"
               whileHover={{ x: 4 }}
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500 transition-colors">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-brand-orange transition-colors">
                 <Mail className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-sm md:text-base text-black group-hover:text-orange-500 transition-colors mb-1">Email</p>
-                <p className="text-sm md:text-base text-gray-700 break-all">infocoprecubrimientos@gmail.com</p>
+                <p className="font-semibold text-sm md:text-base text-black group-hover:text-brand-orange transition-colors mb-1">Email</p>
+                <p className="text-sm md:text-base text-gray-700 break-all">pedidoscoprecubrimientos@gmail.com</p>
               </div>
             </motion.a>
 
             <motion.a
-              href="tel:+543515900630"
-              className="flex items-start space-x-3 md:space-x-4 group hover:text-orange-500 transition-colors cursor-pointer"
+              href="tel:+5493515900630"
+              className="flex items-start space-x-3 md:space-x-4 group hover:text-brand-orange transition-colors cursor-pointer"
               whileHover={{ x: 4 }}
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500 transition-colors">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-brand-orange transition-colors">
                 <Phone className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-sm md:text-base text-black group-hover:text-orange-500 transition-colors mb-1">Teléfono</p>
-                <p className="text-sm md:text-base text-gray-700">351 590 0630</p>
+                <p className="font-semibold text-sm md:text-base text-black group-hover:text-brand-orange transition-colors mb-1">Teléfono</p>
+                <p className="text-sm md:text-base text-gray-700">+54 9 351 590 0630</p>
               </div>
             </motion.a>
 
@@ -111,7 +115,7 @@ export default function EmpresaPage() {
               </div>
               <div>
                 <p className="font-semibold text-sm md:text-base text-black mb-1">Horario de Atención</p>
-                <p className="text-sm md:text-base text-gray-700">Lunes a viernes de 8 a 13 y de 14 a 17 hs</p>
+                <p className="text-sm md:text-base text-gray-700">08:00hs a 16:30hs</p>
               </div>
             </div>
           </div>
@@ -119,7 +123,7 @@ export default function EmpresaPage() {
           {/* Mapa */}
           <div className="h-full min-h-[400px] md:min-h-[500px] rounded-lg overflow-hidden shadow-lg border border-gray-200 order-1 lg:order-2">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.5!2d-64.2!3d-31.4!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDI0JzAwLjAiUyA2NMKwMTInMDAuMCJX!5e0!3m2!1ses!2sar!4v1234567890&q=Sta.+Bárbara,+X5006+Córdoba,+Argentina"
+              src="https://www.google.com/maps?q=-31.4449,-64.0954&hl=es&z=16&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -127,7 +131,7 @@ export default function EmpresaPage() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="w-full h-full"
-              title="Ubicación COP - Santa Bárbara 3051, Camino Villa Posse, Córdoba Capital"
+              title="Ubicación COP"
             />
           </div>
         </motion.div>

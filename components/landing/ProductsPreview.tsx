@@ -219,7 +219,7 @@ export default function ProductsPreview() {
             >
               <Link
                 href="/productos"
-                className="group inline-flex items-center space-x-3 bg-black text-white px-8 py-4 text-base md:text-lg font-semibold hover:bg-gray-900 transition-colors duration-300"
+                className="group inline-flex items-center space-x-3 bg-black text-white px-8 py-4 text-base md:text-lg font-semibold hover:bg-gray-900 transition-colors duration-300 border-b-4 border-transparent hover:border-brand-blue"
               >
                 <span>VER CATÁLOGO</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'react-hot-toast'
 import ScrollProgress from '@/components/layout/ScrollProgress'
+import PageTransitions from '@/components/ui/PageTransitions'
 
-const montserrat = Montserrat({ 
+const inter = Inter({
   subsets: ['latin'], 
-  variable: '--font-montserrat',
-  weight: ['300', '400', '500', '600', '700', '800', '900']
+  variable: '--font-sans',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 })
 
 export const metadata: Metadata = {
@@ -23,11 +24,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={montserrat.variable}>
+    <html lang="es" className={inter.variable}>
       <body>
         <Providers>
           <ScrollProgress />
-          {children}
+          <PageTransitions>{children}</PageTransitions>
           <Toaster position="top-right" />
         </Providers>
       </body>

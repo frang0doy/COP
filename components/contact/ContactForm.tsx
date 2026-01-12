@@ -27,7 +27,6 @@ export default function ContactForm() {
         },
         body: JSON.stringify({
           ...formData,
-          to: 'infocoprecubrimientos@gmail.com',
         }),
       })
 

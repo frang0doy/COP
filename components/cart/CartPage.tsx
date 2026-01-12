@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, itemsCount } = useCart()
@@ -74,8 +75,21 @@ export default function CartPage() {
                 className="bg-white rounded-lg shadow-md p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200"
               >
                 {/* Imagen */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-gray-400 text-xs">Imagen</span>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-200">
+                  {item.image ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-contain"
+                        sizes="96px"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-xs">Sin imagen</span>
+                  )}
                 </div>
 
                 {/* Información */}

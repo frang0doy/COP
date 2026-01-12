@@ -70,7 +70,7 @@ export default function CTA() {
               <a
                 href="/documents/fichas-tecnicas/catalogoCOP.pdf"
                 download
-                className="group bg-black text-white px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium hover:bg-gray-900 transition-colors duration-300 flex items-center justify-center space-x-3 w-full sm:w-auto"
+                className="group bg-black text-white px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium hover:bg-gray-900 transition-colors duration-300 flex items-center justify-center space-x-3 w-full sm:w-auto border-b-4 border-transparent hover:border-brand-orange"
               >
                 <span>DESCARGAR CATÁLOGO</span>
                 <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
@@ -79,7 +79,7 @@ export default function CTA() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
               <Link
                 href="/contacto"
-                className="bg-transparent text-black px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium border-2 border-black hover:bg-black hover:text-white transition-all duration-300 w-full sm:w-auto text-center block"
+                className="bg-transparent text-black px-8 md:px-12 py-4 md:py-5 text-base md:text-lg font-medium border-2 border-black hover:bg-black hover:text-white transition-all duration-300 w-full sm:w-auto text-center block border-b-4 border-transparent hover:border-brand-blue"
               >
                 CONTACTAR ASESOR
               </Link>

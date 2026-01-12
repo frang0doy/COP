@@ -6,6 +6,12 @@ import { Facebook, Instagram, Mail, MapPin, Phone } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function Footer() {
+  const instagramUrl = 'https://www.instagram.com/coprecubrimientosar?igsh=aXpvZ3F4d2c2cTJq'
+  const facebookUrl = '' // TODO: completar cuando nos pases el link de Facebook
+  const email = 'pedidoscoprecubrimientos@gmail.com'
+  const addressLine1 = `31°26'41.6"S 64°05'43.4"W`
+  const addressLine2 = 'Córdoba, Argentina'
+
   return (
     <footer className="bg-black text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
@@ -26,30 +32,47 @@ export default function Footer() {
               />
             </motion.div>
             <p className="mb-6 text-gray-400 leading-relaxed">
-              Líder en materiales de construcción en México. Productos de alta calidad para profesionales.
+              Revestimientos y soluciones para la construcción. Calidad y asesoramiento técnico para profesionales.
             </p>
             <div className="flex space-x-4">
               <motion.a
-                href="#"
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
-              >
-                <Facebook className="w-5 h-5" />
-              </motion.a>
-              <motion.a
-                href="#"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                aria-label="Instagram de COP"
               >
                 <Instagram className="w-5 h-5" />
               </motion.a>
+              {facebookUrl ? (
+                <motion.a
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                  aria-label="Facebook de COP"
+                >
+                  <Facebook className="w-5 h-5" />
+                </motion.a>
+              ) : (
+                <div
+                  className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center opacity-60 cursor-not-allowed"
+                  aria-label="Facebook de COP (próximamente)"
+                  title="Facebook (próximamente)"
+                >
+                  <Facebook className="w-5 h-5" />
+                </div>
+              )}
               <motion.a
-                href="#"
+                href={`mailto:${email}`}
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                aria-label="Enviar email a COP"
               >
                 <Mail className="w-5 h-5" />
               </motion.a>
@@ -111,7 +134,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <motion.a
-                  href="https://maps.google.com/?q=Sta.+Bárbara,+X5006+Córdoba,+Argentina"
+                  href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start space-x-3 group hover:text-white transition-colors"
@@ -119,29 +142,30 @@ export default function Footer() {
                 >
                   <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
                   <span className="text-gray-400 group-hover:text-white transition-colors">
-                    Sta. Bárbara, X5006<br />
-                    Córdoba, Argentina
+                    {addressLine1}
+                    <br />
+                    {addressLine2}
                   </span>
                 </motion.a>
               </li>
               <li>
                 <motion.a
-                  href="tel:+543515900630"
+                  href="tel:+5493515900630"
                   className="flex items-center space-x-3 group hover:text-white transition-colors"
                   whileHover={{ x: 4 }}
                 >
                   <Phone className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">351 590 0630</span>
+                  <span className="text-gray-400 group-hover:text-white transition-colors">+54 9 351 590 0630</span>
                 </motion.a>
               </li>
               <li>
                 <motion.a
-                  href="mailto:infocoprecubrimientos@gmail.com"
+                  href={`mailto:${email}`}
                   className="flex items-center space-x-3 group hover:text-white transition-colors"
                   whileHover={{ x: 4 }}
                 >
                   <Mail className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">infocoprecubrimientos@gmail.com</span>
+                  <span className="text-gray-400 group-hover:text-white transition-colors">{email}</span>
                 </motion.a>
               </li>
             </ul>

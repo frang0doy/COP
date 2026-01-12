@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import toast from 'react-hot-toast'
+import { ShoppingCart, Trash2 } from 'lucide-react'
 
 export interface CartItem {
   id: number
@@ -14,7 +15,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, 'quantity'>) => void
+  addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
   removeItem: (id: number) => void
   updateQuantity: (id: number, quantity: number) => void
   clearCart: () => void
@@ -26,6 +27,77 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+
+  const showCartToast = (params: {
+    intent: 'success' | 'danger'
+    title: string
+    description?: string
+    toastId?: string
+  }) => {
+    const { intent, title, description, toastId } = params
+
+    // Usamos colores inline para que SIEMPRE se vean (sin depender de compilación/purge de clases)
+    const stripeColor = intent === 'success' ? '#22c55e' : '#ef4444' // emerald-500 / red-500
+    const iconBgColor = intent === 'success' ? '#ecfdf5' : '#fef2f2' // emerald-50 / red-50
+    const iconBorderColor = intent === 'success' ? '#d1fae5' : '#fee2e2' // emerald-100 / red-100
+    const iconColor = intent === 'success' ? '#16a34a' : '#dc2626' // emerald-600-ish / red-600
+
+    toast.custom(
+      (t) => (
+        <div className="pointer-events-auto w-[min(92vw,420px)] overflow-hidden border border-gray-200 bg-white text-black shadow-2xl relative">
+          {/* Línea inferior (obligatoria, recta y de borde a borde) */}
+          <div
+            className="absolute left-0 right-0 bottom-0 h-2"
+            style={{ backgroundColor: stripeColor }}
+          />
+
+          <div className="px-4 py-3 pb-5 flex items-start gap-3">
+            <div
+              className="mt-0.5 w-9 h-9 rounded-full border flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: iconBgColor, borderColor: iconBorderColor }}
+            >
+              {intent === 'success' ? (
+                <ShoppingCart className="w-5 h-5" style={{ color: iconColor }} />
+              ) : (
+                <Trash2 className="w-5 h-5" style={{ color: iconColor }} />
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm text-gray-900">{title}</p>
+              {description ? (
+                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
+                  {description}
+                </p>
+              ) : null}
+
+              <div className="mt-2 flex items-center gap-3">
+                <a
+                  href="/carrito"
+                  className="text-xs font-semibold transition-colors"
+                  style={{ color: intent === 'success' ? '#047857' : '#b91c1c' }}
+                  onClick={() => toast.dismiss(t.id)}
+                >
+                  Ver carrito
+                </a>
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+                  onClick={() => toast.dismiss(t.id)}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      {
+        id: toastId,
+        duration: 3500,
+      }
+    )
+  }
 
   // Cargar carrito del localStorage al iniciar
   useEffect(() => {
@@ -44,25 +116,47 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(items))
   }, [items])
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+  const addItem = (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
+    const qty = Math.max(1, Math.floor(quantity))
+
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id)
       
       if (existingItem) {
-        toast.success('Cantidad actualizada en el carrito')
+        showCartToast({
+          intent: 'success',
+          title: 'Cantidad actualizada en el carrito',
+          description: `${item.name} (+${qty})`,
+          toastId: `cart-add-${item.id}`,
+        })
         return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: existingItem.quantity + 1 } : i
+          i.id === item.id ? { ...i, quantity: existingItem.quantity + qty } : i
         )
       } else {
-        toast.success('Producto agregado al carrito')
-        return [...prevItems, { ...item, quantity: 1 }]
+        showCartToast({
+          intent: 'success',
+          title: 'Producto agregado al carrito',
+          description: `${qty} × ${item.name}`,
+          toastId: `cart-add-${item.id}`,
+        })
+        return [...prevItems, { ...item, quantity: qty }]
       }
     })
   }
 
   const removeItem = (id: number) => {
-    setItems((prevItems) => prevItems.filter((i) => i.id !== id))
-    toast.success('Producto eliminado del carrito')
+    setItems((prevItems) => {
+      const removed = prevItems.find((i) => i.id === id)
+      if (removed) {
+        showCartToast({
+          intent: 'danger',
+          title: 'Producto eliminado del carrito',
+          description: removed.name,
+          toastId: `cart-remove-${removed.id}`,
+        })
+      }
+      return prevItems.filter((i) => i.id !== id)
+    })
   }
 
   const updateQuantity = (id: number, quantity: number) => {

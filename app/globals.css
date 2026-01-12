@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --font-montserrat: 'Montserrat', system-ui, sans-serif;
+  --font-sans: system-ui, sans-serif;
+  /* Colores de marca COP */
+  --brand-orange: #f97316; /* similar a Tailwind orange-500 */
+  --brand-blue: #2563eb; /* similar a Tailwind blue-600 (ajustable) */
+  --brand-white: #ffffff;
 }
 
 * {
@@ -32,7 +36,7 @@ body {
 body {
   color: #171717;
   background: #e5e5e5;
-  font-family: var(--font-montserrat);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -52,13 +56,13 @@ a {
 
 /* Selección de texto personalizada */
 ::selection {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--brand-blue);
+  color: var(--brand-white);
 }
 
 ::-moz-selection {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--brand-blue);
+  color: var(--brand-white);
 }
 
 @layer utilities {
@@ -164,7 +168,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #000000;
+  background: var(--brand-blue);
 }
 
 /* Mejoras de rendimiento */
@@ -180,6 +184,6 @@ button, a, input, select, textarea {
 
 /* Focus visible mejorado */
 :focus-visible {
-  outline: 2px solid #000000;
+  outline: 2px solid var(--brand-blue);
   outline-offset: 2px;
 }

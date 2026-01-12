@@ -46,10 +46,10 @@ export default function Features() {
   const opacity = useTransform(smoothProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
 
   return (
-    <section ref={ref} className="relative py-16 md:py-24 bg-gray-100 overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-24 bg-gray-200 overflow-hidden">
       {/* Divider superior con animación */}
       <motion.div 
-        className="absolute top-0 left-0 right-0 h-px bg-gray-200"
+        className="absolute top-0 left-0 right-0 h-px bg-gray-300"
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true }}
@@ -58,7 +58,7 @@ export default function Features() {
       
       <motion.div
         style={{ y, opacity }}
-        className="absolute inset-0 bg-gray-50 -z-10"
+        className="absolute inset-0 bg-gray-100 -z-10"
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -104,7 +104,7 @@ export default function Features() {
                 whileHover={{ y: -4 }}
                 className="group"
               >
-                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-black transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg flex flex-col items-center text-center">
+                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-gray-700 transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg flex flex-col items-center text-center">
                   <motion.div 
                     className="w-12 h-12 md:w-16 md:h-16 border-2 border-black rounded-full flex items-center justify-center mb-4 md:mb-6 group-hover:bg-black transition-all duration-300"
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -127,7 +127,7 @@ export default function Features() {
 
       {/* Divider inferior con animación */}
       <motion.div 
-        className="absolute bottom-0 left-0 right-0 h-px bg-gray-200"
+        className="absolute bottom-0 left-0 right-0 h-px bg-gray-300"
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true }}

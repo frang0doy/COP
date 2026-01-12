@@ -247,7 +247,7 @@ export default function Hero() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/productos"
-                  className="group inline-flex items-center space-x-3 bg-white text-black px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium hover:bg-gray-100 transition-colors duration-300 w-full sm:w-auto justify-center"
+                  className="group inline-flex items-center space-x-3 bg-white text-black px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium hover:bg-gray-100 transition-colors duration-300 w-full sm:w-auto justify-center border-b-4 border-transparent hover:border-brand-orange"
                 >
                   <span>VER PRODUCTOS</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

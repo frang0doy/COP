@@ -34,16 +34,17 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   }
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
+    addItem(
+      {
         id: product.id,
         name: product.name,
         price: product.price,
         image: product.image,
         // Stock desactivado por ahora hasta integrar DB
         stock: Number.MAX_SAFE_INTEGER,
-      })
-    }
+      },
+      quantity
+    )
   }
 
   const theme = CATEGORY_THEME[product.category]

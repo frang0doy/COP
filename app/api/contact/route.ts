@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
+const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL || 'pedidoscoprecubrimientos@gmail.com'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, phone, subject, message, to } = body
+    const { name, email, phone, subject, message } = body
 
     // Configurar el transporter de nodemailer
     // En producción, usa variables de entorno para las credenciales
@@ -25,7 +27,7 @@ export async function POST(request: NextRequest) {
       console.log('Teléfono:', phone)
       console.log('Asunto:', subject)
       console.log('Mensaje:', message)
-      console.log('Enviar a:', to)
+      console.log('Enviar a:', CONTACT_TO_EMAIL)
       console.log('==========================')
 
       return NextResponse.json(
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Enviar el email
     const mailOptions = {
       from: process.env.SMTP_USER,
-      to: to || 'infocoprecubrimientos@gmail.com',
+      to: CONTACT_TO_EMAIL,
       subject: `Contacto COP: ${subject}`,
       html: `
         <h2>Nuevo mensaje de contacto</h2>
