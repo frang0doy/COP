@@ -1,6 +1,5 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
 
 // En producción, esto vendrá de una base de datos
 // Por ahora usamos datos de ejemplo
@@ -41,9 +40,8 @@ const authOptions: NextAuthOptions = {
           return null
         }
 
-        // En producción, verificar la contraseña con bcrypt
-        // const isValid = await bcrypt.compare(credentials.password, user.password)
-        // Por ahora, para demo, aceptamos cualquier contraseña si el email existe
+        // Por ahora (demo), aceptamos cualquier contraseña si el email existe.
+        // En producción, verificar la contraseña con bcrypt y un hash real.
         const isValid = true
 
         if (!isValid) {

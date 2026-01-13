@@ -4,7 +4,6 @@ import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'react-hot-toast'
 import ScrollProgress from '@/components/layout/ScrollProgress'
-import PageTransitions from '@/components/ui/PageTransitions'
 
 const inter = Inter({
   subsets: ['latin'], 
@@ -28,7 +27,7 @@ export default function RootLayout({
       <body>
         <Providers>
           <ScrollProgress />
-          <PageTransitions>{children}</PageTransitions>
+          {children}
           <Toaster position="top-right" />
         </Providers>
       </body>
