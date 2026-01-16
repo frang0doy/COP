@@ -1,11 +1,35 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { User, Mail, Package, Settings } from 'lucide-react'
+import { User, Mail, Package, Settings, Phone, MapPin, Save } from 'lucide-react'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
+
+type Me = {
+  id: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+}
 
 export default function ProfilePage() {
   const { data: session } = useSession()
+  const [me, setMe] = useState<Me | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+  })
 
   if (!session) {
     return (
@@ -23,6 +47,55 @@ export default function ProfilePage() {
     )
   }
 
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (!cancelled) toast.error(data?.error || 'Error al cargar perfil')
+        if (!cancelled) setLoading(false)
+        return
+      }
+      if (cancelled) return
+      const user = data?.user as Me
+      setMe(user)
+      setForm({
+        name: user?.name ?? '',
+        phone: user?.phone ?? '',
+        address: user?.address ?? '',
+        city: user?.city ?? '',
+        state: user?.state ?? '',
+        zipCode: user?.zipCode ?? '',
+      })
+      setLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const onSave = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/me/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'No se pudo guardar')
+        return
+      }
+      setMe(data.user as Me)
+      toast.success('Perfil actualizado')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Mi Perfil</h1>
@@ -38,7 +111,13 @@ export default function ProfilePage() {
                 <User className="w-5 h-5 text-gray-400" />
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                  <p className="text-gray-900">{session.user?.name || 'No especificado'}</p>
+                  <input
+                    disabled={loading}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    placeholder="Tu nombre"
+                  />
                 </div>
               </div>
 
@@ -46,14 +125,71 @@ export default function ProfilePage() {
                 <Mail className="w-5 h-5 text-gray-400" />
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-gray-900">{session.user?.email || 'No especificado'}</p>
+                  <p className="text-gray-900">{me?.email || session.user?.email || '—'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                  <input
+                    disabled={loading}
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    placeholder="Ej: +52 ..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-gray-400 mt-2" />
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700">Dirección</label>
+                  <textarea
+                    disabled={loading}
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    rows={2}
+                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    placeholder="Calle, número, etc."
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                    <input
+                      disabled={loading}
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                      placeholder="Ciudad"
+                    />
+                    <input
+                      disabled={loading}
+                      value={form.state}
+                      onChange={(e) => setForm({ ...form, state: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                      placeholder="Estado"
+                    />
+                    <input
+                      disabled={loading}
+                      value={form.zipCode}
+                      onChange={(e) => setForm({ ...form, zipCode: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                      placeholder="CP"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-6 border-t">
-              <button className="bg-black text-white px-6 py-2 border-2 border-black hover:bg-gray-900 transition">
-                Editar Perfil
+              <button
+                onClick={onSave}
+                disabled={loading || saving}
+                className="inline-flex items-center gap-2 bg-black text-white px-6 py-2 border-2 border-black hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
           </div>

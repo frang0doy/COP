@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -17,6 +17,20 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showRememberPrompt, setShowRememberPrompt] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState<string>('/')
+
+  useEffect(() => {
+    // Pre-cargar email recordado (si existe)
+    try {
+      const savedEmail = localStorage.getItem('auth.remember.email')
+      if (savedEmail) {
+        setEmail(savedEmail)
+        setRememberMe(true)
+      }
+    } catch {}
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,9 +46,19 @@ function LoginForm() {
       if (result?.error) {
         toast.error('Credenciales incorrectas')
       } else {
-        toast.success('Sesión iniciada correctamente')
-        router.push(callbackUrl)
-        router.refresh()
+        // Guardar email si marcó "Recordarme", si no preguntamos antes de redirigir
+        if (rememberMe) {
+          try {
+            localStorage.setItem('auth.remember.email', email.trim())
+          } catch {}
+          toast.success('Sesión iniciada correctamente')
+          router.push(callbackUrl)
+          router.refresh()
+          return
+        }
+
+        setPendingRedirect(callbackUrl)
+        setShowRememberPrompt(true)
       }
     } catch (error) {
       toast.error('Error al iniciar sesión')
@@ -45,6 +69,52 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      {showRememberPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowRememberPrompt(false)}
+          />
+          <div className="relative w-full max-w-md bg-white border border-gray-200 shadow-2xl p-6">
+            <h3 className="text-lg font-bold text-gray-900">¿Guardar datos de la cuenta?</h3>
+            <p className="text-sm text-gray-600 mt-2">
+              Podemos recordar tu email en este dispositivo para que sea más rápido iniciar sesión.
+            </p>
+            <div className="mt-5 flex gap-3 justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('auth.remember.email')
+                  } catch {}
+                  setShowRememberPrompt(false)
+                  toast.success('Sesión iniciada correctamente')
+                  router.push(pendingRedirect)
+                  router.refresh()
+                }}
+              >
+                No guardar
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                onClick={() => {
+                  try {
+                    localStorage.setItem('auth.remember.email', email.trim())
+                  } catch {}
+                  setShowRememberPrompt(false)
+                  toast.success('Sesión iniciada correctamente')
+                  router.push(pendingRedirect)
+                  router.refresh()
+                }}
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -122,6 +192,8 @@ function LoginForm() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded cursor-pointer"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">

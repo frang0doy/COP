@@ -12,13 +12,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [menuPanelStyle, setMenuPanelStyle] = useState<React.CSSProperties>({})
+  const [userMenuPanelStyle, setUserMenuPanelStyle] = useState<React.CSSProperties>({})
   const pathname = usePathname()
   const { data: session } = useSession()
   const { itemsCount } = useCart()
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
   const menuPanelRef = useRef<HTMLDivElement | null>(null)
+  const userButtonRef = useRef<HTMLButtonElement | null>(null)
+  const userPanelRef = useRef<HTMLDivElement | null>(null)
   
   // Detectar si estamos en la página de inicio
   const isHomePage = pathname === '/'
@@ -41,23 +45,29 @@ export default function Navbar() {
   // Cerrar menú al navegar/cambiar ruta
   useEffect(() => {
     setIsMenuOpen(false)
+    setIsUserMenuOpen(false)
   }, [pathname])
 
   // Cerrar menú con click afuera / Escape
   useEffect(() => {
-    if (!isMenuOpen) return
+    if (!isMenuOpen && !isUserMenuOpen) return
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false)
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false)
+        setIsUserMenuOpen(false)
+      }
     }
     const onPointerDown = (e: MouseEvent | PointerEvent) => {
       const target = e.target as Node | null
       if (!target) return
-      const clickedButton = menuButtonRef.current?.contains(target) ?? false
-      const clickedPanel = menuPanelRef.current?.contains(target) ?? false
-      if (!clickedButton && !clickedPanel) {
-        setIsMenuOpen(false)
-      }
+      const clickedMenuButton = menuButtonRef.current?.contains(target) ?? false
+      const clickedMenuPanel = menuPanelRef.current?.contains(target) ?? false
+      const clickedUserButton = userButtonRef.current?.contains(target) ?? false
+      const clickedUserPanel = userPanelRef.current?.contains(target) ?? false
+
+      if (!clickedMenuButton && !clickedMenuPanel) setIsMenuOpen(false)
+      if (!clickedUserButton && !clickedUserPanel) setIsUserMenuOpen(false)
     }
 
     window.addEventListener('keydown', onKeyDown)
@@ -98,6 +108,35 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', updatePosition)
   }, [isMenuOpen])
 
+  // Posicionar el panel exactamente debajo del botón de usuario
+  useEffect(() => {
+    if (!isUserMenuOpen) return
+
+    const updatePosition = () => {
+      const btn = userButtonRef.current
+      if (!btn) return
+
+      const rect = btn.getBoundingClientRect()
+      const gap = 12
+      const margin = 16
+      const panelWidth = Math.min(360, Math.max(260, window.innerWidth - margin * 2))
+
+      const desiredLeft = rect.right - panelWidth
+      const left = Math.max(margin, Math.min(desiredLeft, window.innerWidth - panelWidth - margin))
+      const top = rect.bottom + gap
+
+      setUserMenuPanelStyle({
+        top,
+        left,
+        width: panelWidth,
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    return () => window.removeEventListener('resize', updatePosition)
+  }, [isUserMenuOpen])
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -114,16 +153,22 @@ export default function Navbar() {
       {typeof document !== 'undefined' &&
         createPortal(
           <AnimatePresence>
-            {isMenuOpen && (
+            {(isMenuOpen || isUserMenuOpen) && (
               <>
+                {/* Backdrop compartido */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-md"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => {
+                    setIsMenuOpen(false)
+                    setIsUserMenuOpen(false)
+                  }}
                 />
 
+                {/* Panel de navegación */}
+                <AnimatePresence>
                 <motion.div
                   ref={menuPanelRef}
                   initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -134,6 +179,7 @@ export default function Navbar() {
                   style={menuPanelStyle}
                   role="menu"
                 >
+                  {isMenuOpen ? (
                   <div className="bg-black/95 border border-white/10 shadow-2xl overflow-hidden">
                     <div className="p-5">
                       <p className="text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
@@ -176,7 +222,7 @@ export default function Navbar() {
                         </Link>
                         <button
                           onClick={() => {
-                            signOut()
+                            signOut({ callbackUrl: '/' })
                             setIsMenuOpen(false)
                           }}
                           className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
@@ -187,7 +233,70 @@ export default function Navbar() {
                       </div>
                     )}
                   </div>
+                  ) : null}
                 </motion.div>
+                </AnimatePresence>
+
+                {/* Panel de usuario */}
+                <AnimatePresence>
+                  {isUserMenuOpen && session ? (
+                    <motion.div
+                      ref={userPanelRef}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      className="fixed z-[110]"
+                      style={userMenuPanelStyle}
+                      role="menu"
+                    >
+                      <div className="bg-black/95 border border-white/10 shadow-2xl overflow-hidden">
+                        <div className="p-5">
+                          <p className="text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
+                            Cuenta
+                          </p>
+                          <p className="text-lg font-semibold text-white mt-1">
+                            {session.user?.name || session.user?.email || 'Mi cuenta'}
+                          </p>
+                        </div>
+
+                        <div className="px-3 pb-3">
+                          <Link
+                            href="/pedidos"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                            role="menuitem"
+                          >
+                            <span className="text-base font-semibold">Mis pedidos</span>
+                            <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                          </Link>
+                          <Link
+                            href="/perfil"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                            role="menuitem"
+                          >
+                            <span className="text-base font-semibold">Mis datos</span>
+                            <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                          </Link>
+                        </div>
+
+                        <div className="border-t border-white/10 p-3">
+                          <button
+                            onClick={() => {
+                              signOut({ callbackUrl: '/' })
+                              setIsUserMenuOpen(false)
+                            }}
+                            className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                            role="menuitem"
+                          >
+                            Cerrar sesión
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </>
             )}
           </AnimatePresence>,
@@ -217,7 +326,10 @@ export default function Navbar() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setIsMenuOpen((v) => !v)}
+                onClick={() => {
+                  setIsMenuOpen((v) => !v)
+                  setIsUserMenuOpen(false)
+                }}
                 aria-haspopup="menu"
                 aria-expanded={isMenuOpen}
                 ref={menuButtonRef}
@@ -233,23 +345,27 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Iniciar sesión (dejar como está) / Perfil */}
+            {/* Usuario / Iniciar sesión */}
             {session ? (
-              <div className="hidden sm:flex items-center space-x-4">
-                <Link
-                  href="/perfil"
-                  className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
-                >
-                  <User className="w-5 h-5" />
-                  <span>{session.user?.name || 'Mi Perfil'}</span>
-                </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  Salir
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUserMenuOpen((v) => !v)
+                  setIsMenuOpen(false)
+                }}
+                aria-haspopup="menu"
+                aria-expanded={isUserMenuOpen}
+                ref={userButtonRef}
+                className={[
+                  'inline-flex h-10 items-center justify-center px-4 border transition-all',
+                  scrolled
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+                ].join(' ')}
+                title="Mi cuenta"
+              >
+                <User className="w-5 h-5" />
+              </button>
             ) : (
               <Link
                 href="/auth/login"

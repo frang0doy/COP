@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { prisma } from '@/lib/prisma'
+
+const MAX_PER_PRODUCT = 10
 
 // Inicializar Mercado Pago
 const client = new MercadoPagoConfig({
@@ -12,7 +15,7 @@ const client = new MercadoPagoConfig({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { items, userId } = body
+    const { items, userId, userEmail, shipping } = body
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -24,30 +27,132 @@ export async function POST(request: NextRequest) {
     // Crear preferencia de pago
     const preference = new Preference(client)
 
-    const preferenceData = {
-      items: items.map((item: any) => ({
-        title: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
+    const normalizedItems = (items as Array<{ id: number; quantity: number }>).map(
+      (i) => ({
+        id: Number(i.id),
+        quantity: Math.max(1, Math.floor(Number(i.quantity))),
+      })
+    )
+
+    const ids = Array.from(new Set(normalizedItems.map((i) => i.id))).filter((id) =>
+      Number.isFinite(id)
+    )
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: ids } },
+    })
+
+    const byId = new Map(products.map((p) => [p.id, p]))
+
+    const mpItems: Array<{
+      id: string
+      title: string
+      quantity: number
+      unit_price: number
+      currency_id: string
+    }> = []
+
+    const orderItemsCreate: Array<{
+      productId: number
+      name: string
+      unitPrice: number
+      quantity: number
+      subtotal: number
+    }> = []
+
+    let total = 0
+
+    for (const i of normalizedItems) {
+      const product = byId.get(i.id)
+      if (!product) {
+        return NextResponse.json(
+          { error: `Producto no encontrado (id: ${i.id})` },
+          { status: 400 }
+        )
+      }
+
+      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, product.stock))
+      if (maxAllowed <= 0) {
+        return NextResponse.json(
+          { error: `Sin stock para "${product.name}"` },
+          { status: 400 }
+        )
+      }
+
+      if (i.quantity > maxAllowed) {
+        return NextResponse.json(
+          {
+            error: `Cantidad inválida para "${product.name}". Máximo permitido: ${maxAllowed}.`,
+          },
+          { status: 400 }
+        )
+      }
+
+      const subtotal = product.price * i.quantity
+      total += subtotal
+
+      mpItems.push({
+        id: String(product.id),
+        title: product.name,
+        quantity: i.quantity,
+        unit_price: product.price,
         currency_id: 'MXN',
-      })),
-      payer: {
-        email: userId, // En producción, obtener el email del usuario autenticado
-      },
+      })
+
+      orderItemsCreate.push({
+        productId: product.id,
+        name: product.name,
+        unitPrice: product.price,
+        quantity: i.quantity,
+        subtotal,
+      })
+    }
+
+    const order = await prisma.$transaction(async (tx) => {
+      const agg = await tx.order.aggregate({
+        _max: { number: true },
+      })
+      const nextNumber = (agg._max.number ?? 0) + 1
+
+      return await tx.order.create({
+        data: {
+          number: nextNumber,
+          userId: userId ?? null,
+          userEmail: userEmail ?? null,
+          total,
+          shipping: shipping ?? null,
+          items: { create: orderItemsCreate },
+        },
+      })
+    })
+
+    const origin =
+      request.headers.get('origin') || process.env.NEXTAUTH_URL || ''
+
+    const preferenceData = {
+      items: mpItems,
+      payer: userEmail ? { email: userEmail } : undefined,
       back_urls: {
-        success: `${process.env.NEXTAUTH_URL}/checkout/success`,
-        failure: `${process.env.NEXTAUTH_URL}/checkout/failure`,
-        pending: `${process.env.NEXTAUTH_URL}/checkout/pending`,
+        success: `${origin}/checkout/success`,
+        failure: `${origin}/checkout/failure`,
+        pending: `${origin}/checkout/pending`,
       },
       auto_return: 'approved',
-      notification_url: `${process.env.NEXTAUTH_URL}/api/mercadopago/webhook`,
+      external_reference: order.id,
+      notification_url: origin ? `${origin}/api/mercadopago/webhook` : undefined,
     }
 
     const response = await preference.create({ body: preferenceData })
 
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { mpPreferenceId: response.id ?? null },
+    })
+
     return NextResponse.json({
       init_point: response.init_point,
       preference_id: response.id,
+      order_id: order.id,
     })
   } catch (error: any) {
     console.error('Error creating Mercado Pago preference:', error)

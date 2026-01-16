@@ -4,14 +4,40 @@ import { useState, useEffect } from 'react'
 import ProductCard from './ProductCard'
 import { Search, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { CATEGORY_LABEL, CATEGORY_ORDER, CATEGORY_THEME, PRODUCTS, type CategoryKey, type Product } from './catalog'
+import { CATEGORY_LABEL, CATEGORY_ORDER, CATEGORY_THEME, type CategoryKey } from './catalog'
+import type { Product } from '@prisma/client'
 
 export default function ProductsList() {
-  const [products] = useState<Product[]>(PRODUCTS)
+  const [products, setProducts] = useState<Product[]>([])
   const totalProducts = products.length
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(PRODUCTS)
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'Todos' | CategoryKey>('Todos')
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/products', { cache: 'no-store' })
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          throw new Error(text || `Error HTTP ${res.status}`)
+        }
+        const data = (await res.json()) as Product[]
+        if (cancelled) return
+        setProducts(data)
+        setFilteredProducts(data)
+        setLoadError(null)
+      } catch (e) {
+        console.error(e)
+        if (!cancelled) setLoadError('No se pudieron cargar los productos.')
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let filtered = products
@@ -150,7 +176,18 @@ export default function ProductsList() {
           )}
 
           <div className="p-4 md:p-6">
-            {filteredProducts.length > 0 ? (
+            {loadError ? (
+              <div className="text-center py-16">
+                <p className="text-gray-600 mb-4">{loadError}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-black hover:text-gray-600 underline"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : null}
+            {!loadError && filteredProducts.length > 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -178,14 +215,14 @@ export default function ProductsList() {
                   </motion.div>
                 ))}
               </motion.div>
-            ) : (
+            ) : !loadError ? (
               <div className="text-center py-20">
                 <p className="text-gray-500 text-lg mb-4">No se encontraron productos</p>
                 <button onClick={clearFilters} className="text-black hover:text-gray-600 underline">
                   Limpiar filtros
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>

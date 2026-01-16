@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { signIn } from 'next-auth/react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -35,10 +36,38 @@ export default function RegisterPage() {
     }
 
     try {
-      // En producción, esto haría una llamada a la API para crear el usuario
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast.success('Cuenta creada exitosamente. Por favor inicia sesión.')
-      router.push('/auth/login')
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data?.error || 'Error al crear la cuenta')
+        return
+      }
+
+      // Auto-login
+      const login = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (login?.error) {
+        toast.success('Cuenta creada. Ahora inicia sesión.')
+        router.push('/auth/login')
+        return
+      }
+
+      toast.success('Cuenta creada e inicio de sesión exitoso')
+      router.push('/perfil')
+      router.refresh()
     } catch (error) {
       toast.error('Error al crear la cuenta')
     } finally {

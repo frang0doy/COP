@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
 import { ShoppingCart, ArrowLeft, CheckCircle, Download } from 'lucide-react'
 import Link from 'next/link'
-import { CATEGORY_LABEL, CATEGORY_THEME, PRODUCTS, type Product } from './catalog'
+import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
+import type { Product } from '@prisma/client'
 
 interface ProductDetailProps {
   productId: string
@@ -12,13 +13,41 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ productId }: ProductDetailProps) {
   const [product, setProduct] = useState<Product | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const { addItem } = useCart()
 
   useEffect(() => {
-    const foundProduct = PRODUCTS.find((p) => p.id === parseInt(productId))
-    setProduct(foundProduct || null)
+    let cancelled = false
+    setIsLoading(true)
+    ;(async () => {
+      const res = await fetch(`/api/products/${productId}`, { cache: 'no-store' })
+      if (!res.ok) {
+        if (!cancelled) {
+          setProduct(null)
+          setIsLoading(false)
+        }
+        return
+      }
+      const data = (await res.json()) as Product
+      if (cancelled) return
+      setProduct(data)
+      setIsLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [productId])
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <p className="text-gray-500">Cargando producto...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!product) {
     return (
@@ -33,21 +62,33 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     )
   }
 
+  const MAX_PER_PRODUCT = 10
+  const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, product.stock))
+
   const handleAddToCart = () => {
+    if (maxAllowed <= 0) return
     addItem(
       {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image,
-        // Stock desactivado por ahora hasta integrar DB
-        stock: Number.MAX_SAFE_INTEGER,
+        image: product.image ?? undefined,
+        stock: product.stock,
       },
       quantity
     )
   }
 
-  const theme = CATEGORY_THEME[product.category]
+  const categoryKey: CategoryKey =
+    product.category in CATEGORY_THEME
+      ? (product.category as CategoryKey)
+      : 'adhesivos'
+
+  const theme = CATEGORY_THEME[categoryKey]
+  const categoryLabel =
+    categoryKey in CATEGORY_LABEL ? CATEGORY_LABEL[categoryKey] : 'Producto'
+
+  const technicalSummary = (product.technicalSummary ?? null) as any
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -85,7 +126,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           <div className="border-t border-gray-200 lg:border-t-0 lg:border-l border-gray-200 p-6 sm:p-10">
           <span className="text-xs text-gray-600 font-medium tracking-wider uppercase flex items-center gap-2">
             <span className={['w-2 h-2', theme.accent].join(' ')} />
-            {CATEGORY_LABEL[product.category]}
+            {categoryLabel}
           </span>
 
           <div className="mt-2 mb-4 flex items-start gap-3 flex-wrap">
@@ -123,7 +164,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </div>
 
           {/* INFOGRAFÍA (estilo ficha, inspirado en la referencia) */}
-          {product.technicalSummary && (
+          {technicalSummary && (
             <section className="mb-6">
               <div className="bg-white border border-gray-200 overflow-hidden ring-1 ring-black/5">
                 <div className="h-1 w-full bg-gray-100">
@@ -140,51 +181,51 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                         Datos clave del producto
                       </p>
                     </div>
-                    {product.technicalSummary.observaciones && (
+                    {technicalSummary.observaciones && (
                       <span className="text-xs font-semibold text-black bg-gray-100 border border-gray-200 px-2 py-1 shrink-0">
-                        {product.technicalSummary.observaciones}
+                        {technicalSummary.observaciones}
                       </span>
                     )}
                   </div>
 
                   {/* Presentación destacada */}
-                  {product.technicalSummary.presentacion && (
+                  {technicalSummary.presentacion && (
                     <div className="mt-5 border border-gray-200 bg-gray-50 p-4">
                       <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                         Presentación
                       </p>
                       <p className="text-2xl sm:text-3xl font-bold text-black mt-1">
-                        {product.technicalSummary.presentacion}
+                        {technicalSummary.presentacion}
                       </p>
                     </div>
                   )}
 
                   {/* Bullets (sin duplicar toda la ficha; solo lo más “vendible”) */}
                   <ul className="mt-5 space-y-2 text-sm text-gray-700">
-                    {product.technicalSummary.rendimiento && (
+                    {technicalSummary.rendimiento && (
                       <li className="flex gap-2">
                         <span className={['mt-2 w-2 h-2 shrink-0', theme.accent].join(' ')} />
                         <span>
                           <span className="font-semibold text-black">Rendimiento:</span>{' '}
-                          {product.technicalSummary.rendimiento}
+                          {technicalSummary.rendimiento}
                         </span>
                       </li>
                     )}
-                    {product.technicalSummary.conservacion && (
+                    {technicalSummary.conservacion && (
                       <li className="flex gap-2">
                         <span className={['mt-2 w-2 h-2 shrink-0', theme.accent].join(' ')} />
                         <span>
                           <span className="font-semibold text-black">Conservación:</span>{' '}
-                          {product.technicalSummary.conservacion}
+                          {technicalSummary.conservacion}
                         </span>
                       </li>
                     )}
-                    {product.technicalSummary.almacenaje && (
+                    {technicalSummary.almacenaje && (
                       <li className="flex gap-2">
                         <span className={['mt-2 w-2 h-2 shrink-0', theme.accent].join(' ')} />
                         <span>
                           <span className="font-semibold text-black">Almacenaje:</span>{' '}
-                          {product.technicalSummary.almacenaje}
+                          {technicalSummary.almacenaje}
                         </span>
                       </li>
                     )}
@@ -192,23 +233,23 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
                   {/* Bloques tipo “ficha” */}
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    {product.technicalSummary.colores && (
+                    {technicalSummary.colores && (
                       <div className="border border-gray-200 p-4">
                         <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                           Colores del producto
                         </p>
                         <p className="text-black mt-2 line-clamp-3">
-                          {product.technicalSummary.colores}
+                          {technicalSummary.colores}
                         </p>
                       </div>
                     )}
-                    {product.technicalSummary.usos && (
+                    {technicalSummary.usos && (
                       <div className="border border-gray-200 p-4 sm:col-span-2">
                         <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                           Usos
                         </p>
                         <p className="text-black mt-2 line-clamp-5">
-                          {product.technicalSummary.usos}
+                          {technicalSummary.usos}
                         </p>
                       </div>
                     )}
@@ -222,7 +263,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           <div className="mb-6 space-y-2">
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">Producto disponible</span>
+              <span className="text-gray-600">
+                {product.stock > 0 ? `Stock: ${maxAllowed}` : 'Sin stock'}
+              </span>
             </div>
           </div>
 
@@ -235,6 +278,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <div className="flex items-center border-2 border-black rounded-lg">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
                   className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
                 >
                   -
@@ -242,15 +286,17 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 <input
                   type="number"
                   min="1"
+                  max={maxAllowed || 1}
                   value={quantity}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 1
-                    setQuantity(Math.max(1, val))
+                    setQuantity(Math.max(1, Math.min(val, maxAllowed || 1)))
                   }}
                   className="w-20 text-center border-0 focus:ring-0 bg-transparent"
                 />
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min((maxAllowed || 1), quantity + 1))}
+                  disabled={maxAllowed <= 0 || quantity >= (maxAllowed || 1)}
                   className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
                 >
                   +
@@ -261,13 +307,16 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
           <button
             onClick={handleAddToCart}
+            disabled={maxAllowed <= 0}
             className={`w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 font-semibold text-lg transition ${
-              'bg-black text-white border-black hover:bg-gray-900'
+              maxAllowed > 0
+                ? 'bg-black text-white border-black hover:bg-gray-900'
+                : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
             }`}
           >
             <ShoppingCart className="w-5 h-5" />
             <span>
-              {`Agregar ${quantity} al Carrito`}
+              {maxAllowed > 0 ? `Agregar ${quantity} al Carrito` : 'Sin stock'}
             </span>
           </button>
           </div>

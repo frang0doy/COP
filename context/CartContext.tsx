@@ -4,6 +4,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import toast from 'react-hot-toast'
 import { ShoppingCart, Trash2 } from 'lucide-react'
 
+const MAX_PER_PRODUCT = 10
+
 export interface CartItem {
   id: number
   name: string
@@ -104,7 +106,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
       try {
-        setItems(JSON.parse(savedCart))
+        const parsed = JSON.parse(savedCart) as CartItem[]
+        const sanitized = Array.isArray(parsed)
+          ? parsed
+              .filter((i) => i && typeof i.id === 'number')
+              .map((i) => {
+                const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, i.stock ?? 0))
+                const qty = Math.max(1, Math.floor(i.quantity ?? 1))
+                return { ...i, quantity: Math.min(qty, maxAllowed || 1) }
+              })
+          : []
+
+        setItems(sanitized)
       } catch (error) {
         console.error('Error loading cart:', error)
       }
@@ -121,25 +134,53 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id)
+      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, item.stock ?? 0))
+
+      if (maxAllowed <= 0) {
+        showCartToast({
+          intent: 'danger',
+          title: 'Sin stock',
+          description: item.name,
+          toastId: `cart-stock-0-${item.id}`,
+        })
+        return prevItems
+      }
       
       if (existingItem) {
+        const desired = existingItem.quantity + qty
+        const nextQty = Math.min(desired, maxAllowed)
+        const delta = nextQty - existingItem.quantity
+
+        if (delta <= 0) {
+          showCartToast({
+            intent: 'danger',
+            title: `Máximo ${maxAllowed} unidades por producto`,
+            description: item.name,
+            toastId: `cart-max-${item.id}`,
+          })
+          return prevItems
+        }
+
         showCartToast({
           intent: 'success',
           title: 'Cantidad actualizada en el carrito',
-          description: `${item.name} (+${qty})`,
+          description: `${item.name} (+${delta})`,
           toastId: `cart-add-${item.id}`,
         })
         return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: existingItem.quantity + qty } : i
+          i.id === item.id
+            ? { ...i, ...item, quantity: nextQty }
+            : i
         )
       } else {
+        const firstQty = Math.min(qty, maxAllowed)
         showCartToast({
           intent: 'success',
           title: 'Producto agregado al carrito',
-          description: `${qty} × ${item.name}`,
+          description: `${firstQty} × ${item.name}`,
           toastId: `cart-add-${item.id}`,
         })
-        return [...prevItems, { ...item, quantity: qty }]
+        return [...prevItems, { ...item, quantity: firstQty }]
       }
     })
   }
@@ -169,8 +210,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const item = prevItems.find((i) => i.id === id)
       if (!item) return prevItems
 
+      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, item.stock ?? 0))
+      if (maxAllowed <= 0) {
+        return prevItems.filter((i) => i.id !== id)
+      }
+
+      const nextQty = Math.min(Math.floor(quantity), maxAllowed)
+      if (nextQty !== quantity) {
+        toast.error(`Máximo ${maxAllowed} unidades para "${item.name}"`)
+      }
+
       return prevItems.map((i) =>
-        i.id === id ? { ...i, quantity } : i
+        i.id === id ? { ...i, quantity: nextQty } : i
       )
     })
   }

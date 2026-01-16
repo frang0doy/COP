@@ -33,11 +33,11 @@ export default function CheckoutForm() {
         },
         body: JSON.stringify({
           items: items.map((item) => ({
-            name: item.name,
+            id: item.id,
             quantity: item.quantity,
-            price: item.price,
           })),
-          userId: session?.user?.email,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
           shipping: shippingData,
         }),
       })
