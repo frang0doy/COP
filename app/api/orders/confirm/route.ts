@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { confirmOrder, type OrderConfirmStatus } from '@/lib/orders'
 
 type ConfirmBody = {
   orderId?: string
@@ -8,6 +8,12 @@ type ConfirmBody = {
 }
 
 export async function POST(req: NextRequest) {
+  const secret = process.env.ORDER_CONFIRM_SECRET || 'dev-order-confirm-secret'
+  const provided = req.headers.get('x-order-confirm-secret')
+  if (provided !== secret) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const body = (await req.json().catch(() => ({}))) as ConfirmBody
   const orderId = body.orderId?.trim()
 
@@ -16,7 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   const statusRaw = (body.status ?? '').toLowerCase()
-  const nextStatus =
+  const nextStatus: OrderConfirmStatus =
     statusRaw === 'approved'
       ? 'APPROVED'
       : statusRaw === 'rejected' || statusRaw === 'failure'
@@ -24,50 +30,10 @@ export async function POST(req: NextRequest) {
         : 'PENDING'
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: { id: orderId },
-        include: { items: true },
-      })
-
-      if (!order) {
-        throw new Error('Pedido no encontrado')
-      }
-
-      // Si ya está aprobado, devolvemos ok (idempotente).
-      if (order.status === 'APPROVED') {
-        return order
-      }
-
-      if (nextStatus === 'APPROVED') {
-        // Validamos stock nuevamente y descontamos.
-        for (const item of order.items) {
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-          })
-          if (!product) {
-            throw new Error(`Producto no encontrado (id: ${item.productId})`)
-          }
-          if (product.stock < item.quantity) {
-            throw new Error(`Stock insuficiente para "${product.name}"`)
-          }
-
-          await tx.product.update({
-            where: { id: product.id },
-            data: { stock: { decrement: item.quantity } },
-          })
-        }
-      }
-
-      const updated = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: nextStatus as any,
-          mpPaymentId: body.paymentId ?? null,
-        },
-      })
-
-      return updated
+    const result = await confirmOrder({
+      orderId,
+      paymentId: body.paymentId ?? null,
+      status: nextStatus,
     })
 
     return NextResponse.json({ ok: true, order: result })

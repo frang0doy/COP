@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         title: product.name,
         quantity: i.quantity,
         unit_price: product.price,
-        currency_id: 'MXN',
+        currency_id: 'ARS',
       })
 
       orderItemsCreate.push({
@@ -139,6 +139,10 @@ export async function POST(request: NextRequest) {
       },
       auto_return: 'approved',
       external_reference: order.id,
+      metadata: {
+        orderId: order.id,
+        orderNumber: order.number ?? undefined,
+      },
       notification_url: origin ? `${origin}/api/mercadopago/webhook` : undefined,
     }
 

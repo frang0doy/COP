@@ -12,30 +12,13 @@ import { useEffect } from 'react'
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const paymentId = searchParams.get('payment_id')
-  const status = searchParams.get('status')
-  const externalReference = searchParams.get('external_reference')
   const { clearCart } = useCart()
 
   useEffect(() => {
-    // Limpiar el carrito + confirmar el pedido (si MP devuelve external_reference)
     if (!paymentId) return
 
     clearCart()
-
-    if (!externalReference) return
-
-    ;(async () => {
-      await fetch('/api/orders/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: externalReference,
-          paymentId,
-          status,
-        }),
-      })
-    })()
-  }, [paymentId, status, externalReference, clearCart])
+  }, [paymentId, clearCart])
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
