@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 
-// Fallback para desarrollo: si no existe DATABASE_URL, usamos el SQLite local.
-// Esto evita que las rutas /api fallen y el frontend muestre 0 productos.
-if (!process.env.DATABASE_URL) {
+// Fallback SOLO para desarrollo local: si no existe DATABASE_URL, usamos el SQLite local.
+// En producción (Vercel) NO hacemos fallback para evitar que parezca “todo OK” con una DB vacía/efímera.
+if (process.env.NODE_ENV !== 'production' && !process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'file:./dev.db'
 }
 
