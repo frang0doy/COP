@@ -1,10 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useSession } from 'next-auth/react'
-import { MapPin, Phone, Mail, CreditCard } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+type Me = {
+  id: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+}
 
 export default function CheckoutForm() {
   const { items, total, clearCart } = useCart()
@@ -19,6 +30,66 @@ export default function CheckoutForm() {
     zipCode: '',
   })
   const [isProcessing, setIsProcessing] = useState(false)
+  const [me, setMe] = useState<Me | null>(null)
+  const [showUseSavedPrompt, setShowUseSavedPrompt] = useState(false)
+
+  const hasSavedShipping = useMemo(() => {
+    if (!me) return false
+    return Boolean(
+      (me.phone && me.phone.trim()) ||
+        (me.address && me.address.trim()) ||
+        (me.city && me.city.trim()) ||
+        (me.state && me.state.trim()) ||
+        (me.zipCode && me.zipCode.trim())
+    )
+  }, [me])
+
+  const formLooksEmpty = useMemo(() => {
+    return (
+      !shippingData.phone.trim() &&
+      !shippingData.address.trim() &&
+      !shippingData.city.trim() &&
+      !shippingData.state.trim() &&
+      !shippingData.zipCode.trim()
+    )
+  }, [shippingData])
+
+  const applySavedData = () => {
+    if (!me) return
+    setShippingData((prev) => ({
+      ...prev,
+      name: me.name ?? prev.name,
+      email: me.email ?? prev.email,
+      phone: me.phone ?? prev.phone,
+      address: me.address ?? prev.address,
+      city: me.city ?? prev.city,
+      state: me.state ?? prev.state,
+      zipCode: me.zipCode ?? prev.zipCode,
+    }))
+    setShowUseSavedPrompt(false)
+  }
+
+  useEffect(() => {
+    // Traer "mis datos" para poder ofrecer autocompletar en checkout
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) return
+      if (cancelled) return
+      setMe((data?.user ?? null) as Me | null)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    // Mostrar sugerencia solo si hay datos guardados y el formulario está vacío.
+    if (hasSavedShipping && formLooksEmpty) {
+      setShowUseSavedPrompt(true)
+    }
+  }, [hasSavedShipping, formLooksEmpty])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,8 +136,55 @@ export default function CheckoutForm() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Formulario de envío */}
       <div className="lg:col-span-2">
+        {showUseSavedPrompt && hasSavedShipping ? (
+          <div className="mb-4 border border-gray-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                ¿Querés completar con tus datos guardados?
+              </p>
+              <p className="text-xs text-gray-600">
+                Podés editarlos igual antes de pagar.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowUseSavedPrompt(false)}
+                className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={applySavedData}
+                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+              >
+                Sí, usar mis datos
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Datos de Envío</h2>
+
+          {hasSavedShipping ? (
+            <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs text-gray-700">
+                Si ya cargaste “Mis datos”, podés autocompletar el formulario.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  applySavedData()
+                  toast.success('Datos cargados desde tu perfil')
+                }}
+                className="shrink-0 text-xs font-semibold text-black underline hover:text-gray-700"
+              >
+                Cargar mis datos
+              </button>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

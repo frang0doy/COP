@@ -20,14 +20,19 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false)
   const [showRememberPrompt, setShowRememberPrompt] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState<string>('/')
+  const [dontAskRememberAgain, setDontAskRememberAgain] = useState(false)
 
   useEffect(() => {
     // Pre-cargar email recordado (si existe)
     try {
       const savedEmail = localStorage.getItem('auth.remember.email')
+      const dontAsk = localStorage.getItem('auth.remember.dontAsk') === '1'
+      setDontAskRememberAgain(dontAsk)
       if (savedEmail) {
         setEmail(savedEmail)
         setRememberMe(true)
+        // si ya hay email guardado, nunca volvemos a preguntar
+        setDontAskRememberAgain(true)
       }
     } catch {}
   }, [])
@@ -46,11 +51,21 @@ function LoginForm() {
       if (result?.error) {
         toast.error('Credenciales incorrectas')
       } else {
-        // Guardar email si marcó "Recordarme", si no preguntamos antes de redirigir
+        // Guardar email si marcó "Recordarme". Si no, preguntamos antes de redirigir
         if (rememberMe) {
           try {
             localStorage.setItem('auth.remember.email', email.trim())
+            localStorage.setItem('auth.remember.dontAsk', '1')
+            setDontAskRememberAgain(true)
           } catch {}
+          toast.success('Sesión iniciada correctamente')
+          router.push(callbackUrl)
+          router.refresh()
+          return
+        }
+
+        // Si ya aceptó una vez "no volver a preguntar", no mostramos el prompt.
+        if (dontAskRememberAgain) {
           toast.success('Sesión iniciada correctamente')
           router.push(callbackUrl)
           router.refresh()
@@ -70,47 +85,54 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       {showRememberPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/30"
             onClick={() => setShowRememberPrompt(false)}
           />
-          <div className="relative w-full max-w-md bg-white border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-lg font-bold text-gray-900">¿Guardar datos de la cuenta?</h3>
-            <p className="text-sm text-gray-600 mt-2">
-              Podemos recordar tu email en este dispositivo para que sea más rápido iniciar sesión.
-            </p>
-            <div className="mt-5 flex gap-3 justify-end">
-              <button
-                type="button"
-                className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
-                onClick={() => {
-                  try {
-                    localStorage.removeItem('auth.remember.email')
-                  } catch {}
-                  setShowRememberPrompt(false)
-                  toast.success('Sesión iniciada correctamente')
-                  router.push(pendingRedirect)
-                  router.refresh()
-                }}
-              >
-                No guardar
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
-                onClick={() => {
-                  try {
-                    localStorage.setItem('auth.remember.email', email.trim())
-                  } catch {}
-                  setShowRememberPrompt(false)
-                  toast.success('Sesión iniciada correctamente')
-                  router.push(pendingRedirect)
-                  router.refresh()
-                }}
-              >
-                Guardar
-              </button>
+          <div className="absolute right-4 top-24 w-[min(92vw,420px)]">
+            <div className="bg-white border border-gray-200 shadow-2xl p-6">
+              <h3 className="text-lg font-bold text-gray-900">¿Guardar datos de la cuenta?</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Podemos recordar tu email en este dispositivo para que sea más rápido iniciar sesión.
+              </p>
+              <div className="mt-5 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+                  onClick={() => {
+                    // Si elige "No", NO guardamos preferencia: se le volverá a preguntar en próximos logins.
+                    try {
+                      localStorage.removeItem('auth.remember.email')
+                      localStorage.removeItem('auth.remember.dontAsk')
+                    } catch {}
+                    setDontAskRememberAgain(false)
+                    setShowRememberPrompt(false)
+                    toast.success('Sesión iniciada correctamente')
+                    router.push(pendingRedirect)
+                    router.refresh()
+                  }}
+                >
+                  No guardar
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                  onClick={() => {
+                    try {
+                      localStorage.setItem('auth.remember.email', email.trim())
+                      localStorage.setItem('auth.remember.dontAsk', '1')
+                    } catch {}
+                    setDontAskRememberAgain(true)
+                    setShowRememberPrompt(false)
+                    toast.success('Sesión iniciada correctamente')
+                    router.push(pendingRedirect)
+                    router.refresh()
+                  }}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
         </div>

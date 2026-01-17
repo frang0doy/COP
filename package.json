@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "clean:next": "node scripts/clean-next.js",
+    "dev:clean": "node scripts/clean-next.js && next dev",
     "vercel-build": "prisma generate && prisma db push && prisma db seed && next build",
     "build": "next build",
+    "build:clean": "node scripts/clean-next.js && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
@@ -45,6 +48,7 @@
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
+    "rimraf": "^6.1.2",
     "tsx": "^4.21.0"
   },
   "prisma": {
