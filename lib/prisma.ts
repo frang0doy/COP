@@ -1,11 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 
-// Fallback SOLO para desarrollo local: si no existe DATABASE_URL, usamos el SQLite local.
-// En producción (Vercel) NO hacemos fallback para evitar que parezca “todo OK” con una DB vacía/efímera.
-if (process.env.NODE_ENV !== 'production' && !process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'file:./dev.db'
-}
-
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined
