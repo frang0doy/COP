@@ -6,14 +6,24 @@ function toPrismaJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value))
 }
 
+function copSku(index1Based: number) {
+  // Formato pedido: COP-01 ... COP-40
+  return `COP-${String(index1Based).padStart(2, '0')}`
+}
+
 async function main() {
   console.log(`Seedeando ${PRODUCTS.length} productos...`)
 
-  for (const p of PRODUCTS) {
+  // Asignamos SKUs COP-01.. en un orden estable (por id asc).
+  const ordered = [...PRODUCTS].sort((a, b) => a.id - b.id)
+
+  for (let i = 0; i < ordered.length; i++) {
+    const p = ordered[i]
+    const sku = copSku(i + 1)
     await prisma.product.upsert({
       where: { id: p.id },
       update: {
-        sku: p.sku,
+        sku,
         name: p.name,
         description: p.description,
         category: p.category,
@@ -26,7 +36,7 @@ async function main() {
       },
       create: {
         id: p.id,
-        sku: p.sku,
+        sku,
         name: p.name,
         description: p.description,
         category: p.category,

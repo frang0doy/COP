@@ -5,7 +5,7 @@ Este proyecto actualiza productos **por SKU** (no por ID).
 ### Requisitos
 
 - Un Excel `.xlsx` con columnas que incluyan:
-  - **SKU** (ej: `ADH-001`)
+  - **SKU** (ej: `COP-01`)
   - **Precio** (pesos ARS; se guardará como entero)
   - **Stock** (entero)
 
