@@ -14,6 +14,26 @@ const client = new MercadoPagoConfig({
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.MP_ACCESS_TOKEN) {
+      return NextResponse.json(
+        { error: 'MP_ACCESS_TOKEN no configurado' },
+        { status: 500 }
+      )
+    }
+
+    const requestOrigin = new URL(request.url).origin
+    const envBaseUrl = (process.env.NEXTAUTH_URL || '').trim()
+    const baseUrl = (() => {
+      if (envBaseUrl) {
+        try {
+          return new URL(envBaseUrl).origin
+        } catch {
+          // ignore
+        }
+      }
+      return requestOrigin
+    })()
+
     const body = await request.json()
     const { items, userId, userEmail, shipping } = body
 
@@ -96,7 +116,7 @@ export async function POST(request: NextRequest) {
         title: product.name,
         quantity: i.quantity,
         unit_price: product.price,
-        currency_id: 'ARS',
+        currency_id: process.env.MP_CURRENCY_ID || 'ARS',
       })
 
       orderItemsCreate.push({
@@ -126,8 +146,21 @@ export async function POST(request: NextRequest) {
       })
     })
 
-    const origin =
-      request.headers.get('origin') || process.env.NEXTAUTH_URL || ''
+    // Usamos baseUrl absoluto para back_urls (MP requiere URLs completas).
+    const origin = baseUrl
+    const hostname = (() => {
+      try {
+        return new URL(origin).hostname
+      } catch {
+        return ''
+      }
+    })()
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1'
+    const notificationUrl =
+      process.env.MP_NOTIFICATION_URL ||
+      (origin && origin.startsWith('https://')
+        ? `${origin}/api/mercadopago/webhook`
+        : undefined)
 
     const preferenceData = {
       items: mpItems,
@@ -137,13 +170,16 @@ export async function POST(request: NextRequest) {
         failure: `${origin}/checkout/failure`,
         pending: `${origin}/checkout/pending`,
       },
-      auto_return: 'approved',
+      // En local/localhost MP suele rechazar auto_return por políticas/validación de URLs.
+      ...(isLocalhost ? {} : { auto_return: 'approved' as const }),
       external_reference: order.id,
       metadata: {
         orderId: order.id,
         orderNumber: order.number ?? undefined,
       },
-      notification_url: origin ? `${origin}/api/mercadopago/webhook` : undefined,
+      // En producción, MP suele exigir una URL pública/https para webhooks.
+      // En local (http://localhost:xxxx) lo omitimos para evitar errores de políticas.
+      notification_url: notificationUrl,
     }
 
     const response = await preference.create({ body: preferenceData })
@@ -161,7 +197,11 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating Mercado Pago preference:', error)
     return NextResponse.json(
-      { error: 'Error al crear la preferencia de pago', details: error.message },
+      {
+        error: 'Error al crear la preferencia de pago',
+        details: error?.message ?? 'Error',
+        mp: error?.cause ?? error,
+      },
       { status: 500 }
     )
   }
