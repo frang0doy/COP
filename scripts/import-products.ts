@@ -48,7 +48,9 @@ function normKey(s: string) {
 
 function normName(s: string) {
   return normKey(s)
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    // Evitamos Unicode property escapes (\p{L}\p{N}) para no depender del target ES2018 en builds (ej: Vercel).
+    // Como ya normalizamos y quitamos diacríticos, nos alcanza con [a-z0-9].
+    .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .replace(/\s+/g, ' ')
 }
