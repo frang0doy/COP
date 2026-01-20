@@ -22,8 +22,7 @@ async function main() {
         name: p.name,
         description: p.description,
         category: p.category,
-        price: p.price,
-        stock: p.stock,
+        // No pisamos price/stock en updates: en producción pueden venir de importación/BD real.
         image: p.image,
         isNew: Boolean(p.isNew),
         technicalSheet: p.technicalSheet,
