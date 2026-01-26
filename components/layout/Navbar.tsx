@@ -14,6 +14,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [menuPanelStyle, setMenuPanelStyle] = useState<React.CSSProperties>({})
   const [userMenuPanelStyle, setUserMenuPanelStyle] = useState<React.CSSProperties>({})
   const pathname = usePathname()
@@ -47,6 +48,24 @@ export default function Navbar() {
     setIsMenuOpen(false)
     setIsUserMenuOpen(false)
   }, [pathname])
+
+  // Detectar si el usuario es admin (para mostrar accesos)
+  useEffect(() => {
+    if (!session) {
+      setIsAdmin(false)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (cancelled) return
+      setIsAdmin(data?.user?.role === 'ADMIN')
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session])
 
   // Cerrar menú con click afuera / Escape
   useEffect(() => {
@@ -196,6 +215,7 @@ export default function Navbar() {
                         { href: '/productos', label: 'Productos' },
                         { href: '/empresa', label: 'Empresa' },
                         { href: '/contacto', label: 'Contacto' },
+                        ...(isAdmin ? [{ href: '/admin/productos', label: 'Admin productos' }] : []),
                       ].map((item) => (
                         <Link
                           key={item.href}
@@ -270,6 +290,17 @@ export default function Navbar() {
                             <span className="text-base font-semibold">Mis pedidos</span>
                             <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
                           </Link>
+                          {isAdmin ? (
+                            <Link
+                              href="/admin/productos"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                              role="menuitem"
+                            >
+                              <span className="text-base font-semibold">Admin productos</span>
+                              <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                            </Link>
+                          ) : null}
                           <Link
                             href="/perfil"
                             onClick={() => setIsUserMenuOpen(false)}

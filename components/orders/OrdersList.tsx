@@ -102,7 +102,9 @@ export default function OrdersList() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Pedido #{order.number ?? order.id}
+                <Link href={`/pedidos/${order.id}`} className="hover:underline">
+                  Pedido #{order.number ?? order.id}
+                </Link>
               </h3>
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center space-x-1">

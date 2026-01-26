@@ -38,6 +38,13 @@ export async function confirmOrder(params: {
       data: {
         status: status as any,
         mpPaymentId: paymentId ?? null,
+        mpStatus:
+          status === 'APPROVED'
+            ? 'approved'
+            : status === 'REJECTED'
+              ? 'rejected'
+              : 'pending',
+        paidAt: status === 'APPROVED' ? new Date() : null,
       },
     })
   })

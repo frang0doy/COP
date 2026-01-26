@@ -10,6 +10,7 @@ npm install
 2. Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
 ```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB?sslmode=require
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=tu-secret-key-aqui
 MP_ACCESS_TOKEN=tu-mercadopago-access-token
@@ -36,6 +37,20 @@ npm run dev
 ```
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+
+## Deploy en Vercel (Producción)
+
+1. Crea una base de datos en Neon y copia la cadena de conexión.
+2. En Vercel: **Project → Settings → Environment Variables**, configura (Production):
+   - `DATABASE_URL`
+   - `NEXTAUTH_URL` (tu dominio `https://...`)
+   - `NEXTAUTH_SECRET`
+   - `MP_ACCESS_TOKEN`
+3. Redeploy.
+
+Notas:
+- Como el schema es PostgreSQL, en producción `DATABASE_URL` es obligatoria.
+- Para webhooks de Mercado Pago, la URL típica es `https://<tu-dominio>/api/mercadopago/webhook`.
 
 ## Estructura del Proyecto
 

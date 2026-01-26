@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { confirmOrder, type OrderConfirmStatus } from '@/lib/orders'
+import { maybeSendOrderApprovedEmail } from '@/lib/order-email'
 
 type ConfirmBody = {
   orderId?: string
@@ -35,6 +36,14 @@ export async function POST(req: NextRequest) {
       paymentId: body.paymentId ?? null,
       status: nextStatus,
     })
+
+    if (nextStatus === 'APPROVED') {
+      try {
+        await maybeSendOrderApprovedEmail(orderId)
+      } catch (e) {
+        console.error('order-email confirm error:', e)
+      }
+    }
 
     return NextResponse.json({ ok: true, order: result })
   } catch (e: any) {

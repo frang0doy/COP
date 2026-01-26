@@ -129,14 +129,8 @@ export async function POST(request: NextRequest) {
     }
 
     const order = await prisma.$transaction(async (tx) => {
-      const agg = await tx.order.aggregate({
-        _max: { number: true },
-      })
-      const nextNumber = (agg._max.number ?? 0) + 1
-
       return await tx.order.create({
         data: {
-          number: nextNumber,
           userId: userId ?? null,
           userEmail: userEmail ?? null,
           total,

@@ -5,15 +5,16 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
+// En este proyecto el datasource es PostgreSQL (ver `prisma/schema.prisma`).
+// `DATABASE_URL` debe existir en producción (Vercel). Evitamos tirar error en import
+// para no romper `next build` local; el fallo será explícito al ejecutar queries.
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+  console.warn('DATABASE_URL no configurada (requerida en producción)')
+}
+
 export const prisma =
   global.prisma ||
   new PrismaClient({
-    datasources: {
-      db: {
-        // En local, si no existe DATABASE_URL (no hay .env.local), usamos el dev.db del root.
-        url: process.env.DATABASE_URL || 'file:./dev.db',
-      },
-    },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 

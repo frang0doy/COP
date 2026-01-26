@@ -43,7 +43,7 @@ Crea un archivo `.env.local` con:
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=tu-secret-key-aqui
 MP_ACCESS_TOKEN=tu-mercadopago-access-token
-DATABASE_URL=tu-database-url
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB?sslmode=require
 ```
 
 ## Build

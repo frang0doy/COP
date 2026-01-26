@@ -4,6 +4,7 @@ import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { confirmOrder, type OrderConfirmStatus } from '@/lib/orders'
+import { maybeSendOrderApprovedEmail } from '@/lib/order-email'
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '',
@@ -80,6 +81,14 @@ export async function POST(req: NextRequest) {
       paymentId,
       status,
     })
+
+    if (status === 'APPROVED') {
+      try {
+        await maybeSendOrderApprovedEmail(orderId)
+      } catch (e) {
+        console.error('order-email sync error:', e)
+      }
+    }
 
     return NextResponse.json({
       ok: true,

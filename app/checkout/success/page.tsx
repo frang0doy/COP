@@ -17,6 +17,7 @@ function CheckoutSuccessContent() {
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [orderStatus, setOrderStatus] = useState<string | null>(null)
+  const [orderNumber, setOrderNumber] = useState<number | null>(null)
 
   const canSync = useMemo(() => Boolean(paymentId && orderId), [paymentId, orderId])
 
@@ -43,6 +44,15 @@ function CheckoutSuccessContent() {
         }
 
         setOrderStatus(data?.order?.status ?? null)
+        // Traer info del pedido (número/estado) para mostrar confirmación real.
+        if (orderId) {
+          const orderRes = await fetch(`/api/orders/${orderId}`, { cache: 'no-store' })
+          const orderJson = await orderRes.json().catch(() => ({}))
+          if (orderRes.ok) {
+            setOrderNumber(orderJson?.order?.number ?? null)
+            setOrderStatus((prev) => prev ?? orderJson?.order?.status ?? null)
+          }
+        }
         clearCart()
       } catch (e: any) {
         if (cancelled) return
@@ -100,7 +110,7 @@ function CheckoutSuccessContent() {
         {orderId && (
           <div className="bg-gray-50 rounded-lg p-4 mb-3">
             <p className="text-sm text-gray-600">
-              <strong>ID de Pedido:</strong> {orderId}
+              <strong>Pedido:</strong> {orderNumber ? `#${orderNumber}` : orderId}
             </p>
           </div>
         )}

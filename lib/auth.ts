@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { isAdminEmail } from '@/lib/admin'
 
 // Defaults para desarrollo (evita warnings y hace el proyecto más “plug & play”)
 if (!process.env.NEXTAUTH_SECRET) {
@@ -30,6 +31,15 @@ export const authOptions: NextAuthOptions = {
 
         const ok = await bcrypt.compare(password, user.passwordHash)
         if (!ok) return null
+
+        // Admin lock: solo los emails en ADMIN_EMAILS pueden ser ADMIN.
+        const shouldBeAdmin = isAdminEmail(email)
+        if (shouldBeAdmin && user.role !== 'ADMIN') {
+          await prisma.user.update({ where: { id: user.id }, data: { role: 'ADMIN' as any } })
+        } else if (!shouldBeAdmin && user.role === 'ADMIN') {
+          // Si alguien se dio rol por DB, lo degradamos al loguear.
+          await prisma.user.update({ where: { id: user.id }, data: { role: 'USER' as any } })
+        }
 
         return {
           id: user.id,
