@@ -17,8 +17,13 @@ async function requireAdmin() {
     select: { id: true, role: true },
   })
 
-  if (!me || me.role !== 'ADMIN') {
+  if (!me) {
     return { ok: false as const, status: 403, error: 'No autorizado' }
+  }
+
+  // Si el email está whitelisteado pero el rol aún no se actualizó, lo promovemos acá.
+  if (me.role !== 'ADMIN') {
+    await prisma.user.update({ where: { id: me.id }, data: { role: 'ADMIN' as any } })
   }
 
   return { ok: true as const, userId: me.id }

@@ -55,6 +55,11 @@ export default function Navbar() {
       setIsAdmin(false)
       return
     }
+    // Si el rol viene en la session, mostramos admin inmediatamente (evita depender de /api/me).
+    if ((session.user as any)?.role === 'ADMIN') {
+      setIsAdmin(true)
+      return
+    }
     let cancelled = false
     ;(async () => {
       const res = await fetch('/api/me', { cache: 'no-store' })

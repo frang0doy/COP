@@ -45,6 +45,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: shouldBeAdmin ? 'ADMIN' : 'USER',
         }
       },
     }),
@@ -59,11 +60,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) token.id = (user as any).id
+      if (user && (user as any).role) (token as any).role = (user as any).role
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         ;(session.user as any).id = token.id as string
+        ;(session.user as any).role = (token as any).role
       }
       return session
     },
