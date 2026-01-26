@@ -156,6 +156,8 @@ export async function POST(request: NextRequest) {
       }
     })()
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1'
+    const isHttps = typeof origin === 'string' && origin.startsWith('https://')
+    const forceAutoReturn = (process.env.MP_FORCE_AUTO_RETURN || '').toLowerCase() === 'true'
     const notificationUrl =
       process.env.MP_NOTIFICATION_URL ||
       (origin && origin.startsWith('https://')
@@ -166,12 +168,13 @@ export async function POST(request: NextRequest) {
       items: mpItems,
       payer: userEmail ? { email: userEmail } : undefined,
       back_urls: {
-        success: `${origin}/checkout/success`,
-        failure: `${origin}/checkout/failure`,
-        pending: `${origin}/checkout/pending`,
+        // Incluimos order_id para que la web pueda mostrar/validar el pedido al volver.
+        success: `${origin}/checkout/success?order_id=${order.id}`,
+        failure: `${origin}/checkout/failure?order_id=${order.id}`,
+        pending: `${origin}/checkout/pending?order_id=${order.id}`,
       },
-      // En local/localhost MP suele rechazar auto_return por políticas/validación de URLs.
-      ...(isLocalhost ? {} : { auto_return: 'approved' as const }),
+      // auto_return solo es confiable con URLs públicas/https. Podés forzarlo por env si estás usando un túnel https.
+      ...((isHttps || forceAutoReturn) && !isLocalhost ? { auto_return: 'approved' as const } : {}),
       external_reference: order.id,
       metadata: {
         orderId: order.id,
