@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
-import { ShoppingCart, ArrowLeft, CheckCircle, Download } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, CheckCircle, Download, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
@@ -62,8 +62,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     )
   }
 
-  const MAX_PER_PRODUCT = 10
-  const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, product.stock))
+  const availableStock = Math.max(0, product.stock)
+  // Máximo comprable por ítem: hasta el stock disponible
+  const maxAllowed = availableStock
 
   const handleAddToCart = () => {
     if (maxAllowed <= 0) return
@@ -262,9 +263,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           {/* Especificaciones */}
           <div className="mb-6 space-y-2">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">
-                {product.stock > 0 ? `Stock: ${maxAllowed}` : 'Sin stock'}
+              {availableStock > 0 ? (
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              ) : (
+                <XCircle className="w-5 h-5 text-red-600" />
+              )}
+              <span className={availableStock > 0 ? 'text-gray-800 font-semibold' : 'text-red-700 font-semibold'}>
+                {availableStock > 0 ? `Stock disponible: ${availableStock}` : 'Sin stock'}
               </span>
             </div>
           </div>

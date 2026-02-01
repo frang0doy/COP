@@ -26,7 +26,12 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
 
   const to = order.userEmail.trim()
   const from = getDefaultFrom()
-  const bcc = (process.env.ORDER_BCC_EMAIL || '').trim() || undefined
+  // Queremos que la "empresa" reciba copia del pedido.
+  // Prioridad: ORDER_BCC_EMAIL (explícito) → CONTACT_TO_EMAIL (mismo que formulario de contacto).
+  const bcc =
+    (process.env.ORDER_BCC_EMAIL || '').trim() ||
+    (process.env.CONTACT_TO_EMAIL || '').trim() ||
+    undefined
   const origin = (process.env.NEXTAUTH_URL || '').trim().replace(/\/+$/, '')
   const orderLink = origin ? `${origin}/pedidos/${order.id}` : undefined
 

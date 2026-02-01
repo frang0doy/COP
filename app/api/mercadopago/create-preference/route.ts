@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
 
-const MAX_PER_PRODUCT = 10
-
 // Inicializar Mercado Pago
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '',
@@ -91,18 +89,18 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, product.stock))
-      if (maxAllowed <= 0) {
+      const availableStock = Math.max(0, product.stock)
+      if (availableStock <= 0) {
         return NextResponse.json(
           { error: `Sin stock para "${product.name}"` },
           { status: 400 }
         )
       }
 
-      if (i.quantity > maxAllowed) {
+      if (i.quantity > availableStock) {
         return NextResponse.json(
           {
-            error: `Cantidad inválida para "${product.name}". Máximo permitido: ${maxAllowed}.`,
+            error: `Cantidad inválida para "${product.name}". Stock disponible: ${availableStock}.`,
           },
           { status: 400 }
         )
@@ -132,7 +130,7 @@ export async function POST(request: NextRequest) {
       return await tx.order.create({
         data: {
           userId: userId ?? null,
-          userEmail: userEmail ?? null,
+          userEmail: userEmail ?? shipping?.email ?? null,
           total,
           shipping: shipping ?? null,
           items: { create: orderItemsCreate },

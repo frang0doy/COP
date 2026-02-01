@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, Package, Home } from 'lucide-react'
@@ -24,11 +24,14 @@ function CheckoutSuccessContent() {
   const [syncError, setSyncError] = useState<string | null>(null)
   const [orderStatus, setOrderStatus] = useState<string | null>(null)
   const [orderNumber, setOrderNumber] = useState<number | null>(null)
+  const didSyncRef = useRef(false)
 
   const canSync = useMemo(() => Boolean(paymentId && orderId), [paymentId, orderId])
 
   useEffect(() => {
     if (!canSync) return
+    if (didSyncRef.current) return
+    didSyncRef.current = true
 
     let cancelled = false
     setSyncing(true)
@@ -59,7 +62,8 @@ function CheckoutSuccessContent() {
             setOrderStatus((prev) => prev ?? orderJson?.order?.status ?? null)
           }
         }
-        clearCart()
+        // En la pantalla de éxito no mostramos toast de “carrito vaciado”.
+        clearCart({ silent: true })
       } catch (e: any) {
         if (cancelled) return
         setSyncError(e?.message ?? 'Error al confirmar el pedido')

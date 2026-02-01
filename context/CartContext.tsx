@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { ShoppingCart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-const MAX_PER_PRODUCT = 10
+// Sin límite fijo por producto: se limita por stock disponible.
 
 export interface CartItem {
   id: number
@@ -21,7 +21,7 @@ interface CartContextType {
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
   removeItem: (id: number) => void
   updateQuantity: (id: number, quantity: number) => void
-  clearCart: () => void
+  clearCart: (options?: { silent?: boolean }) => void
   itemsCount: number
   total: number
 }
@@ -112,7 +112,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ? parsed
               .filter((i) => i && typeof i.id === 'number')
               .map((i) => {
-                const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, i.stock ?? 0))
+                const maxAllowed = Math.max(0, i.stock ?? 0)
                 const qty = Math.max(1, Math.floor(i.quantity ?? 1))
                 return { ...i, quantity: Math.min(qty, maxAllowed || 1) }
               })
@@ -135,7 +135,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id)
-      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, item.stock ?? 0))
+      const maxAllowed = Math.max(0, item.stock ?? 0)
 
       if (maxAllowed <= 0) {
         showCartToast({
@@ -155,7 +155,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (delta <= 0) {
           showCartToast({
             intent: 'danger',
-            title: `Máximo ${maxAllowed} unidades por producto`,
+            title: `Stock insuficiente (disponible: ${maxAllowed})`,
             description: item.name,
             toastId: `cart-max-${item.id}`,
           })
@@ -211,7 +211,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const item = prevItems.find((i) => i.id === id)
       if (!item) return prevItems
 
-      const maxAllowed = Math.max(0, Math.min(MAX_PER_PRODUCT, item.stock ?? 0))
+      const maxAllowed = Math.max(0, item.stock ?? 0)
       if (maxAllowed <= 0) {
         return prevItems.filter((i) => i.id !== id)
       }
@@ -227,9 +227,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const clearCart = () => {
+  const clearCart = (options?: { silent?: boolean }) => {
     setItems([])
-    toast.success('Carrito vaciado')
+    if (!options?.silent) {
+      toast.success('Carrito vaciado', { id: 'cart-cleared' })
+    }
   }
 
   const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0)
