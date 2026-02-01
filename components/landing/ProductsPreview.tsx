@@ -206,7 +206,7 @@ export default function ProductsPreview() {
               RECUBRIMIENTOS DE ALTA CALIDAD
             </AnimatedTitle>
             <AnimatedParagraph
-              className="text-base md:text-lg text-gray-600 font-light leading-relaxed mb-2"
+              className="text-base md:text-lg text-gray-600 font-light leading-relaxed mb-14"
               delay={0.4}
             >
               Productos profesionales para la construcción.
@@ -216,10 +216,11 @@ export default function ProductsPreview() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.6, duration: 0.6 }}
+              className="pt-4"
             >
               <Link
                 href="/productos"
-                className="group inline-flex items-center space-x-3 bg-black text-white px-8 py-4 text-base md:text-lg font-semibold hover:bg-gray-900 transition-colors duration-300 border-b-4 border-transparent hover:border-brand-blue"
+                className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-8 py-4 text-base md:text-lg font-semibold border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300"
               >
                 <span>VER CATÁLOGO</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -322,7 +323,7 @@ export default function ProductsPreview() {
                           cy="8"
                           r="6"
                           fill="none"
-                          stroke="rgba(0, 0, 0, 0.18)"
+                          stroke="rgba(249, 115, 22, 0.25)"
                           strokeWidth="1"
                         />
                         {isActive ? (
@@ -331,7 +332,7 @@ export default function ProductsPreview() {
                             cy="8"
                             r="6"
                             fill="none"
-                            stroke="black"
+                            stroke="var(--brand-orange)"
                             strokeWidth="1"
                             strokeLinecap="round"
                             initial={{ pathLength: 0 }}

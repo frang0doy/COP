@@ -11,7 +11,13 @@ import { useEffect, useMemo, useState } from 'react'
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
-  const paymentId = searchParams.get('payment_id')
+  // Mercado Pago puede volver con distintos nombres de parámetro según flujo/version.
+  // Soportamos variantes comunes para asegurar confirmación + baja de stock + email.
+  const paymentId =
+    searchParams.get('payment_id') ||
+    searchParams.get('collection_id') ||
+    searchParams.get('paymentId') ||
+    searchParams.get('collectionId')
   const orderId = searchParams.get('order_id')
   const { clearCart } = useCart()
   const [syncing, setSyncing] = useState(false)

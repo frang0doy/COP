@@ -16,13 +16,13 @@ export default function EmpresaPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <div className="max-w-4xl mb-12 md:mb-20">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-black mb-8 md:mb-12 leading-tight tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-black mb-8 md:mb-12 leading-tight tracking-tight">
             <AnimatedTitle
               as="span"
               className=""
               delay={0.2}
             >
-              Somos
+              SOMOS
             </AnimatedTitle>
             {' '}
             <AnimatedTitle

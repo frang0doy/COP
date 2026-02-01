@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { ShoppingCart, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 const MAX_PER_PRODUCT = 10
 
@@ -74,14 +75,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
               ) : null}
 
               <div className="mt-2 flex items-center gap-3">
-                <a
+                <Link
                   href="/carrito"
                   className="text-xs font-semibold transition-colors"
                   style={{ color: intent === 'success' ? '#047857' : '#b91c1c' }}
                   onClick={() => toast.dismiss(t.id)}
                 >
                   Ver carrito
-                </a>
+                </Link>
                 <button
                   type="button"
                   className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors"

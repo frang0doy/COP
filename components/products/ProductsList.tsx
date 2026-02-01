@@ -78,7 +78,8 @@ export default function ProductsList() {
               Productos
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Mostrando <span className="font-semibold text-black">{filteredProducts.length}</span> de{' '}
+              Mostrando{' '}
+              <span className="font-semibold text-black">{filteredProducts.length}</span> de{' '}
               <span className="font-semibold text-black">{totalProducts}</span>
               {selectedCategory !== 'Todos'
                 ? ` · ${CATEGORY_LABEL[selectedCategory]}`
@@ -130,8 +131,8 @@ export default function ProductsList() {
                 className={[
                   'shrink-0 w-full lg:w-auto text-left px-3 py-2 border transition-colors',
                   selectedCategory === 'Todos'
-                    ? 'border-black bg-black text-white'
-                    : 'border-gray-200 bg-white text-black hover:border-black',
+                    ? 'border-orange-500 bg-orange-500 text-white'
+                    : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
                 ].join(' ')}
               >
                 <span className="text-sm font-medium">Todos</span>
@@ -147,8 +148,8 @@ export default function ProductsList() {
                     className={[
                       'shrink-0 w-full lg:w-auto text-left px-3 py-2 border transition-colors',
                       isSelected
-                        ? 'border-black bg-black text-white'
-                        : 'border-gray-200 bg-white text-black hover:border-black',
+                        ? 'border-orange-500 bg-orange-500 text-white'
+                        : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
                     ].join(' ')}
                   >
                     <span className="text-sm font-medium">{CATEGORY_LABEL[cat]}</span>

@@ -247,7 +247,7 @@ export default function Hero() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/productos"
-                  className="group inline-flex items-center space-x-3 bg-white text-black px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium hover:bg-gray-100 transition-colors duration-300 w-full sm:w-auto justify-center border-b-4 border-transparent hover:border-brand-orange"
+                  className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-medium border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 w-full sm:w-auto justify-center"
                 >
                   <span>VER PRODUCTOS</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -281,14 +281,14 @@ export default function Hero() {
                 stroke="rgba(255, 255, 255, 0.3)"
                 strokeWidth="1.5"
               />
-              {/* Progress bar (negro) */}
+              {/* Progress bar (naranja) */}
               {index === currentIndex ? (
                 <motion.circle
                   cx="16"
                   cy="16"
                   r="14"
                   fill="none"
-                  stroke="black"
+                  stroke="var(--brand-orange)"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
@@ -301,7 +301,7 @@ export default function Hero() {
                   cy="16"
                   r="14"
                   fill="none"
-                  stroke="black"
+                  stroke="var(--brand-orange)"
                   strokeWidth="1.5"
                   strokeDasharray={`${index < currentIndex ? 87.96 : 0} 87.96`}
                 />

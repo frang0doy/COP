@@ -41,7 +41,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/10 transition-all"
                 aria-label="Instagram de COP"
               >
                 <Instagram className="w-5 h-5" />
@@ -53,7 +53,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                  className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/10 transition-all"
                   aria-label="Facebook de COP"
                 >
                   <Facebook className="w-5 h-5" />
@@ -71,7 +71,7 @@ export default function Footer() {
                 href={`mailto:${email}`}
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-white hover:text-white hover:bg-white/10 transition-all"
+                className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/10 transition-all"
                 aria-label="Enviar email a COP"
               >
                 <Mail className="w-5 h-5" />
@@ -84,22 +84,22 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-6 text-lg">Enlaces Rápidos</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Inicio
                 </Link>
               </li>
               <li>
-                <Link href="/productos" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/productos" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Productos
                 </Link>
               </li>
               <li>
-                <Link href="/empresa" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/empresa" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Empresa
                 </Link>
               </li>
               <li>
-                <Link href="/contacto" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/contacto" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Contacto
                 </Link>
               </li>
@@ -111,17 +111,17 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-6 text-lg">Atención al Cliente</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/perfil" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/perfil" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Mi Cuenta
                 </Link>
               </li>
               <li>
-                <Link href="/pedidos" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/pedidos" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Mis Pedidos
                 </Link>
               </li>
               <li>
-                <Link href="/ayuda" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/ayuda" className="text-gray-400 hover:text-orange-500 transition-colors">
                   Ayuda
                 </Link>
               </li>
@@ -137,11 +137,11 @@ export default function Footer() {
                   href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start space-x-3 group hover:text-white transition-colors"
+                  className="flex items-start space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
-                  <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">
+                  <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                  <span className="text-gray-400 group-hover:text-orange-500 transition-colors">
                     {addressLine1}
                     <br />
                     {addressLine2}
@@ -151,21 +151,21 @@ export default function Footer() {
               <li>
                 <motion.a
                   href="tel:+5493515900630"
-                  className="flex items-center space-x-3 group hover:text-white transition-colors"
+                  className="flex items-center space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
-                  <Phone className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">+54 9 351 590 0630</span>
+                  <Phone className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                  <span className="text-gray-400 group-hover:text-orange-500 transition-colors">+54 9 351 590 0630</span>
                 </motion.a>
               </li>
               <li>
                 <motion.a
                   href={`mailto:${email}`}
-                  className="flex items-center space-x-3 group hover:text-white transition-colors"
+                  className="flex items-center space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
-                  <Mail className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">{email}</span>
+                  <Mail className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                  <span className="text-gray-400 group-hover:text-orange-500 transition-colors">{email}</span>
                 </motion.a>
               </li>
             </ul>

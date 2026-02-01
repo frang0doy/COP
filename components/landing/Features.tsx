@@ -104,9 +104,9 @@ export default function Features() {
                 whileHover={{ y: -4 }}
                 className="group"
               >
-                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-gray-700 transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg flex flex-col items-center text-center">
+                <div className="bg-white p-6 md:p-8 border border-gray-200 hover:border-orange-500 transition-all duration-300 h-full cursor-pointer group-hover:shadow-lg flex flex-col items-center text-center">
                   <motion.div 
-                    className="w-12 h-12 md:w-16 md:h-16 border-2 border-black rounded-full flex items-center justify-center mb-4 md:mb-6 group-hover:bg-black transition-all duration-300"
+                    className="w-12 h-12 md:w-16 md:h-16 border-2 border-black rounded-full flex items-center justify-center mb-4 md:mb-6 group-hover:bg-orange-500 group-hover:border-orange-500 transition-all duration-300"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >

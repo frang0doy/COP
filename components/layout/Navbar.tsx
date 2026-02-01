@@ -226,11 +226,11 @@ export default function Navbar() {
                           key={item.href}
                           href={item.href}
                           onClick={() => setIsMenuOpen(false)}
-                          className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                          className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
                           role="menuitem"
                         >
                           <span className="text-base font-semibold">{item.label}</span>
-                          <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                          <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                         </Link>
                       ))}
                     </div>
@@ -240,7 +240,7 @@ export default function Navbar() {
                         <Link
                           href="/perfil"
                           onClick={() => setIsMenuOpen(false)}
-                          className="block px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                          className="block px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
                           role="menuitem"
                         >
                           Mi Perfil
@@ -250,7 +250,7 @@ export default function Navbar() {
                             signOut({ callbackUrl: '/' })
                             setIsMenuOpen(false)
                           }}
-                          className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                          className="w-full text-left px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
                           role="menuitem"
                         >
                           Salir
@@ -289,31 +289,31 @@ export default function Navbar() {
                           <Link
                             href="/pedidos"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
                             role="menuitem"
                           >
                             <span className="text-base font-semibold">Mis pedidos</span>
-                            <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                            <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                           </Link>
                           {isAdmin ? (
                             <Link
                               href="/admin/productos"
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
                               role="menuitem"
                             >
                               <span className="text-base font-semibold">Admin productos</span>
-                              <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                              <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                             </Link>
                           ) : null}
                           <Link
                             href="/perfil"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors"
+                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
                             role="menuitem"
                           >
                             <span className="text-base font-semibold">Mis datos</span>
-                            <span className="h-[2px] w-0 bg-white/80 group-hover:w-10 transition-all duration-300" />
+                            <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                           </Link>
                         </div>
 
@@ -323,7 +323,7 @@ export default function Navbar() {
                               signOut({ callbackUrl: '/' })
                               setIsUserMenuOpen(false)
                             }}
-                            className="w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 transition-colors font-semibold"
+                            className="w-full text-left px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
                             role="menuitem"
                           >
                             Cerrar sesión
@@ -372,8 +372,8 @@ export default function Navbar() {
                 className={[
                   'inline-flex h-10 items-center gap-2 px-4 border font-semibold transition-all',
                   scrolled
-                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
-                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
                 ].join(' ')}
               >
                 <Menu className="w-4 h-4" />
@@ -395,8 +395,8 @@ export default function Navbar() {
                 className={[
                   'inline-flex h-10 items-center justify-center px-4 border transition-all',
                   scrolled
-                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
-                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
                 ].join(' ')}
                 title="Mi cuenta"
               >
@@ -405,7 +405,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/login"
-                className="h-10 inline-flex items-center bg-white text-black px-6 hover:bg-gray-100 transition-colors font-semibold"
+                className="h-10 inline-flex items-center bg-white text-black px-6 border border-black/10 hover:bg-gray-100 hover:border-orange-500 hover:text-orange-500 transition-colors font-semibold"
               >
                 Iniciar Sesión
               </Link>
@@ -417,8 +417,8 @@ export default function Navbar() {
               className={[
                 'relative inline-flex h-10 items-center justify-center px-4 border transition-all',
                 scrolled
-                  ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
-                  : 'border-white/20 bg-white/10 text-white hover:bg-white/15 drop-shadow-lg',
+                  ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                  : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
               ].join(' ')}
               aria-label="Carrito"
               title="Carrito"

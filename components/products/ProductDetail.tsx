@@ -123,7 +123,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </div>
 
           {/* Columna derecha: información */}
-          <div className="border-t border-gray-200 lg:border-t-0 lg:border-l border-gray-200 p-6 sm:p-10">
+          <div className="border-t border-gray-200 lg:border-t-0 lg:border-l p-6 sm:p-10">
           <span className="text-xs text-gray-600 font-medium tracking-wider uppercase flex items-center gap-2">
             <span className={['w-2 h-2', theme.accent].join(' ')} />
             {categoryLabel}
@@ -135,7 +135,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <a
                 href={product.technicalSheet}
                 download
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-sm font-semibold hover:border-black transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-sm font-semibold hover:border-orange-500 transition-colors"
                 aria-label="Descargar ficha técnica"
                 title="Descargar ficha técnica"
               >
@@ -308,9 +308,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           <button
             onClick={handleAddToCart}
             disabled={maxAllowed <= 0}
-            className={`w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 font-semibold text-lg transition ${
+            className={`w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 font-semibold text-lg transition-colors duration-200 ${
               maxAllowed > 0
-                ? 'bg-black text-white border-black hover:bg-gray-900'
+                ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
                 : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
             }`}
           >

@@ -140,7 +140,7 @@ export default function AdminProductosPage() {
                     setLoading(false)
                   }
                 }}
-                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                className="px-4 py-2 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200"
               >
                 Refrescar
               </button>

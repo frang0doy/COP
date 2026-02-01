@@ -64,7 +64,7 @@ export default function ContactForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             {/* Nombre */}
             <div className="group">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-500" />
                 <span>Nombre Completo</span>
               </label>
@@ -80,7 +80,7 @@ export default function ContactForm() {
 
             {/* Email */}
             <div className="group">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-gray-500" />
                 <span>Email</span>
               </label>
@@ -98,7 +98,7 @@ export default function ContactForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             {/* Teléfono */}
             <div className="group">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-gray-500" />
                 <span>Teléfono</span>
               </label>
@@ -113,7 +113,7 @@ export default function ContactForm() {
 
             {/* Asunto */}
             <div className="group">
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-gray-500" />
                 <span>Asunto</span>
               </label>
@@ -130,7 +130,7 @@ export default function ContactForm() {
 
           {/* Mensaje */}
           <div className="group">
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
               <MessageSquare className="w-4 h-4 text-gray-500" />
               <span>Mensaje</span>
             </label>
@@ -150,7 +150,7 @@ export default function ContactForm() {
             disabled={isSubmitting}
             whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
             whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-            className="w-full bg-black text-white py-3 md:py-4 px-6 border-2 border-black font-semibold hover:bg-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 text-base md:text-lg group"
+            className="w-full bg-orange-500 text-white py-3 md:py-4 px-6 border border-orange-500 font-semibold hover:bg-orange-600 hover:border-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 text-base md:text-lg group"
           >
             <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             <span>{isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}</span>

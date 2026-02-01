@@ -282,7 +282,7 @@ export default function CheckoutForm() {
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-black text-white py-3 border-2 border-black font-semibold hover:bg-gray-900 transition flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-500 text-white py-3 border border-orange-500 font-semibold hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CreditCard className="w-5 h-5" />
             <span>{isProcessing ? 'Procesando...' : 'Pagar con Mercado Pago'}</span>
