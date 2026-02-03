@@ -14,6 +14,8 @@ interface Order {
   total: number
   status: OrderStatus
   mpPaymentId?: string | null
+  userEmail?: string | null
+  shipping?: any
   items: Array<{
     id: string
     name: string
@@ -36,7 +38,8 @@ const statusColors: Record<OrderStatus, string> = {
   CANCELLED: 'bg-gray-100 text-gray-800',
 }
 
-export default function OrdersList() {
+export default function OrdersList(props: { mode?: 'mine' | 'all' } = {}) {
+  const mode = props.mode ?? 'mine'
   const { data: session } = useSession()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +49,7 @@ export default function OrdersList() {
     let cancelled = false
     setLoading(true)
     ;(async () => {
-      const res = await fetch('/api/orders', { cache: 'no-store' })
+      const res = await fetch(mode === 'all' ? '/api/admin/orders' : '/api/orders', { cache: 'no-store' })
       const data = await res.json().catch(() => ({}))
       if (cancelled) return
       setOrders((data?.orders ?? []) as Order[])
@@ -55,7 +58,7 @@ export default function OrdersList() {
     return () => {
       cancelled = true
     }
-  }, [session])
+  }, [session, mode])
 
   if (!session) {
     return (
@@ -106,6 +109,12 @@ export default function OrdersList() {
                   Pedido #{order.number ?? order.id}
                 </Link>
               </h3>
+              {mode === 'all' ? (
+                <p className="text-xs text-gray-500 mb-2">
+                  Cliente: {order.userEmail || order?.shipping?.email || '—'}
+                  {order?.shipping?.cuit ? ` · CUIT: ${order.shipping.cuit}` : ''}
+                </p>
+              ) : null}
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />

@@ -12,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
   }
 
-  const product = await prisma.product.findUnique({ where: { id } })
+  const product = await prisma.product.findFirst({ where: { id, isActive: true } })
   if (!product) {
     return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
   }

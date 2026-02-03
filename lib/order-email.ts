@@ -36,6 +36,16 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
   const orderLink = origin ? `${origin}/pedidos/${order.id}` : undefined
 
   const subject = `COP - Confirmación de pedido #${order.number}`
+  const deliveryMethod =
+    (order.shipping as any)?.deliveryMethod === 'PICKUP_FACTORY' || (order.shipping as any)?.deliveryMethod === 'AGREE_WITH_COMPANY'
+      ? ((order.shipping as any)?.deliveryMethod as 'PICKUP_FACTORY' | 'AGREE_WITH_COMPANY')
+      : null
+  const whatsappPhone = (process.env.NEXT_PUBLIC_COMPANY_WHATSAPP || '').trim()
+  const whatsappDigits = (whatsappPhone || '').replace(/[^\d]/g, '')
+  const whatsappLink =
+    deliveryMethod === 'AGREE_WITH_COMPANY' && whatsappDigits
+      ? `https://wa.me/${whatsappDigits}`
+      : null
 
   const rowsHtml = order.items
     .map(
@@ -75,7 +85,14 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
     </p>
 
     <p style="margin:16px 0 0 0;">
-      <strong>Envío:</strong> por el momento se coordina luego de la compra. Te contactaremos para acordar la entrega.
+      <strong>Entrega:</strong>
+      ${
+        deliveryMethod === 'PICKUP_FACTORY'
+          ? `Retiro gratis en fábrica (31°26'41.6"S 64°05'43.4"W, Córdoba, Argentina).`
+          : deliveryMethod === 'AGREE_WITH_COMPANY'
+            ? `Envío a coordinar con COP (costo a cargo del cliente). ${whatsappLink ? `WhatsApp: <a href="${whatsappLink}">${whatsappLink}</a>` : ''}`
+            : `Por el momento se coordina luego de la compra. Te contactaremos para acordar la entrega.`
+      }
     </p>
 
     ${orderLink ? `<p style="margin:16px 0 0 0;">Ver pedido: <a href="${orderLink}">${orderLink}</a></p>` : ''}
@@ -95,7 +112,11 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
     '',
     `Total: ${formatMoney(order.total)}`,
     '',
-    'Envío: por el momento se coordina luego de la compra.',
+    deliveryMethod === 'PICKUP_FACTORY'
+      ? 'Entrega: Retiro gratis en fábrica (31°26\'41.6"S 64°05\'43.4"W, Córdoba, Argentina).'
+      : deliveryMethod === 'AGREE_WITH_COMPANY'
+        ? `Entrega: Envío a coordinar con COP (costo a cargo del cliente).${whatsappLink ? ` WhatsApp: ${whatsappLink}` : ''}`
+        : 'Entrega: por el momento se coordina luego de la compra.',
     orderLink ? `Ver pedido: ${orderLink}` : '',
   ].filter(Boolean)
 

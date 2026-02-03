@@ -40,6 +40,7 @@ const UpsertSchema = z.object({
   image: z.string().max(500).optional().nullable(),
   isNew: z.boolean().optional(),
   technicalSheet: z.string().max(500).optional().nullable(),
+  isActive: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
         image: data.image ?? null,
         isNew: Boolean(data.isNew),
         technicalSheet: data.technicalSheet ?? null,
+        isActive: typeof data.isActive === 'boolean' ? data.isActive : undefined,
       },
       create: {
         id: data.id,
@@ -82,6 +84,7 @@ export async function POST(req: NextRequest) {
         image: data.image ?? null,
         isNew: Boolean(data.isNew),
         technicalSheet: data.technicalSheet ?? null,
+        isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
       },
     })
 

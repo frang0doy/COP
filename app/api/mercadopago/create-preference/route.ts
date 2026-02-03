@@ -138,6 +138,11 @@ export async function POST(request: NextRequest) {
       })
     })
 
+    const deliveryMethodParam =
+      typeof shipping?.deliveryMethod === 'string' && shipping.deliveryMethod.trim()
+        ? `&delivery_method=${encodeURIComponent(shipping.deliveryMethod)}`
+        : ''
+
     // Usamos baseUrl absoluto para back_urls (MP requiere URLs completas).
     const origin = baseUrl
     const hostname = (() => {
@@ -161,9 +166,9 @@ export async function POST(request: NextRequest) {
       payer: userEmail ? { email: userEmail } : undefined,
       back_urls: {
         // Incluimos order_id para que la web pueda mostrar/validar el pedido al volver.
-        success: `${origin}/checkout/success?order_id=${order.id}`,
-        failure: `${origin}/checkout/failure?order_id=${order.id}`,
-        pending: `${origin}/checkout/pending?order_id=${order.id}`,
+        success: `${origin}/checkout/success?order_id=${order.id}${deliveryMethodParam}`,
+        failure: `${origin}/checkout/failure?order_id=${order.id}${deliveryMethodParam}`,
+        pending: `${origin}/checkout/pending?order_id=${order.id}${deliveryMethodParam}`,
       },
       // auto_return solo es confiable con URLs públicas/https. Podés forzarlo por env si estás usando un túnel https.
       ...((isHttps || forceAutoReturn) && !isLocalhost ? { auto_return: 'approved' as const } : {}),

@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 const UpdateSchema = z.object({
   name: z.string().min(2).max(80).optional(),
   phone: z.string().max(40).optional(),
+  cuit: z.string().max(40).optional(),
   address: z.string().max(200).optional(),
   city: z.string().max(80).optional(),
   state: z.string().max(80).optional(),
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: data.name?.trim(),
         phone: data.phone?.trim(),
+        cuit: data.cuit?.trim(),
         address: data.address?.trim(),
         city: data.city?.trim(),
         state: data.state?.trim(),
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
         email: true,
         name: true,
         phone: true,
+        cuit: true,
         address: true,
         city: true,
         state: true,

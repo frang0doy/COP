@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { User, Mail, Package, Settings, Phone, MapPin, Save } from 'lucide-react'
+import { User, Mail, Package, Settings, Phone, MapPin, Save, Shield } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import OrdersList from '@/components/orders/OrdersList'
 
 type Me = {
   id: string
   email: string
   name?: string | null
   phone?: string | null
+  cuit?: string | null
   address?: string | null
   city?: string | null
   state?: string | null
   zipCode?: string | null
+  role?: 'USER' | 'ADMIN'
 }
 
 export default function ProfilePage() {
@@ -25,6 +28,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     name: '',
     phone: '',
+    cuit: '',
     address: '',
     city: '',
     state: '',
@@ -64,6 +68,7 @@ export default function ProfilePage() {
       setForm({
         name: user?.name ?? '',
         phone: user?.phone ?? '',
+        cuit: user?.cuit ?? '',
         address: user?.address ?? '',
         city: user?.city ?? '',
         state: user?.state ?? '',
@@ -143,6 +148,20 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-gray-400" />
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700">CUIT</label>
+                  <input
+                    disabled={loading}
+                    value={form.cuit}
+                    onChange={(e) => setForm({ ...form, cuit: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    placeholder="Ej: 20-12345678-9"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-gray-400 mt-2" />
                 <div className="w-full">
@@ -193,6 +212,16 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+
+          {me?.role === 'ADMIN' ? (
+            <div className="bg-white rounded-lg shadow-md p-6 mt-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Pedidos (todos)</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Lista de pedidos de todos los clientes (solo admin).
+              </p>
+              <OrdersList mode="all" />
+            </div>
+          ) : null}
         </div>
 
         {/* Menú rápido */}
@@ -201,6 +230,15 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Accesos Rápidos</h2>
 
             <div className="space-y-2">
+              {me?.role === 'ADMIN' ? (
+                <Link
+                  href="/admin/productos"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition"
+                >
+                  <Shield className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-700">Admin productos</span>
+                </Link>
+              ) : null}
               <Link
                 href="/pedidos"
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition"

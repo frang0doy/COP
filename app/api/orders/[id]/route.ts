@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isAdminEmail } from '@/lib/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +20,10 @@ export async function GET(
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
   }
 
+  const isAdmin = Boolean(session.user?.email && isAdminEmail(session.user.email))
+
   const order = await prisma.order.findFirst({
-    where: { id: orderId, userId: session.user.id },
+    where: isAdmin ? { id: orderId } : { id: orderId, userId: session.user.id },
     include: { items: true },
   })
 

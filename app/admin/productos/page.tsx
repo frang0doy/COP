@@ -15,6 +15,7 @@ type Product = {
   stock: number
   image?: string | null
   isNew?: boolean
+  isActive?: boolean
 }
 
 export default function AdminProductosPage() {
@@ -187,20 +188,34 @@ function AdminRow({
 }) {
   const [price, setPrice] = useState(String(product.price))
   const [stock, setStock] = useState(String(product.stock))
+  const [isActive, setIsActive] = useState(product.isActive ?? true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setPrice(String(product.price))
     setStock(String(product.stock))
-  }, [product.price, product.stock])
+    setIsActive(product.isActive ?? true)
+  }, [product.price, product.stock, product.isActive])
 
-  const dirty = Number(price) !== product.price || Number(stock) !== product.stock
+  const dirty =
+    Number(price) !== product.price ||
+    Number(stock) !== product.stock ||
+    (product.isActive ?? true) !== isActive
 
   return (
     <tr className="border-b last:border-b-0 align-top">
       <td className="py-2 pr-4 font-semibold">{product.id}</td>
       <td className="py-2 pr-4">{product.sku}</td>
-      <td className="py-2 pr-4">{product.name}</td>
+      <td className="py-2 pr-4">
+        <div className="flex items-center gap-2">
+          <span>{product.name}</span>
+          {(product.isActive ?? true) ? null : (
+            <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-800 border border-gray-200">
+              PAUSADO
+            </span>
+          )}
+        </div>
+      </td>
       <td className="py-2 pr-4">{product.category}</td>
       <td className="py-2 pr-4">
         <input
@@ -219,24 +234,47 @@ function AdminRow({
         />
       </td>
       <td className="py-2 pr-0">
-        <button
-          type="button"
-          disabled={!dirty || saving}
-          onClick={async () => {
-            try {
-              setSaving(true)
-              await onSave(product.id, { price: Number(price), stock: Number(stock) })
-              toast.success('Guardado')
-            } catch (e: any) {
-              toast.error(e?.message ?? 'Error al guardar')
-            } finally {
-              setSaving(false)
-            }
-          }}
-          className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? 'Guardando...' : 'Guardar'}
-        </button>
+        <div className="flex items-center gap-2 justify-end">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={async () => {
+              try {
+                setSaving(true)
+                const next = !isActive
+                await onSave(product.id, { isActive: next })
+                setIsActive(next)
+                toast.success(next ? 'Producto activado' : 'Producto pausado')
+              } catch (e: any) {
+                toast.error(e?.message ?? 'Error al guardar')
+              } finally {
+                setSaving(false)
+              }
+            }}
+            className="px-3 py-2 border border-gray-300 bg-white hover:border-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+            title={(product.isActive ?? true) ? 'Pausar (ocultar del catálogo)' : 'Activar (mostrar en catálogo)'}
+          >
+            {(product.isActive ?? true) ? 'Pausar' : 'Activar'}
+          </button>
+          <button
+            type="button"
+            disabled={!dirty || saving}
+            onClick={async () => {
+              try {
+                setSaving(true)
+                await onSave(product.id, { price: Number(price), stock: Number(stock), isActive })
+                toast.success('Guardado')
+              } catch (e: any) {
+                toast.error(e?.message ?? 'Error al guardar')
+              } finally {
+                setSaving(false)
+              }
+            }}
+            className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
       </td>
     </tr>
   )

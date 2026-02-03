@@ -39,6 +39,7 @@ const UpdateSchema = z.object({
   image: z.string().max(500).optional().nullable(),
   isNew: z.boolean().optional(),
   technicalSheet: z.string().max(500).optional().nullable(),
+  isActive: z.boolean().optional(),
 })
 
 export async function PATCH(
@@ -69,6 +70,7 @@ export async function PATCH(
         image: data.image ?? undefined,
         isNew: typeof data.isNew === 'boolean' ? data.isNew : undefined,
         technicalSheet: data.technicalSheet ?? undefined,
+        isActive: typeof data.isActive === 'boolean' ? data.isActive : undefined,
       },
     })
 

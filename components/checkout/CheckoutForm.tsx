@@ -11,23 +11,26 @@ type Me = {
   email: string
   name?: string | null
   phone?: string | null
-  address?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
+  cuit?: string | null
 }
+
+type DeliveryMethod = 'PICKUP_FACTORY' | 'AGREE_WITH_COMPANY'
 
 export default function CheckoutForm() {
   const { items, total, clearCart } = useCart()
   const { data: session } = useSession()
-  const [shippingData, setShippingData] = useState({
+  const [shippingData, setShippingData] = useState<{
+    name: string
+    email: string
+    phone: string
+    cuit: string
+    deliveryMethod: DeliveryMethod
+  }>({
     name: session?.user?.name || '',
     email: session?.user?.email || '',
     phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
+    cuit: '',
+    deliveryMethod: 'PICKUP_FACTORY',
   })
   const [isProcessing, setIsProcessing] = useState(false)
   const [me, setMe] = useState<Me | null>(null)
@@ -37,21 +40,13 @@ export default function CheckoutForm() {
     if (!me) return false
     return Boolean(
       (me.phone && me.phone.trim()) ||
-        (me.address && me.address.trim()) ||
-        (me.city && me.city.trim()) ||
-        (me.state && me.state.trim()) ||
-        (me.zipCode && me.zipCode.trim())
+        (me.name && me.name.trim()) ||
+        (me.cuit && me.cuit.trim())
     )
   }, [me])
 
   const formLooksEmpty = useMemo(() => {
-    return (
-      !shippingData.phone.trim() &&
-      !shippingData.address.trim() &&
-      !shippingData.city.trim() &&
-      !shippingData.state.trim() &&
-      !shippingData.zipCode.trim()
-    )
+    return !shippingData.phone.trim() && !shippingData.cuit.trim()
   }, [shippingData])
 
   const applySavedData = () => {
@@ -61,10 +56,7 @@ export default function CheckoutForm() {
       name: me.name ?? prev.name,
       email: me.email ?? prev.email,
       phone: me.phone ?? prev.phone,
-      address: me.address ?? prev.address,
-      city: me.city ?? prev.city,
-      state: me.state ?? prev.state,
-      zipCode: me.zipCode ?? prev.zipCode,
+      cuit: me.cuit ?? prev.cuit,
     }))
     setShowUseSavedPrompt(false)
   }
@@ -96,6 +88,12 @@ export default function CheckoutForm() {
     setIsProcessing(true)
 
     try {
+      if (items.length === 0) {
+        toast.error('Tu carrito está vacío.')
+        setIsProcessing(false)
+        return
+      }
+
       // Crear preferencia de Mercado Pago
       const response = await fetch('/api/mercadopago/create-preference', {
         method: 'POST',
@@ -166,7 +164,7 @@ export default function CheckoutForm() {
         ) : null}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Datos de Envío</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Datos de contacto y entrega</h2>
 
           {hasSavedShipping ? (
             <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
@@ -228,55 +226,75 @@ export default function CheckoutForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Código Postal
+                CUIT
               </label>
               <input
                 type="text"
                 required
-                value={shippingData.zipCode}
-                onChange={(e) => setShippingData({ ...shippingData, zipCode: e.target.value })}
+                value={shippingData.cuit}
+                onChange={(e) => setShippingData({ ...shippingData, cuit: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estado
-              </label>
-              <input
-                type="text"
-                required
-                value={shippingData.state}
-                onChange={(e) => setShippingData({ ...shippingData, state: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ciudad
-              </label>
-              <input
-                type="text"
-                required
-                value={shippingData.city}
-                onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Ej: 20-12345678-9"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dirección Completa
-            </label>
-            <textarea
-              required
-              value={shippingData.address}
-              onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Entrega</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Elegí cómo querés recibir tu pedido. El costo de envío (si corresponde) se coordina luego de la compra.
+            </p>
+
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                <input
+                  type="radio"
+                  name="deliveryMethod"
+                  value="PICKUP_FACTORY"
+                  checked={shippingData.deliveryMethod === 'PICKUP_FACTORY'}
+                  onChange={() =>
+                    setShippingData((prev) => ({ ...prev, deliveryMethod: 'PICKUP_FACTORY' }))
+                  }
+                  className="mt-1"
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900">Retirar gratis en fábrica</p>
+                  <p className="text-sm text-gray-600">
+                    Retiro sin costo. Dirección:
+                    <span className="font-medium"> 31°26&apos;41.6&quot;S 64°05&apos;43.4&quot;W</span>, Córdoba,
+                    Argentina.
+                  </p>
+                  <a
+                    href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-black underline hover:text-gray-700"
+                  >
+                    Ver en Google Maps
+                  </a>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                <input
+                  type="radio"
+                  name="deliveryMethod"
+                  value="AGREE_WITH_COMPANY"
+                  checked={shippingData.deliveryMethod === 'AGREE_WITH_COMPANY'}
+                  onChange={() =>
+                    setShippingData((prev) => ({ ...prev, deliveryMethod: 'AGREE_WITH_COMPANY' }))
+                  }
+                  className="mt-1"
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900">Acordar envío con la empresa</p>
+                  <p className="text-sm text-gray-600">
+                    El envío tiene costo a cargo del cliente. Después de pagar vas a poder tocar “Acordar envío” para
+                    coordinar por WhatsApp con COP.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           <button
@@ -313,7 +331,11 @@ export default function CheckoutForm() {
               <span>Total</span>
               <span>${total.toLocaleString('es-MX')}</span>
             </div>
-            <p className="text-sm text-gray-500">El envío se calculará después</p>
+            <p className="text-sm text-gray-500">
+              {shippingData.deliveryMethod === 'PICKUP_FACTORY'
+                ? 'Entrega: retiro gratis en fábrica'
+                : 'Entrega: envío a coordinar (costo a cargo del cliente)'}
+            </p>
           </div>
 
           <div className="p-3 bg-blue-50 rounded-lg">
