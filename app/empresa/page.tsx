@@ -4,7 +4,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AnimatedTitle from '@/components/ui/AnimatedTitle'
 import AnimatedParagraph from '@/components/ui/AnimatedParagraph'
-import { Mail, Phone, Clock, MapPin } from 'lucide-react'
+import { Mail, Phone, Clock, MapPin, Target, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function EmpresaPage() {
@@ -50,6 +50,119 @@ export default function EmpresaPage() {
             </AnimatedParagraph>
           </div>
         </div>
+
+        {/* Contenido institucional (debajo de "Somos COP") */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="max-w-7xl mx-auto mb-16 md:mb-20"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* Historia */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                Nuestra historia
+              </h2>
+              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
+                Somos una empresa fundada en 1990 con más de 35 años de experiencia en la
+                producción, venta y aplicación de materiales para la construcción. Nos
+                destacamos por nuestro constante crecimiento, evolución y mejora continua.
+              </p>
+            </div>
+
+            {/* Misión */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                Misión
+              </h2>
+              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
+                Somos una empresa líder en el mercado en la fabricación de recubrimientos
+                para la industria de la construcción, con el objetivo de satisfacer las
+                necesidades de quienes nos eligen de manera global brindando líneas de
+                productos de calidad y enfocados en la innovación.
+              </p>
+            </div>
+
+            {/* Visión */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                Visión
+              </h2>
+              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
+                Ser la empresa número uno en la fabricación y venta de recubrimientos.
+              </p>
+            </div>
+
+            {/* Tono y voz */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                Tono y voz
+              </h2>
+              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
+                COP habla desde un tono amigable, respetuoso y con autoridad debido a su
+                trayectoria y conocimiento sobre la industria y los productos que ofrecen. Por
+                otro lado, su voz imparte conocimientos, vanguardia y alienta al sector a
+                trabajar en nuevos usos y enfocados en resultados positivos desde una
+                mirada fresca e innovadora.
+              </p>
+            </div>
+
+            {/* Valores */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden lg:col-span-2">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-orange-600" />
+                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                  Valores
+                </h2>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {['Pasión', 'Compromiso', 'Honestidad', 'Respeto', 'Atención'].map((v) => (
+                  <span
+                    key={v}
+                    className="px-4 py-2 border border-orange-200 bg-orange-50 text-gray-900 text-base font-medium"
+                  >
+                    {v}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Objetivos */}
+            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden lg:col-span-2">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+              <div className="flex items-center gap-3">
+                <Target className="w-5 h-5 text-orange-600" />
+                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                  Objetivos
+                </h2>
+              </div>
+              <ul className="mt-5 space-y-4">
+                {[
+                  'Transmitir calidad y durabilidad, asociándose a productos confiables y de alto desempeño.',
+                  'Proyectar innovación, demostrando desarrollo continuo y soluciones modernas.',
+                  'Consolidarse como la elección segura para instaladores, arquitectos, constructoras, etc., minimizando riesgos en obra.',
+                  'Destacar la facilidad de instalación, aportando eficiencia y practicidad al proceso constructivo.',
+                  'Comunicar una excelente relación costo–beneficio, reforzando el valor de la inversión.',
+                  'Ser reconocida como empresa seria y responsable, con soporte y cumplimiento institucional.',
+                ].map((o) => (
+                  <li key={o} className="flex items-start gap-3">
+                    <span className="mt-2 w-2 h-2 bg-orange-500 shrink-0" />
+                    <span className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed">
+                      {o}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </motion.section>
 
         {/* Información de contacto y mapa */}
         <motion.div

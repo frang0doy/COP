@@ -1,5 +1,6 @@
 export type CategoryKey =
   | 'adhesivos'
+  | 'combos'
   | 'estucados'
   | 'revestimientos'
   | 'revoques'
@@ -9,6 +10,7 @@ export type CategoryKey =
 
 export const CATEGORY_ORDER: CategoryKey[] = [
   'adhesivos',
+  'combos',
   'estucados',
   'revestimientos',
   'revoques',
@@ -23,6 +25,7 @@ export const CATEGORY_LABEL: Record<CategoryKey, string> = {
   revoques: 'Revoques',
   impermeabilizables: 'Impermeabilizables',
   adhesivos: 'Adhesivos',
+  combos: 'Combos',
   laca_y_barnices: 'Laca y barnices',
   selladores_y_pinturas: 'Selladores y pinturas',
 }
@@ -73,6 +76,13 @@ export const CATEGORY_THEME: Record<CategoryKey, CategoryTheme> = {
     text: 'text-violet-700',
     chipBg: 'bg-violet-600',
     chipRing: 'ring-violet-600/15',
+  },
+  // Combos: naranja
+  combos: {
+    accent: 'bg-orange-500',
+    text: 'text-orange-700',
+    chipBg: 'bg-orange-500',
+    chipRing: 'ring-orange-500/15',
   },
   // Laca y barnices: blanco
   laca_y_barnices: {
@@ -973,11 +983,32 @@ const RAW_PRODUCTS: Product[] = [
     isNew: true,
     image: '/Foto-productos/skim_coat.png',
   },
+  // Combos
+  {
+    id: 42,
+    name: 'Combo · Sistema de Microtex para 12m²',
+    description:
+      'Incluye:\n' +
+      '- Plasticop (4 litros)\n' +
+      '- Base niveladora (2 bolsas de 25 kg)\n' +
+      '- Malla de fibra de vidrio (2 metros)\n' +
+      '- Microtex (15 kilos)\n' +
+      '- Laca poliuretánica (4 litros)\n\n' +
+      'Ideal para quienes quieren el sistema completo para aplicar Microtex en aproximadamente 12m².',
+    price: 0,
+    category: 'combos',
+    stock: 999,
+    sku: 'COM-001',
+    isNew: true,
+    image: '/Foto-productos/combo1.png',
+    // Usamos el catálogo PDF como “ficha” por defecto (podemos reemplazarlo por una ficha propia cuando la tengas).
+    technicalSheet: '/documents/fichas-tecnicas/catalogoCOP.pdf',
+  },
 ]
 
 export const PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({
   ...p,
-  technicalSheet: computeTechnicalSheet(p),
+  technicalSheet: (p as any).technicalSheet ?? computeTechnicalSheet(p),
   technicalSummary: TECHNICAL_SUMMARY_BY_ID[p.id],
 }))
 

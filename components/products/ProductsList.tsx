@@ -306,7 +306,7 @@ export default function ProductsList() {
                 <span className="text-sm font-medium">Todos</span>
               </button>
 
-              {CATEGORY_ORDER.map((cat) => {
+              {CATEGORY_ORDER.filter((c) => c !== 'combos').map((cat) => {
                 const isSelected = selectedCategory === cat
                 return (
                   <button
@@ -406,6 +406,27 @@ export default function ProductsList() {
                 })}
               </div>
             ) : null}
+          </div>
+
+          {/* Combos (al final, debajo de "Dónde aplicar") */}
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => {
+                // Para que SIEMPRE se vea el combo al entrar acá
+                setSearchTerm('')
+                setSelectedApplyArea('Todos')
+                setSelectedCategory('combos')
+              }}
+              className={[
+                'w-full text-left px-3 py-2 border transition-colors',
+                selectedCategory === 'combos'
+                  ? 'border-orange-500 bg-orange-500 text-white'
+                  : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
+              ].join(' ')}
+            >
+              <span className="text-sm font-medium">Combos</span>
+            </button>
           </div>
           </div>
         </div>
