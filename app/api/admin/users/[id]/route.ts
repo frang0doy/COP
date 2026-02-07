@@ -18,7 +18,7 @@ export async function PATCH(
 ) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-  if (!isAdminEmail(session.user.email)) {
+  if (!session.user.email || !isAdminEmail(session.user.email)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 

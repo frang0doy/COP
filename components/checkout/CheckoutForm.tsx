@@ -130,8 +130,6 @@ export default function CheckoutForm() {
             id: item.id,
             quantity: item.quantity,
           })),
-          userId: session?.user?.id,
-          userEmail: session?.user?.email,
           shipping: shippingData,
         }),
       })

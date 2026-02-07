@@ -100,70 +100,98 @@ export default function AdminProductosPage() {
 
   if (!session) return null
 
+  const totalProducts = products.length
+  const inactiveCount = products.filter((p) => !(p.isActive ?? true)).length
+  const lowStockCount = products.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5).length
+
   return (
     <main className="min-h-screen pt-16 bg-gray-100">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin · Productos</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Editá stock/precio desde acá. (Acceso solo ADMIN)
-          </p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin · Productos</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Editá stock/precio y pausá productos del catálogo.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="px-3 py-1 rounded-full border border-gray-200 bg-white text-gray-700">
+              Total: <span className="font-semibold text-gray-900">{totalProducts}</span>
+            </span>
+            <span className="px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-800">
+              Pausados: <span className="font-semibold">{inactiveCount}</span>
+            </span>
+            <span className="px-3 py-1 rounded-full border border-orange-200 bg-white text-gray-700">
+              Stock bajo: <span className="font-semibold text-gray-900">{lowStockCount}</span>
+            </span>
+          </div>
         </div>
 
         {isAdmin === false ? (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-red-600 font-semibold">No autorizado</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Para habilitar admin, agregá tu email en `ADMIN_EMAILS` (Vercel env) y volvé a iniciar
-              sesión.
-            </p>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-1 rounded-full bg-orange-500/70" />
+              <div>
+                <p className="text-gray-900 font-bold">No autorizado</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Para habilitar admin, agregá tu email en <code className="font-semibold">ADMIN_EMAILS</code> (Vercel env) y volvé a iniciar sesión.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar por ID, SKU, nombre o categoría..."
-                className="w-full sm:max-w-md px-3 py-2 border border-gray-300 rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    setLoading(true)
-                    await loadProducts()
-                    toast.success('Productos actualizados')
-                  } catch (e: any) {
-                    toast.error(e?.message ?? 'Error')
-                  } finally {
-                    setLoading(false)
-                  }
-                }}
-                className="px-4 py-2 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200"
-              >
-                Refrescar
-              </button>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+              <div className="w-full sm:max-w-md">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Buscar
+                </label>
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="ID, SKU, nombre o categoría…"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setLoading(true)
+                      await loadProducts()
+                      toast.success('Productos actualizados')
+                    } catch (e: any) {
+                      toast.error(e?.message ?? 'Error')
+                    } finally {
+                      setLoading(false)
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl border border-orange-200 bg-orange-50/70 text-orange-800 font-semibold hover:bg-orange-50 hover:border-orange-300 transition disabled:opacity-50"
+                >
+                  Refrescar
+                </button>
+              </div>
             </div>
 
             {loading ? (
               <p className="text-gray-600">Cargando productos...</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left border-b">
-                      <th className="py-2 pr-4">ID</th>
-                      <th className="py-2 pr-4">SKU</th>
-                      <th className="py-2 pr-4">Nombre</th>
-                      <th className="py-2 pr-4">Categoría</th>
-                      <th className="py-2 pr-4">Precio</th>
-                      <th className="py-2 pr-4">Stock</th>
-                      <th className="py-2 pr-0">Acciones</th>
+                  <thead className="bg-gray-50">
+                    <tr className="text-left border-b border-gray-200">
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">ID</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">SKU</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Nombre</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Categoría</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Precio</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Stock</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase text-right">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white">
                     {filtered.map((p) => (
                       <AdminRow key={p.id} product={p} onSave={updateProduct} />
                     ))}
@@ -203,37 +231,37 @@ function AdminRow({
     (product.isActive ?? true) !== isActive
 
   return (
-    <tr className="border-b last:border-b-0 align-top">
-      <td className="py-2 pr-4 font-semibold">{product.id}</td>
-      <td className="py-2 pr-4">{product.sku}</td>
-      <td className="py-2 pr-4">
+    <tr className="border-b last:border-b-0 border-gray-100 align-top hover:bg-orange-50/30 transition-colors">
+      <td className="py-3 px-4 font-semibold text-gray-900">{product.id}</td>
+      <td className="py-3 px-4 text-gray-800">{product.sku}</td>
+      <td className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <span>{product.name}</span>
+          <span className="text-gray-900">{product.name}</span>
           {(product.isActive ?? true) ? null : (
-            <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-800 border border-gray-200">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 border border-orange-200">
               PAUSADO
             </span>
           )}
         </div>
       </td>
-      <td className="py-2 pr-4">{product.category}</td>
-      <td className="py-2 pr-4">
+      <td className="py-3 px-4 text-gray-700">{product.category}</td>
+      <td className="py-3 px-4">
         <input
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="w-28 px-2 py-1 border border-gray-300 rounded"
+          className="w-28 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
           inputMode="numeric"
         />
       </td>
-      <td className="py-2 pr-4">
+      <td className="py-3 px-4">
         <input
           value={stock}
           onChange={(e) => setStock(e.target.value)}
-          className="w-24 px-2 py-1 border border-gray-300 rounded"
+          className="w-24 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
           inputMode="numeric"
         />
       </td>
-      <td className="py-2 pr-0">
+      <td className="py-3 px-4">
         <div className="flex items-center gap-2 justify-end">
           <button
             type="button"
@@ -251,7 +279,7 @@ function AdminRow({
                 setSaving(false)
               }
             }}
-            className="px-3 py-2 border border-gray-300 bg-white hover:border-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-orange-100"
             title={(product.isActive ?? true) ? 'Pausar (ocultar del catálogo)' : 'Activar (mostrar en catálogo)'}
           >
             {(product.isActive ?? true) ? 'Pausar' : 'Activar'}
@@ -270,7 +298,7 @@ function AdminRow({
                 setSaving(false)
               }
             }}
-            className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 rounded-lg bg-black text-white border-2 border-black hover:border-orange-500 hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-orange-200"
           >
             {saving ? 'Guardando...' : 'Guardar'}
           </button>

@@ -5,6 +5,16 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
 
+const ShippingSchema = z
+  .object({
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(200),
+    phone: z.string().trim().min(3).max(40),
+    cuit: z.string().trim().max(40).optional(),
+    deliveryMethod: z.enum(['PICKUP_FACTORY', 'AGREE_WITH_COMPANY']),
+  })
+  .strict()
+
 const BodySchema = z.object({
   items: z
     .array(
@@ -14,7 +24,7 @@ const BodySchema = z.object({
       })
     )
     .min(1),
-  shipping: z.any().optional(),
+  shipping: ShippingSchema,
 })
 
 export async function POST(req: NextRequest) {
@@ -112,15 +122,18 @@ export async function POST(req: NextRequest) {
 
     const discountAmount = Math.max(0, retailTotal - total)
 
+    const userEmail = (user?.email ?? session.user.email ?? body.shipping.email).trim().toLowerCase()
+    const shipping = { ...body.shipping, email: userEmail, cuit: (body.shipping.cuit ?? '').trim() }
+
     const order = await prisma.order.create({
       data: {
         userId: session.user.id,
-        userEmail: user?.email ?? session.user.email ?? null,
+        userEmail: userEmail ?? null,
         total,
         paymentMethod: 'PAY_AT_FACTORY' as any,
         discountPercent: percent,
         discountAmount,
-        shipping: body.shipping ?? null,
+        shipping,
         items: { create: orderItemsCreate },
       },
       select: { id: true },

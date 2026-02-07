@@ -21,6 +21,30 @@ type OrderRow = {
   items: Array<{ id: string; name: string; quantity: number; unitPrice: number }>
 }
 
+function StatusBadge({ status }: { status: OrderStatus }) {
+  const cls =
+    status === 'PENDING'
+      ? 'border-orange-200 bg-orange-50 text-orange-800'
+      : status === 'APPROVED'
+        ? 'border-green-200 bg-green-50 text-green-800'
+        : status === 'REJECTED'
+          ? 'border-red-200 bg-red-50 text-red-800'
+          : 'border-gray-200 bg-gray-50 text-gray-700'
+  const label =
+    status === 'PENDING'
+      ? 'Pendiente'
+      : status === 'APPROVED'
+        ? 'Aprobado'
+        : status === 'REJECTED'
+          ? 'Rechazado'
+          : 'Cancelado'
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-semibold ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
 export default function AdminPedidosPage() {
   const { data: session, status } = useSession()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -108,40 +132,65 @@ export default function AdminPedidosPage() {
 
   if (!session) return null
 
+  const pendingFactoryCount = orders.filter(
+    (o) => o.status === 'PENDING' && o.paymentMethod === 'PAY_AT_FACTORY'
+  ).length
+
   return (
     <main className="min-h-screen pt-16 bg-gray-100">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin · Pedidos</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Confirmación manual de pedidos pendientes (pagar en fábrica).
-          </p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin · Pedidos</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Confirmación manual de pedidos pendientes (pagar en fábrica).
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-800">
+              Pendientes (fábrica): <span className="font-semibold">{pendingFactoryCount}</span>
+            </span>
+          </div>
         </div>
 
         {isAdmin === false ? (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-red-600 font-semibold">No autorizado</p>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-1 rounded-full bg-orange-500/70" />
+              <div>
+                <p className="text-gray-900 font-bold">No autorizado</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Este panel es solo para administradores.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-              <label className="inline-flex items-center gap-2 text-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-800">
                 <input
                   type="checkbox"
                   checked={onlyPendingFactory}
                   onChange={(e) => setOnlyPendingFactory(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
                 />
-                Ver solo pendientes “Pagar en fábrica”
+                <span className="select-none">Ver solo pendientes “Pagar en fábrica”</span>
               </label>
 
-              <div className="flex gap-2">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por email, número o ID..."
-                  className="w-full sm:w-80 px-3 py-2 border border-gray-300"
-                />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="w-full sm:w-80">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Buscar
+                  </label>
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Email, número o ID…"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={async () => {
@@ -155,7 +204,7 @@ export default function AdminPedidosPage() {
                       setLoading(false)
                     }
                   }}
-                  className="px-4 py-2 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200"
+                  className="h-10 sm:mt-6 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50/70 text-orange-800 font-semibold hover:bg-orange-50 hover:border-orange-300 transition disabled:opacity-50"
                 >
                   Refrescar
                 </button>
@@ -165,24 +214,29 @@ export default function AdminPedidosPage() {
             {loading ? (
               <p className="text-gray-600">Cargando pedidos...</p>
             ) : filtered.length === 0 ? (
-              <p className="text-gray-600">No hay pedidos para mostrar.</p>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
+                <p className="text-gray-900 font-semibold">No hay pedidos para mostrar.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Probá desactivar el filtro de “solo pendientes” o buscá por email/ID.
+                </p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left border-b">
-                      <th className="py-2 pr-4">Pedido</th>
-                      <th className="py-2 pr-4">Cliente</th>
-                      <th className="py-2 pr-4">Método</th>
-                      <th className="py-2 pr-4">Estado</th>
-                      <th className="py-2 pr-4">Total</th>
-                      <th className="py-2 pr-0 text-right">Acciones</th>
+                  <thead className="bg-gray-50">
+                    <tr className="text-left border-b border-gray-200">
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Pedido</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Cliente</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Método</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Estado</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Total</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase text-right">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white">
                     {filtered.map((o) => (
-                      <tr key={o.id} className="border-b last:border-b-0 align-top">
-                        <td className="py-2 pr-4">
+                      <tr key={o.id} className="border-b last:border-b-0 border-gray-100 align-top hover:bg-orange-50/30 transition-colors">
+                        <td className="py-3 px-4">
                           <div className="font-semibold text-gray-900">
                             #{o.number ?? o.id}
                           </div>
@@ -190,28 +244,32 @@ export default function AdminPedidosPage() {
                             {new Date(o.createdAt).toLocaleString('es-MX')}
                           </div>
                         </td>
-                        <td className="py-2 pr-4">
+                        <td className="py-3 px-4">
                           <div className="text-gray-900">{o.userEmail || o?.shipping?.email || '—'}</div>
-                          <div className="text-xs text-gray-600">
-                            {o?.shipping?.cuit ? `CUIT: ${o.shipping.cuit}` : ''}
-                          </div>
+                          {o?.shipping?.cuit ? (
+                            <div className="text-xs text-gray-600">
+                              CUIT: <span className="font-semibold text-gray-800">{o.shipping.cuit}</span>
+                            </div>
+                          ) : null}
                         </td>
-                        <td className="py-2 pr-4">
-                          {o.paymentMethod === 'PAY_AT_FACTORY'
-                            ? 'Pagar en fábrica'
-                            : 'MercadoPago'}
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-800">
+                            {o.paymentMethod === 'PAY_AT_FACTORY' ? 'Pagar en fábrica' : 'Mercado Pago'}
+                          </span>
                         </td>
-                        <td className="py-2 pr-4">{o.status}</td>
-                        <td className="py-2 pr-4 font-semibold">
+                        <td className="py-3 px-4">
+                          <StatusBadge status={o.status} />
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-gray-900">
                           ${o.total.toLocaleString('es-MX')}
                         </td>
-                        <td className="py-2 pr-0">
+                        <td className="py-3 px-4">
                           <div className="flex items-center gap-2 justify-end">
                             {o.status === 'PENDING' && o.paymentMethod === 'PAY_AT_FACTORY' ? (
                               <>
                                 <button
                                   type="button"
-                                  className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                                  className="px-3 py-2 rounded-lg bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-200"
                                   onClick={async () => {
                                     try {
                                       await confirm(o.id)
@@ -225,7 +283,7 @@ export default function AdminPedidosPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  className="px-3 py-2 border border-gray-300 bg-white hover:border-black transition"
+                                  className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition focus:outline-none focus:ring-2 focus:ring-orange-100"
                                   onClick={async () => {
                                     try {
                                       await reject(o.id)

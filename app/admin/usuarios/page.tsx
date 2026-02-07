@@ -18,6 +18,48 @@ type UserRow = {
   createdAt: string
 }
 
+function WholesaleBadge({
+  customerType,
+  wholesaleStatus,
+  wholesaleTier,
+}: {
+  customerType?: UserRow['customerType']
+  wholesaleStatus?: UserRow['wholesaleStatus']
+  wholesaleTier?: UserRow['wholesaleTier']
+}) {
+  if (customerType !== 'WHOLESALE') {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-700 text-xs font-semibold">
+        Minorista
+      </span>
+    )
+  }
+
+  const statusCls =
+    wholesaleStatus === 'APPROVED'
+      ? 'border-green-200 bg-green-50 text-green-800'
+      : 'border-orange-200 bg-orange-50 text-orange-800'
+  const statusLabel = wholesaleStatus === 'APPROVED' ? 'Aprobado' : 'Pendiente'
+
+  const tierLabel =
+    wholesaleTier === 'HISTORICAL'
+      ? 'Histórico (15%)'
+      : wholesaleTier === 'NEW'
+        ? 'Nuevo (10%)'
+        : 'Mayorista'
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-semibold ${statusCls}`}>
+        {statusLabel}
+      </span>
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-800">
+        {tierLabel}
+      </span>
+    </div>
+  )
+}
+
 export default function AdminUsuariosPage() {
   const { data: session, status } = useSession()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -100,22 +142,41 @@ export default function AdminUsuariosPage() {
 
   if (!session) return null
 
+  const pendingCount = users.filter(
+    (u) => u.customerType === 'WHOLESALE' && u.wholesaleStatus === 'PENDING'
+  ).length
+
   return (
     <main className="min-h-screen pt-16 bg-gray-100">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin · Usuarios</h1>
-          <p className="text-sm text-gray-600 mt-1">Aprobación de cuentas mayoristas.</p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin · Usuarios</h1>
+            <p className="text-sm text-gray-600 mt-1">Aprobación de cuentas mayoristas.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-800">
+              Pendientes: <span className="font-semibold">{pendingCount}</span>
+            </span>
+          </div>
         </div>
 
         {isAdmin === false ? (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-red-600 font-semibold">No autorizado</p>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-1 rounded-full bg-orange-500/70" />
+              <div>
+                <p className="text-gray-900 font-bold">No autorizado</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Este panel es solo para administradores.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4">
               <div className="flex flex-wrap gap-2">
                 {(['PENDING', 'APPROVED', 'ALL'] as const).map((f) => (
                   <button
@@ -123,10 +184,10 @@ export default function AdminUsuariosPage() {
                     type="button"
                     onClick={() => setFilter(f)}
                     className={[
-                      'px-3 py-2 border text-sm font-semibold transition',
+                      'px-3 py-2 rounded-xl border text-sm font-semibold transition',
                       filter === f
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-gray-200 hover:border-black',
+                        ? 'bg-orange-50 text-orange-800 border-orange-200 ring-1 ring-orange-500/10'
+                        : 'bg-white text-gray-900 border-gray-200 hover:border-orange-300 hover:text-orange-800',
                     ].join(' ')}
                   >
                     {f === 'PENDING'
@@ -138,13 +199,18 @@ export default function AdminUsuariosPage() {
                 ))}
               </div>
 
-              <div className="flex gap-2">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por email, nombre o CUIT..."
-                  className="w-full sm:w-80 px-3 py-2 border border-gray-300"
-                />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="w-full sm:w-80">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Buscar
+                  </label>
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Email, nombre o CUIT…"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={async () => {
@@ -158,7 +224,7 @@ export default function AdminUsuariosPage() {
                       setLoading(false)
                     }
                   }}
-                  className="px-4 py-2 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200"
+                  className="h-10 sm:mt-6 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50/70 text-orange-800 font-semibold hover:bg-orange-50 hover:border-orange-300 transition disabled:opacity-50"
                 >
                   Refrescar
                 </button>
@@ -168,51 +234,45 @@ export default function AdminUsuariosPage() {
             {loading ? (
               <p className="text-gray-600">Cargando usuarios...</p>
             ) : filtered.length === 0 ? (
-              <p className="text-gray-600">No hay usuarios para mostrar.</p>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
+                <p className="text-gray-900 font-semibold">No hay usuarios para mostrar.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Cambiá el filtro o buscá por email/CUIT.
+                </p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left border-b">
-                      <th className="py-2 pr-4">Usuario</th>
-                      <th className="py-2 pr-4">CUIT</th>
-                      <th className="py-2 pr-4">Estado</th>
-                      <th className="py-2 pr-4">Tipo</th>
-                      <th className="py-2 pr-0 text-right">Acciones</th>
+                  <thead className="bg-gray-50">
+                    <tr className="text-left border-b border-gray-200">
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Usuario</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">CUIT</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Mayorista</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase text-right">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white">
                     {filtered.map((u) => (
-                      <tr key={u.id} className="border-b last:border-b-0 align-top">
-                        <td className="py-2 pr-4">
+                      <tr key={u.id} className="border-b last:border-b-0 border-gray-100 align-top hover:bg-orange-50/30 transition-colors">
+                        <td className="py-3 px-4">
                           <div className="font-semibold text-gray-900">{u.name || '—'}</div>
                           <div className="text-xs text-gray-600">{u.email}</div>
                         </td>
-                        <td className="py-2 pr-4">{u.cuit || '—'}</td>
-                        <td className="py-2 pr-4">
-                          {u.customerType === 'WHOLESALE'
-                            ? u.wholesaleStatus === 'APPROVED'
-                              ? 'Aprobado'
-                              : 'Pendiente'
-                            : '—'}
+                        <td className="py-3 px-4 text-gray-800">{u.cuit || '—'}</td>
+                        <td className="py-3 px-4">
+                          <WholesaleBadge
+                            customerType={u.customerType}
+                            wholesaleStatus={u.wholesaleStatus}
+                            wholesaleTier={u.wholesaleTier}
+                          />
                         </td>
-                        <td className="py-2 pr-4">
-                          {u.wholesaleTier === 'HISTORICAL'
-                            ? 'Histórico (15%)'
-                            : u.wholesaleTier === 'NEW'
-                              ? 'Nuevo (10%)'
-                              : u.customerType === 'WHOLESALE'
-                                ? 'Mayorista'
-                                : 'Minorista'}
-                        </td>
-                        <td className="py-2 pr-0">
+                        <td className="py-3 px-4">
                           <div className="flex items-center gap-2 justify-end">
-                            {u.customerType === 'WHOLESALE' &&
-                            u.wholesaleStatus === 'PENDING' ? (
+                            {u.customerType === 'WHOLESALE' && u.wholesaleStatus === 'PENDING' ? (
                               <>
                                 <button
                                   type="button"
-                                  className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                                  className="px-3 py-2 rounded-lg bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-200"
                                   onClick={async () => {
                                     try {
                                       await patch(u.id, { action: 'approve', tier: 'NEW' })
@@ -226,7 +286,7 @@ export default function AdminUsuariosPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  className="px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                                  className="px-3 py-2 rounded-lg bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-200"
                                   onClick={async () => {
                                     try {
                                       await patch(u.id, {
@@ -243,7 +303,7 @@ export default function AdminUsuariosPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  className="px-3 py-2 border border-gray-300 bg-white hover:border-black transition"
+                                  className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition focus:outline-none focus:ring-2 focus:ring-orange-100"
                                   onClick={async () => {
                                     try {
                                       await patch(u.id, { action: 'reject' })

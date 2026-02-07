@@ -142,16 +142,17 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       {showCustomerTypePrompt && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
           <div className="absolute right-4 top-24 w-[min(92vw,520px)]">
-            <div className="bg-white border border-gray-200 shadow-2xl p-6">
+            <div className="bg-white border border-gray-200 shadow-2xl p-6 ring-1 ring-orange-500/10">
+              <div className="h-1 w-12 bg-orange-500/70 rounded-full mb-4" />
               <h3 className="text-lg font-bold text-gray-900">¿Cómo querés comprar?</h3>
               <p className="text-sm text-gray-600 mt-2">
                 Elegí minorista o solicitá cuenta mayorista (requiere aprobación).
               </p>
 
               <div className="mt-4 space-y-2">
-                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:border-orange-300 transition">
                   <input
                     type="radio"
                     name="ct"
@@ -168,7 +169,7 @@ function LoginForm() {
                   </div>
                 </label>
 
-                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:border-orange-300 transition">
                   <input
                     type="radio"
                     name="ct"
@@ -195,7 +196,7 @@ function LoginForm() {
                     type="text"
                     value={cuit}
                     onChange={(e) => setCuit(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 bg-white transition"
                     placeholder="Ej: 20-12345678-9"
                   />
                 </div>
@@ -204,7 +205,7 @@ function LoginForm() {
               <div className="mt-5 flex gap-3 justify-end">
                 <button
                   type="button"
-                  className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-gray-900 hover:border-orange-300 hover:text-orange-800 transition focus:outline-none focus:ring-2 focus:ring-orange-100"
                   onClick={() => {
                     // no dejamos seguir sin elegir: cerrarlo sería volver a pedir.
                     setShowCustomerTypePrompt(false)
@@ -214,7 +215,7 @@ function LoginForm() {
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-200"
                   onClick={async () => {
                     if (customerType === 'WHOLESALE' && !cuit.trim()) {
                       toast.error('El CUIT es obligatorio para mayoristas')
@@ -250,11 +251,12 @@ function LoginForm() {
       {showRememberPrompt && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
             onClick={() => setShowRememberPrompt(false)}
           />
           <div className="absolute right-4 top-24 w-[min(92vw,420px)]">
-            <div className="bg-white border border-gray-200 shadow-2xl p-6">
+            <div className="bg-white border border-gray-200 shadow-2xl p-6 ring-1 ring-orange-500/10">
+              <div className="h-1 w-12 bg-orange-500/70 rounded-full mb-4" />
               <h3 className="text-lg font-bold text-gray-900">¿Guardar datos de la cuenta?</h3>
               <p className="text-sm text-gray-600 mt-2">
                 Podemos recordar tu email en este dispositivo para que sea más rápido iniciar sesión.
@@ -262,7 +264,7 @@ function LoginForm() {
               <div className="mt-5 flex gap-3 justify-end">
                 <button
                   type="button"
-                  className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-gray-900 hover:border-orange-300 hover:text-orange-800 transition focus:outline-none focus:ring-2 focus:ring-orange-100"
                   onClick={async () => {
                     // Si elige "No", NO guardamos preferencia: se le volverá a preguntar en próximos logins.
                     try {
@@ -280,7 +282,7 @@ function LoginForm() {
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                  className="px-4 py-2 rounded-xl bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-200"
                   onClick={async () => {
                     try {
                       localStorage.setItem('auth.remember.email', email.trim())
@@ -313,7 +315,7 @@ function LoginForm() {
             </h2>
             <p className="text-gray-600">
               O{' '}
-              <Link href="/auth/register" className="font-medium text-black hover:text-gray-600 transition-colors underline">
+              <Link href="/auth/register" className="font-medium text-black hover:text-orange-700 transition-colors underline decoration-orange-300">
                 crea una cuenta nueva
               </Link>
             </p>
@@ -334,7 +336,7 @@ function LoginForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-black focus:ring-0 transition-colors bg-white"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-colors bg-white"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -354,13 +356,13 @@ function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-lg focus:border-black focus:ring-0 transition-colors bg-white"
+                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-colors bg-white"
                   placeholder="Tu contraseña"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-700 transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -379,7 +381,7 @@ function LoginForm() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded cursor-pointer"
+                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
                   Recordarme
@@ -388,7 +390,7 @@ function LoginForm() {
 
               <Link 
                 href="/auth/forgot-password" 
-                className="text-sm font-medium text-black hover:text-gray-600 transition-colors"
+                className="text-sm font-medium text-black hover:text-orange-700 transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -399,13 +401,13 @@ function LoginForm() {
               disabled={isLoading}
               whileHover={{ scale: isLoading ? 1 : 1.02 }}
               whileTap={{ scale: isLoading ? 1 : 0.98 }}
-              className="w-full bg-black text-white py-3 px-4 border-2 border-black font-semibold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-black text-white py-3 px-4 border-2 border-black font-semibold hover:border-orange-500 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </motion.button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="mt-6 p-4 bg-orange-50/50 rounded-xl border border-orange-200">
             <p className="text-sm text-gray-700">
               <strong className="text-black">Demo:</strong> Usa cualquier email y contraseña para probar el sistema.
             </p>

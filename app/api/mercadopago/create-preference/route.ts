@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { z } from 'zod'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
 import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
+import { authOptions } from '@/lib/auth'
+
+export const dynamic = 'force-dynamic'
 
 // Inicializar Mercado Pago
 const client = new MercadoPagoConfig({
@@ -11,7 +16,34 @@ const client = new MercadoPagoConfig({
   },
 })
 
+const ShippingSchema = z
+  .object({
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(200),
+    phone: z.string().trim().min(3).max(40),
+    cuit: z.string().trim().max(40).optional(),
+    deliveryMethod: z.enum(['PICKUP_FACTORY', 'AGREE_WITH_COMPANY']),
+  })
+  .strict()
+
+const BodySchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.coerce.number().int().positive(),
+        quantity: z.coerce.number().int().min(1),
+      })
+    )
+    .min(1),
+  shipping: ShippingSchema,
+})
+
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
+
   try {
     if (!process.env.MP_ACCESS_TOKEN) {
       return NextResponse.json(
@@ -33,25 +65,16 @@ export async function POST(request: NextRequest) {
       return requestOrigin
     })()
 
-    const body = await request.json()
-    const { items, userId, userEmail, shipping } = body
-
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: 'No hay items en el carrito' },
-        { status: 400 }
-      )
-    }
+    const json = await request.json()
+    const body = BodySchema.parse(json)
 
     // Crear preferencia de pago
     const preference = new Preference(client)
 
-    const normalizedItems = (items as Array<{ id: number; quantity: number }>).map(
-      (i) => ({
-        id: Number(i.id),
-        quantity: Math.max(1, Math.floor(Number(i.quantity))),
-      })
-    )
+    const normalizedItems = body.items.map((i) => ({
+      id: Number(i.id),
+      quantity: Math.max(1, Math.floor(Number(i.quantity))),
+    }))
 
     const ids = Array.from(new Set(normalizedItems.map((i) => i.id))).filter((id) =>
       Number.isFinite(id)
@@ -83,13 +106,18 @@ export async function POST(request: NextRequest) {
     let retailTotal = 0
     const itemsCount = normalizedItems.reduce((sum, i) => sum + i.quantity, 0)
 
-    const user =
-      userId
-        ? await prisma.user.findUnique({
-            where: { id: String(userId) },
-            select: { customerType: true, wholesaleStatus: true, wholesaleTier: true },
-          })
-        : null
+    // Seguridad: el descuento NO puede depender de un userId enviado por el cliente.
+    // Se calcula siempre con el usuario autenticado.
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, email: true, customerType: true, wholesaleStatus: true, wholesaleTier: true },
+    })
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
+    }
+
+    const userEmail = (user.email ?? session.user.email ?? body.shipping.email).trim().toLowerCase()
+    const shipping = { ...body.shipping, email: userEmail, cuit: (body.shipping.cuit ?? '').trim() }
 
     for (const i of normalizedItems) {
       const product = byId.get(i.id)
@@ -124,9 +152,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { percent } = getDiscountPercent({
-      customerType: (user?.customerType as any) ?? null,
-      wholesaleStatus: (user?.wholesaleStatus as any) ?? null,
-      wholesaleTier: (user?.wholesaleTier as any) ?? null,
+      customerType: (user.customerType as any) ?? null,
+      wholesaleStatus: (user.wholesaleStatus as any) ?? null,
+      wholesaleTier: (user.wholesaleTier as any) ?? null,
       itemsCount,
       retailTotal,
     })
@@ -159,20 +187,20 @@ export async function POST(request: NextRequest) {
     const order = await prisma.$transaction(async (tx) => {
       return await tx.order.create({
         data: {
-          userId: userId ?? null,
-          userEmail: userEmail ?? shipping?.email ?? null,
+          userId: session.user.id,
+          userEmail,
           total,
           paymentMethod: 'MERCADOPAGO' as any,
           discountPercent: percent,
           discountAmount,
-          shipping: shipping ?? null,
+          shipping,
           items: { create: orderItemsCreate },
         },
       })
     })
 
     const deliveryMethodParam =
-      typeof shipping?.deliveryMethod === 'string' && shipping.deliveryMethod.trim()
+      typeof shipping.deliveryMethod === 'string' && shipping.deliveryMethod.trim()
         ? `&delivery_method=${encodeURIComponent(shipping.deliveryMethod)}`
         : ''
 
@@ -229,13 +257,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error creating Mercado Pago preference:', error)
+    const status = error?.name === 'ZodError' ? 400 : 500
     return NextResponse.json(
-      {
-        error: 'Error al crear la preferencia de pago',
-        details: error?.message ?? 'Error',
-        mp: error?.cause ?? error,
-      },
-      { status: 500 }
+      { error: status === 400 ? 'Datos inválidos' : 'Error al crear la preferencia de pago' },
+      { status }
     )
   }
 }

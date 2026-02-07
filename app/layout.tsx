@@ -46,7 +46,26 @@ export default async function RootLayout({
           <CountryGate initialGateOpen={initialGateOpen} />
           <ScrollProgress />
           {children}
-          <Toaster position="top-right" />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4200,
+              className:
+                'rounded-xl border border-gray-200 bg-white text-gray-900 shadow-xl ring-1 ring-orange-500/10',
+              success: {
+                className:
+                  'rounded-xl border border-green-200 bg-white text-gray-900 shadow-xl ring-1 ring-orange-500/10',
+              },
+              error: {
+                className:
+                  'rounded-xl border border-red-200 bg-white text-gray-900 shadow-xl ring-1 ring-orange-500/10',
+              },
+              loading: {
+                className:
+                  'rounded-xl border border-orange-200 bg-white text-gray-900 shadow-xl ring-1 ring-orange-500/20',
+              },
+            }}
+          />
         </Providers>
       </body>
     </html>
