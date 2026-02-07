@@ -172,7 +172,11 @@ export default function ProductsPreview() {
   }
 
   return (
-    <section ref={ref} className="relative py-8 md:py-12 bg-gray-100" style={{ zIndex: 1 }}>
+    <section
+      ref={ref}
+      className="relative pt-4 md:pt-6 pb-8 md:pb-12 bg-gray-100"
+      style={{ zIndex: 1 }}
+    >
       {/* Divider superior con animación */}
       <motion.div 
         className="absolute top-0 left-0 right-0 h-px bg-gray-200"
@@ -184,9 +188,9 @@ export default function ProductsPreview() {
       
       <motion.div
         style={{ opacity }}
-        className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-4"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.75fr] gap-6 lg:gap-10 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-6 lg:gap-6 items-center">
           {/* Texto a la izquierda */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -220,7 +224,7 @@ export default function ProductsPreview() {
             >
               <Link
                 href="/productos"
-                className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-8 py-4 text-base md:text-lg font-semibold border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300"
+                className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-6 py-3 text-sm md:text-base font-semibold border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300"
               >
                 <span>VER CATÁLOGO</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />

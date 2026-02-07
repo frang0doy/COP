@@ -35,7 +35,7 @@ export default function CartPage() {
           >
             <Link
               href="/productos"
-              className="inline-block bg-black text-white px-6 py-3 border-2 border-black hover:bg-gray-900 transition"
+              className="inline-block bg-orange-500 text-white px-6 py-3 border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200 font-semibold"
             >
               Explorar Productos
             </Link>
