@@ -11,6 +11,7 @@ type Me = {
   id: string
   email: string
   name?: string | null
+  country?: 'AR' | 'MX' | 'CU' | null
   phone?: string | null
   cuit?: string | null
   address?: string | null

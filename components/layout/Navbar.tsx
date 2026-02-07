@@ -10,6 +10,14 @@ import { Menu, ShoppingCart, User } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return null
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()!.split(';').shift() ?? null
+  return null
+}
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
@@ -17,6 +25,7 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [menuPanelStyle, setMenuPanelStyle] = useState<React.CSSProperties>({})
   const [userMenuPanelStyle, setUserMenuPanelStyle] = useState<React.CSSProperties>({})
+  const [countryLabel, setCountryLabel] = useState<string>('Argentina')
   const pathname = usePathname()
   const { data: session } = useSession()
   const { itemsCount } = useCart()
@@ -27,6 +36,27 @@ export default function Navbar() {
   
   // Detectar si estamos en la página de inicio
   const isHomePage = pathname === '/'
+
+  const openCountryPicker = () => {
+    try {
+      window.dispatchEvent(new CustomEvent('cop:open-country-picker'))
+    } catch {}
+    setIsMenuOpen(false)
+    setIsUserMenuOpen(false)
+  }
+
+  useEffect(() => {
+    // Leer país actual (cookie) y escuchar cambios
+    const read = () => {
+      const raw = getCookie('cop.country')
+      const code = raw ? decodeURIComponent(raw) : null
+      setCountryLabel(code === 'AR' ? 'Argentina' : code === 'MX' ? 'México' : code === 'CU' ? 'Cuba' : 'Argentina')
+    }
+    read()
+    const onChange = () => read()
+    window.addEventListener('cop:country-changed' as any, onChange as any)
+    return () => window.removeEventListener('cop:country-changed' as any, onChange as any)
+  }, [])
 
   useEffect(() => {
     // Si no estamos en la página de inicio, el header siempre es negro
@@ -233,6 +263,18 @@ export default function Navbar() {
                           <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                         </Link>
                       ))}
+
+                      <button
+                        type="button"
+                        onClick={openCountryPicker}
+                        className="group w-full flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                        role="menuitem"
+                      >
+                        <span className="text-base font-semibold">Cambiar país</span>
+                        <span className="text-sm font-semibold text-white/60 group-hover:text-orange-500 transition-colors">
+                          {countryLabel}
+                        </span>
+                      </button>
                     </div>
 
                     {session && (

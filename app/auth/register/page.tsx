@@ -8,6 +8,14 @@ import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { signIn } from 'next-auth/react'
 
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return null
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()!.split(';').shift() ?? null
+  return null
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -18,6 +26,25 @@ export default function RegisterPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const persistSelectedCountryIfAny = async () => {
+    let country: string | null = null
+    const fromCookie = getCookie('cop.country')
+    if (fromCookie) country = decodeURIComponent(fromCookie)
+    if (!country) {
+      try {
+        country = localStorage.getItem('cop.country')
+      } catch {}
+    }
+    if (country !== 'AR') return
+    try {
+      await fetch('/api/me/country', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: 'AR' }),
+      })
+    } catch {}
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +93,7 @@ export default function RegisterPage() {
       }
 
       toast.success('Cuenta creada e inicio de sesión exitoso')
+      await persistSelectedCountryIfAny()
       router.push('/perfil')
       router.refresh()
     } catch (error) {

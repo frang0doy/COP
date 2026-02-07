@@ -8,6 +8,14 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return null
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()!.split(';').shift() ?? null
+  return null
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -21,6 +29,27 @@ function LoginForm() {
   const [showRememberPrompt, setShowRememberPrompt] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState<string>('/')
   const [dontAskRememberAgain, setDontAskRememberAgain] = useState(false)
+
+  const persistSelectedCountryIfAny = async () => {
+    // Si el usuario eligió país antes del login, lo persistimos en DB
+    let country: string | null = null
+    const fromCookie = getCookie('cop.country')
+    if (fromCookie) country = decodeURIComponent(fromCookie)
+    if (!country) {
+      try {
+        country = localStorage.getItem('cop.country')
+      } catch {}
+    }
+    if (country !== 'AR') return
+
+    try {
+      await fetch('/api/me/country', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: 'AR' }),
+      })
+    } catch {}
+  }
 
   useEffect(() => {
     // Pre-cargar email recordado (si existe)
@@ -59,6 +88,7 @@ function LoginForm() {
             setDontAskRememberAgain(true)
           } catch {}
           toast.success('Sesión iniciada correctamente')
+          await persistSelectedCountryIfAny()
           router.push(callbackUrl)
           router.refresh()
           return
@@ -67,6 +97,7 @@ function LoginForm() {
         // Si ya aceptó una vez "no volver a preguntar", no mostramos el prompt.
         if (dontAskRememberAgain) {
           toast.success('Sesión iniciada correctamente')
+          await persistSelectedCountryIfAny()
           router.push(callbackUrl)
           router.refresh()
           return
@@ -100,7 +131,7 @@ function LoginForm() {
                 <button
                   type="button"
                   className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
-                  onClick={() => {
+                  onClick={async () => {
                     // Si elige "No", NO guardamos preferencia: se le volverá a preguntar en próximos logins.
                     try {
                       localStorage.removeItem('auth.remember.email')
@@ -109,6 +140,7 @@ function LoginForm() {
                     setDontAskRememberAgain(false)
                     setShowRememberPrompt(false)
                     toast.success('Sesión iniciada correctamente')
+                    await persistSelectedCountryIfAny()
                     router.push(pendingRedirect)
                     router.refresh()
                   }}
@@ -118,7 +150,7 @@ function LoginForm() {
                 <button
                   type="button"
                   className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
-                  onClick={() => {
+                  onClick={async () => {
                     try {
                       localStorage.setItem('auth.remember.email', email.trim())
                       localStorage.setItem('auth.remember.dontAsk', '1')
@@ -126,6 +158,7 @@ function LoginForm() {
                     setDontAskRememberAgain(true)
                     setShowRememberPrompt(false)
                     toast.success('Sesión iniciada correctamente')
+                    await persistSelectedCountryIfAny()
                     router.push(pendingRedirect)
                     router.refresh()
                   }}

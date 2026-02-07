@@ -35,6 +35,8 @@ model User {
   passwordHash String
   role         UserRole @default(USER)
 
+  country      CountryCode?
+
   phone    String?
   cuit     String?
   address  String?
@@ -102,5 +104,11 @@ enum OrderStatus {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum CountryCode {
+  AR
+  MX
+  CU
 }
 
