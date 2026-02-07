@@ -23,6 +23,8 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    customerType: 'RETAIL' as 'RETAIL' | 'WHOLESALE',
+    cuit: '',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -70,6 +72,8 @@ export default function RegisterPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          customerType: formData.customerType,
+          cuit: formData.customerType === 'WHOLESALE' ? formData.cuit : undefined,
         }),
       })
 
@@ -125,6 +129,67 @@ export default function RegisterPage() {
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <p className="text-sm font-semibold text-gray-900">¿Cómo querés comprar?</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Podés elegir minorista o solicitar cuenta mayorista (requiere aprobación).
+              </p>
+
+              <div className="mt-3 space-y-2">
+                <label className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                  <input
+                    type="radio"
+                    name="customerType"
+                    value="RETAIL"
+                    checked={formData.customerType === 'RETAIL'}
+                    onChange={() => setFormData((p) => ({ ...p, customerType: 'RETAIL' }))}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Minorista</p>
+                    <p className="text-xs text-gray-600">
+                      Comprás con precio minorista. Podés recibir descuento automático según tu carrito.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                  <input
+                    type="radio"
+                    name="customerType"
+                    value="WHOLESALE"
+                    checked={formData.customerType === 'WHOLESALE'}
+                    onChange={() => setFormData((p) => ({ ...p, customerType: 'WHOLESALE' }))}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Mayorista</p>
+                    <p className="text-xs text-gray-600">
+                      Tu cuenta queda pendiente y se aprueba desde administración.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {formData.customerType === 'WHOLESALE' ? (
+                <div className="mt-4">
+                  <label htmlFor="cuit" className="block text-sm font-medium text-gray-700 mb-2">
+                    CUIT (obligatorio para mayoristas)
+                  </label>
+                  <input
+                    id="cuit"
+                    name="cuit"
+                    type="text"
+                    required
+                    value={formData.cuit}
+                    onChange={(e) => setFormData({ ...formData, cuit: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-black focus:ring-0 transition-colors bg-white"
+                    placeholder="Ej: 20-12345678-9"
+                  />
+                </div>
+              ) : null}
+            </div>
+
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Nombre Completo

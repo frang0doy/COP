@@ -250,7 +250,13 @@ export default function Navbar() {
                         { href: '/productos', label: 'Productos' },
                         { href: '/empresa', label: 'Empresa' },
                         { href: '/contacto', label: 'Contacto' },
-                        ...(isAdmin ? [{ href: '/admin/productos', label: 'Admin productos' }] : []),
+                        ...(isAdmin
+                          ? [
+                              { href: '/admin/productos', label: 'Admin productos' },
+                              { href: '/admin/pedidos', label: 'Admin pedidos' },
+                              { href: '/admin/usuarios', label: 'Admin usuarios' },
+                            ]
+                          : []),
                       ].map((item) => (
                         <Link
                           key={item.href}

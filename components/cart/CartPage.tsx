@@ -6,10 +6,58 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
+import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, itemsCount } = useCart()
   const { data: session } = useSession()
+  const [me, setMe] = useState<{
+    customerType?: 'RETAIL' | 'WHOLESALE' | null
+    wholesaleStatus?: 'PENDING' | 'APPROVED' | null
+    wholesaleTier?: 'NEW' | 'HISTORICAL' | null
+  } | null>(null)
+  const [meLoading, setMeLoading] = useState(false)
+
+  useEffect(() => {
+    if (!session) {
+      setMe(null)
+      return
+    }
+    let cancelled = false
+    setMeLoading(true)
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (cancelled) return
+      if (res.ok) {
+        setMe({
+          customerType: data?.user?.customerType ?? null,
+          wholesaleStatus: data?.user?.wholesaleStatus ?? null,
+          wholesaleTier: data?.user?.wholesaleTier ?? null,
+        })
+      } else {
+        setMe(null)
+      }
+      setMeLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session])
+
+  const discountInfo = useMemo(() => {
+    if (!session) return { percent: 0, discountAmount: 0, finalTotal: total }
+    const { percent } = getDiscountPercent({
+      customerType: me?.customerType ?? null,
+      wholesaleStatus: me?.wholesaleStatus ?? null,
+      wholesaleTier: me?.wholesaleTier ?? null,
+      itemsCount,
+      retailTotal: total,
+    })
+    const { discounted, discountAmount } = applyPercentDiscount(total, percent)
+    return { percent, discountAmount, finalTotal: discounted }
+  }, [session, me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, itemsCount, total])
 
   if (items.length === 0) {
     return (
@@ -165,9 +213,39 @@ export default function CartPage() {
             </div>
 
             <div className="border-t pt-4 mb-6">
-              <div className="flex justify-between text-xl font-bold text-gray-900 mb-2">
-                <span>Total</span>
-                <span>${total.toLocaleString('es-MX')}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Subtotal</span>
+                  <span className="font-semibold">${total.toLocaleString('es-MX')}</span>
+                </div>
+
+                {session ? (
+                  meLoading ? (
+                    <div className="flex justify-between text-sm text-gray-500">
+                      <span>Descuento</span>
+                      <span className="font-semibold">Calculando…</span>
+                    </div>
+                  ) : discountInfo.percent > 0 ? (
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Descuento ({discountInfo.percent}%)</span>
+                      <span className="font-semibold">
+                        -${discountInfo.discountAmount.toLocaleString('es-MX')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-sm text-gray-500">
+                      <span>Descuento</span>
+                      <span className="font-semibold">$0</span>
+                    </div>
+                  )
+                ) : null}
+
+                <div className="flex justify-between text-xl font-bold text-gray-900">
+                  <span>Total</span>
+                  <span>
+                    ${(session ? discountInfo.finalTotal : total).toLocaleString('es-MX')}
+                  </span>
+                </div>
               </div>
               <p className="text-sm text-gray-500">El envío se calculará después</p>
             </div>

@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { useSession } from 'next-auth/react'
 import { CreditCard } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
 
 type Me = {
   id: string
@@ -12,6 +13,9 @@ type Me = {
   name?: string | null
   phone?: string | null
   cuit?: string | null
+  customerType?: 'RETAIL' | 'WHOLESALE' | null
+  wholesaleStatus?: 'PENDING' | 'APPROVED' | null
+  wholesaleTier?: 'NEW' | 'HISTORICAL' | null
 }
 
 type DeliveryMethod = 'PICKUP_FACTORY' | 'AGREE_WITH_COMPANY'
@@ -35,6 +39,28 @@ export default function CheckoutForm() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [me, setMe] = useState<Me | null>(null)
   const [showUseSavedPrompt, setShowUseSavedPrompt] = useState(false)
+
+  const itemsCount = useMemo(
+    () => items.reduce((sum, i) => sum + (i.quantity ?? 0), 0),
+    [items]
+  )
+
+  const discountInfo = useMemo(() => {
+    const { percent } = getDiscountPercent({
+      customerType: me?.customerType ?? null,
+      wholesaleStatus: me?.wholesaleStatus ?? null,
+      wholesaleTier: me?.wholesaleTier ?? null,
+      itemsCount,
+      retailTotal: total,
+    })
+    const { discounted, discountAmount } = applyPercentDiscount(total, percent)
+    return { percent, discountedTotal: discounted, discountAmount }
+  }, [me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, itemsCount, total])
+
+  const canPayAtFactory =
+    me?.customerType === 'WHOLESALE' &&
+    me?.wholesaleStatus === 'APPROVED' &&
+    me?.wholesaleTier === 'HISTORICAL'
 
   const hasSavedShipping = useMemo(() => {
     if (!me) return false
@@ -83,8 +109,7 @@ export default function CheckoutForm() {
     }
   }, [hasSavedShipping, formLooksEmpty])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const payWithMercadoPago = async () => {
     setIsProcessing(true)
 
     try {
@@ -130,6 +155,36 @@ export default function CheckoutForm() {
     }
   }
 
+  const payAtFactory = async () => {
+    setIsProcessing(true)
+    try {
+      if (items.length === 0) {
+        toast.error('Tu carrito está vacío.')
+        setIsProcessing(false)
+        return
+      }
+
+      const response = await fetch('/api/orders/pay-at-factory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+          shipping: shippingData,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(data?.error || 'No se pudo crear el pedido')
+      }
+
+      clearCart({ silent: true })
+      window.location.href = `/checkout/pending?order_id=${encodeURIComponent(data.order_id)}`
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Error')
+      setIsProcessing(false)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Formulario de envío */}
@@ -163,7 +218,7 @@ export default function CheckoutForm() {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        <form onSubmit={(e) => { e.preventDefault() }} className="bg-white rounded-lg shadow-md p-6 space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Datos de contacto y entrega</h2>
 
           {hasSavedShipping ? (
@@ -230,12 +285,17 @@ export default function CheckoutForm() {
               </label>
               <input
                 type="text"
-                required
+                required={me?.customerType === 'WHOLESALE'}
                 value={shippingData.cuit}
                 onChange={(e) => setShippingData({ ...shippingData, cuit: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Ej: 20-12345678-9"
               />
+              {me?.customerType === 'WHOLESALE' ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  Requerido para mayoristas.
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -297,14 +357,28 @@ export default function CheckoutForm() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isProcessing}
-            className="w-full bg-orange-500 text-white py-3 border border-orange-500 font-semibold hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CreditCard className="w-5 h-5" />
-            <span>{isProcessing ? 'Procesando...' : 'Pagar con Mercado Pago'}</span>
-          </button>
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={payWithMercadoPago}
+              disabled={isProcessing}
+              className="w-full bg-orange-500 text-white py-3 border border-orange-500 font-semibold hover:bg-orange-600 hover:border-orange-600 transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CreditCard className="w-5 h-5" />
+              <span>{isProcessing ? 'Procesando...' : 'Pagar con Mercado Pago'}</span>
+            </button>
+
+            {canPayAtFactory ? (
+              <button
+                type="button"
+                onClick={payAtFactory}
+                disabled={isProcessing}
+                className="w-full bg-black text-white py-3 border-2 border-black font-semibold hover:bg-gray-900 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? 'Procesando...' : 'Pagar en fábrica'}
+              </button>
+            ) : null}
+          </div>
         </form>
       </div>
 
@@ -327,9 +401,21 @@ export default function CheckoutForm() {
           </div>
 
           <div className="border-t pt-4 mb-6">
-            <div className="flex justify-between text-xl font-bold text-gray-900 mb-2">
-              <span>Total</span>
-              <span>${total.toLocaleString('es-MX')}</span>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-700">
+                <span>Subtotal</span>
+                <span className="font-semibold">${total.toLocaleString('es-MX')}</span>
+              </div>
+              {discountInfo.percent > 0 ? (
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>Descuento ({discountInfo.percent}%)</span>
+                  <span className="font-semibold">-${discountInfo.discountAmount.toLocaleString('es-MX')}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between text-xl font-bold text-gray-900">
+                <span>Total</span>
+                <span>${discountInfo.discountedTotal.toLocaleString('es-MX')}</span>
+              </div>
             </div>
             <p className="text-sm text-gray-500">
               {shippingData.deliveryMethod === 'PICKUP_FACTORY'
@@ -343,6 +429,15 @@ export default function CheckoutForm() {
               <strong>Nota:</strong> Serás redirigido a Mercado Pago para completar el pago de forma segura.
             </p>
           </div>
+
+          {canPayAtFactory ? (
+            <div className="p-3 bg-gray-50 rounded-lg mt-3 border border-gray-200">
+              <p className="text-xs text-gray-800">
+                <strong>Mayorista histórico:</strong> también podés elegir “Pagar en fábrica”. El pedido queda pendiente
+                hasta confirmación de COP.
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

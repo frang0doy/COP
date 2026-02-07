@@ -7,6 +7,8 @@ const RegisterSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
   password: z.string().min(6).max(200),
+  customerType: z.enum(['RETAIL', 'WHOLESALE']),
+  cuit: z.string().max(40).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -25,11 +27,22 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(data.password, 10)
 
+    const customerType = data.customerType
+    const cuit = (data.cuit ?? '').trim()
+
+    if (customerType === 'WHOLESALE' && !cuit) {
+      return NextResponse.json({ error: 'El CUIT es obligatorio para mayoristas' }, { status: 400 })
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
         name: data.name.trim(),
         passwordHash,
+        customerType: customerType as any,
+        ...(customerType === 'WHOLESALE'
+          ? { wholesaleStatus: 'PENDING' as any, cuit }
+          : {}),
       },
       select: { id: true, email: true, name: true },
     })

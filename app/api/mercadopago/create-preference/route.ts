@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
+import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
 
 // Inicializar Mercado Pago
 const client = new MercadoPagoConfig({
@@ -79,6 +80,16 @@ export async function POST(request: NextRequest) {
     }> = []
 
     let total = 0
+    let retailTotal = 0
+    const itemsCount = normalizedItems.reduce((sum, i) => sum + i.quantity, 0)
+
+    const user =
+      userId
+        ? await prisma.user.findUnique({
+            where: { id: String(userId) },
+            select: { customerType: true, wholesaleStatus: true, wholesaleTier: true },
+          })
+        : null
 
     for (const i of normalizedItems) {
       const product = byId.get(i.id)
@@ -106,25 +117,44 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const subtotal = product.price * i.quantity
+      const retailSubtotal = product.price * i.quantity
+      retailTotal += retailSubtotal
+
+      // se recalcula el descuento cuando ya tenemos retailTotal
+    }
+
+    const { percent } = getDiscountPercent({
+      customerType: (user?.customerType as any) ?? null,
+      wholesaleStatus: (user?.wholesaleStatus as any) ?? null,
+      wholesaleTier: (user?.wholesaleTier as any) ?? null,
+      itemsCount,
+      retailTotal,
+    })
+
+    for (const i of normalizedItems) {
+      const product = byId.get(i.id)!
+      const { discounted: unitPrice } = applyPercentDiscount(product.price, percent)
+      const subtotal = unitPrice * i.quantity
       total += subtotal
 
       mpItems.push({
         id: String(product.id),
         title: product.name,
         quantity: i.quantity,
-        unit_price: product.price,
+        unit_price: unitPrice,
         currency_id: process.env.MP_CURRENCY_ID || 'ARS',
       })
 
       orderItemsCreate.push({
         productId: product.id,
         name: product.name,
-        unitPrice: product.price,
+        unitPrice,
         quantity: i.quantity,
         subtotal,
       })
     }
+
+    const discountAmount = Math.max(0, retailTotal - total)
 
     const order = await prisma.$transaction(async (tx) => {
       return await tx.order.create({
@@ -132,6 +162,9 @@ export async function POST(request: NextRequest) {
           userId: userId ?? null,
           userEmail: userEmail ?? shipping?.email ?? null,
           total,
+          paymentMethod: 'MERCADOPAGO' as any,
+          discountPercent: percent,
+          discountAmount,
           shipping: shipping ?? null,
           items: { create: orderItemsCreate },
         },

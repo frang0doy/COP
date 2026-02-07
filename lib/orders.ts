@@ -6,8 +6,9 @@ export async function confirmOrder(params: {
   orderId: string
   paymentId?: string | null
   status: OrderConfirmStatus
+  setPaymentFields?: boolean
 }) {
-  const { orderId, paymentId, status } = params
+  const { orderId, paymentId, status, setPaymentFields = true } = params
 
   return await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
@@ -37,14 +38,18 @@ export async function confirmOrder(params: {
       where: { id: orderId },
       data: {
         status: status as any,
-        mpPaymentId: paymentId ?? null,
-        mpStatus:
-          status === 'APPROVED'
-            ? 'approved'
-            : status === 'REJECTED'
-              ? 'rejected'
-              : 'pending',
-        paidAt: status === 'APPROVED' ? new Date() : null,
+        ...(setPaymentFields
+          ? {
+              mpPaymentId: paymentId ?? null,
+              mpStatus:
+                status === 'APPROVED'
+                  ? 'approved'
+                  : status === 'REJECTED'
+                    ? 'rejected'
+                    : 'pending',
+              paidAt: status === 'APPROVED' ? new Date() : null,
+            }
+          : {}),
       },
     })
   })

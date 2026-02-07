@@ -29,6 +29,9 @@ function LoginForm() {
   const [showRememberPrompt, setShowRememberPrompt] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState<string>('/')
   const [dontAskRememberAgain, setDontAskRememberAgain] = useState(false)
+  const [showCustomerTypePrompt, setShowCustomerTypePrompt] = useState(false)
+  const [customerType, setCustomerType] = useState<'RETAIL' | 'WHOLESALE'>('RETAIL')
+  const [cuit, setCuit] = useState('')
 
   const persistSelectedCountryIfAny = async () => {
     // Si el usuario eligió país antes del login, lo persistimos en DB
@@ -49,6 +52,52 @@ function LoginForm() {
         body: JSON.stringify({ country: 'AR' }),
       })
     } catch {}
+  }
+
+  const goTo = (url: string) => {
+    router.push(url)
+    router.refresh()
+  }
+
+  const proceedAfterLogin = async (redirectTo: string) => {
+    await persistSelectedCountryIfAny()
+
+    // Si el user no tiene definido el tipo de cliente, lo preguntamos (solo primera vez).
+    try {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      const ct = data?.user?.customerType as string | undefined
+      const role = data?.user?.role as string | undefined
+      // Admin no debe ver este prompt.
+      if (!ct && role !== 'ADMIN') {
+        setPendingRedirect(redirectTo)
+        setShowCustomerTypePrompt(true)
+        return
+      }
+    } catch {
+      // si falla, seguimos el flujo normal
+    }
+
+    // Flujo existente de "Recordarme"
+    if (rememberMe) {
+      try {
+        localStorage.setItem('auth.remember.email', email.trim())
+        localStorage.setItem('auth.remember.dontAsk', '1')
+        setDontAskRememberAgain(true)
+      } catch {}
+      toast.success('Sesión iniciada correctamente')
+      goTo(redirectTo)
+      return
+    }
+
+    if (dontAskRememberAgain) {
+      toast.success('Sesión iniciada correctamente')
+      goTo(redirectTo)
+      return
+    }
+
+    setPendingRedirect(redirectTo)
+    setShowRememberPrompt(true)
   }
 
   useEffect(() => {
@@ -80,31 +129,7 @@ function LoginForm() {
       if (result?.error) {
         toast.error('Credenciales incorrectas')
       } else {
-        // Guardar email si marcó "Recordarme". Si no, preguntamos antes de redirigir
-        if (rememberMe) {
-          try {
-            localStorage.setItem('auth.remember.email', email.trim())
-            localStorage.setItem('auth.remember.dontAsk', '1')
-            setDontAskRememberAgain(true)
-          } catch {}
-          toast.success('Sesión iniciada correctamente')
-          await persistSelectedCountryIfAny()
-          router.push(callbackUrl)
-          router.refresh()
-          return
-        }
-
-        // Si ya aceptó una vez "no volver a preguntar", no mostramos el prompt.
-        if (dontAskRememberAgain) {
-          toast.success('Sesión iniciada correctamente')
-          await persistSelectedCountryIfAny()
-          router.push(callbackUrl)
-          router.refresh()
-          return
-        }
-
-        setPendingRedirect(callbackUrl)
-        setShowRememberPrompt(true)
+        await proceedAfterLogin(callbackUrl)
       }
     } catch (error) {
       toast.error('Error al iniciar sesión')
@@ -115,6 +140,113 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      {showCustomerTypePrompt && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute right-4 top-24 w-[min(92vw,520px)]">
+            <div className="bg-white border border-gray-200 shadow-2xl p-6">
+              <h3 className="text-lg font-bold text-gray-900">¿Cómo querés comprar?</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Elegí minorista o solicitá cuenta mayorista (requiere aprobación).
+              </p>
+
+              <div className="mt-4 space-y-2">
+                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                  <input
+                    type="radio"
+                    name="ct"
+                    value="RETAIL"
+                    checked={customerType === 'RETAIL'}
+                    onChange={() => setCustomerType('RETAIL')}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Minorista</p>
+                    <p className="text-xs text-gray-600">
+                      Comprás normalmente con posible descuento por carrito.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:border-black transition">
+                  <input
+                    type="radio"
+                    name="ct"
+                    value="WHOLESALE"
+                    checked={customerType === 'WHOLESALE'}
+                    onChange={() => setCustomerType('WHOLESALE')}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Mayorista</p>
+                    <p className="text-xs text-gray-600">
+                      Tu cuenta queda pendiente hasta aprobación.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {customerType === 'WHOLESALE' ? (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    CUIT (obligatorio)
+                  </label>
+                  <input
+                    type="text"
+                    value={cuit}
+                    onChange={(e) => setCuit(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-black focus:ring-0 bg-white"
+                    placeholder="Ej: 20-12345678-9"
+                  />
+                </div>
+              ) : null}
+
+              <div className="mt-5 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-200 text-gray-800 hover:border-black transition"
+                  onClick={() => {
+                    // no dejamos seguir sin elegir: cerrarlo sería volver a pedir.
+                    setShowCustomerTypePrompt(false)
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition"
+                  onClick={async () => {
+                    if (customerType === 'WHOLESALE' && !cuit.trim()) {
+                      toast.error('El CUIT es obligatorio para mayoristas')
+                      return
+                    }
+                    const res = await fetch('/api/me/customer-type', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        customerType,
+                        cuit: customerType === 'WHOLESALE' ? cuit.trim() : undefined,
+                      }),
+                    })
+                    const data = await res.json().catch(() => ({}))
+                    if (!res.ok) {
+                      toast.error(data?.error || 'No se pudo guardar')
+                      return
+                    }
+                    setShowCustomerTypePrompt(false)
+                    toast.success('Listo')
+                    // Continuamos con el flujo de recordarme/redirección.
+                    await proceedAfterLogin(pendingRedirect)
+                  }}
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showRememberPrompt && (
         <div className="fixed inset-0 z-50">
           <div
@@ -141,8 +273,7 @@ function LoginForm() {
                     setShowRememberPrompt(false)
                     toast.success('Sesión iniciada correctamente')
                     await persistSelectedCountryIfAny()
-                    router.push(pendingRedirect)
-                    router.refresh()
+                    goTo(pendingRedirect)
                   }}
                 >
                   No guardar
@@ -159,8 +290,7 @@ function LoginForm() {
                     setShowRememberPrompt(false)
                     toast.success('Sesión iniciada correctamente')
                     await persistSelectedCountryIfAny()
-                    router.push(pendingRedirect)
-                    router.refresh()
+                    goTo(pendingRedirect)
                   }}
                 >
                   Guardar
