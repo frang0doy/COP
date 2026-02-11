@@ -1,16 +1,17 @@
 export function getAdminEmails(): string[] {
+  // Admin principal (dueño del proyecto). Debe poder entrar siempre.
+  const owner = 'franciscogodoy_@hotmail.com'
+
   const list = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
 
   // Requisito: solo 2 admins (vos y el cliente).
-  const unique = Array.from(new Set(list))
+  // Siempre incluimos al owner, y completamos con el/los emails del env.
+  const unique = Array.from(new Set([owner, ...list].map((e) => e.trim().toLowerCase()).filter(Boolean)))
 
-  if (process.env.NODE_ENV === 'production' && unique.length > 2) {
-    throw new Error('ADMIN_EMAILS debe contener como máximo 2 emails en producción')
-  }
-
+  // En producción respetamos el máximo de 2 sin romper la app: owner + 1 extra.
   return unique.slice(0, 2)
 }
 

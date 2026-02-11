@@ -24,6 +24,16 @@ export default function AdminProductosPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [category, setCategory] = useState<string>('ALL')
+  const [active, setActive] = useState<'ALL' | 'ACTIVE' | 'PAUSED'>('ALL')
+  const [stock, setStock] = useState<'ALL' | 'LOW' | 'OUT'>('ALL')
+  const [isNew, setIsNew] = useState<'ALL' | 'YES' | 'NO'>('ALL')
+  const [sortKey, setSortKey] = useState<
+    'id' | 'sku' | 'name' | 'category' | 'price' | 'stock' | 'isActive'
+  >('id')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [page, setPage] = useState(1)
+  const pageSize = 25
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -67,17 +77,82 @@ export default function AdminProductosPage() {
     }
   }, [status, isAdmin])
 
+  const categories = useMemo(() => {
+    const set = new Set<string>()
+    for (const p of products) set.add(String(p.category || '').trim())
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b))
+  }, [products])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return products
-    return products.filter(
-      (p) =>
-        String(p.id).includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-    )
-  }, [products, query])
+    const list = products
+      .filter((p) => {
+        if (category !== 'ALL' && p.category !== category) return false
+        const isActive = p.isActive ?? true
+        if (active === 'ACTIVE' && !isActive) return false
+        if (active === 'PAUSED' && isActive) return false
+        const st = Number(p.stock ?? 0)
+        if (stock === 'LOW' && !(st > 0 && st <= 5)) return false
+        if (stock === 'OUT' && st !== 0) return false
+        const n = Boolean(p.isNew)
+        if (isNew === 'YES' && !n) return false
+        if (isNew === 'NO' && n) return false
+        if (!q) return true
+        return (
+          String(p.id).includes(q) ||
+          p.sku.toLowerCase().includes(q) ||
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q)
+        )
+      })
+      .slice()
+
+    list.sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1
+      const av = (a as any)[sortKey]
+      const bv = (b as any)[sortKey]
+      if (sortKey === 'isActive') {
+        const aa = (a.isActive ?? true) ? 1 : 0
+        const bb = (b.isActive ?? true) ? 1 : 0
+        return (aa - bb) * dir
+      }
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir
+      return String(av ?? '').localeCompare(String(bv ?? ''), 'es', { sensitivity: 'base' }) * dir
+    })
+
+    return list
+  }, [products, query, category, active, stock, isNew, sortKey, sortDir])
+
+  useEffect(() => {
+    setPage(1)
+  }, [query, category, active, stock, isNew, sortKey, sortDir])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const safePage = Math.min(pageCount, Math.max(1, page))
+  const pageItems = useMemo(() => {
+    const start = (safePage - 1) * pageSize
+    return filtered.slice(start, start + pageSize)
+  }, [filtered, safePage])
+
+  const downloadCsv = (filename: string, rows: Array<Record<string, any>>) => {
+    const headers = Object.keys(rows[0] || {})
+    const esc = (v: any) => {
+      const s = String(v ?? '')
+      const needs = /[",\n]/.test(s)
+      const out = s.replace(/"/g, '""')
+      return needs ? `"${out}"` : out
+    }
+    const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
 
   const updateProduct = async (id: number, patch: Partial<Product>) => {
     const res = await fetch(`/api/admin/products/${id}`, {
@@ -142,19 +217,127 @@ export default function AdminProductosPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-              <div className="w-full sm:max-w-md">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Buscar
-                </label>
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="ID, SKU, nombre o categoría…"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
-                />
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                <div className="w-full">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Buscar
+                  </label>
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="ID, SKU, nombre o categoría…"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Categoría</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  >
+                    <option value="ALL">Todas</option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={active}
+                    onChange={(e) => setActive(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  >
+                    <option value="ALL">Todos</option>
+                    <option value="ACTIVE">Activos</option>
+                    <option value="PAUSED">Pausados</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Stock</label>
+                  <select
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  >
+                    <option value="ALL">Todos</option>
+                    <option value="LOW">Bajo (1–5)</option>
+                    <option value="OUT">Sin stock</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Nuevo</label>
+                  <select
+                    value={isNew}
+                    onChange={(e) => setIsNew(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                  >
+                    <option value="ALL">Todos</option>
+                    <option value="YES">Sí</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex items-end gap-2">
+
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                <div className="flex items-end gap-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Orden</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={sortKey}
+                        onChange={(e) => setSortKey(e.target.value as any)}
+                        className="px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                      >
+                        <option value="id">ID</option>
+                        <option value="sku">SKU</option>
+                        <option value="name">Nombre</option>
+                        <option value="category">Categoría</option>
+                        <option value="price">Precio</option>
+                        <option value="stock">Stock</option>
+                        <option value="isActive">Activo</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                        className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold"
+                      >
+                        {sortDir === 'asc' ? 'Asc' : 'Desc'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (filtered.length === 0) {
+                        toast.error('No hay productos para exportar')
+                        return
+                      }
+                      downloadCsv(
+                        `productos_${new Date().toISOString().slice(0, 10)}.csv`,
+                        filtered.map((p) => ({
+                          id: p.id,
+                          sku: p.sku,
+                          name: p.name,
+                          category: p.category,
+                          price: p.price,
+                          stock: p.stock,
+                          isActive: (p.isActive ?? true) ? '1' : '0',
+                          isNew: p.isNew ? '1' : '0',
+                        }))
+                      )
+                    }}
+                    className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold"
+                  >
+                    Exportar CSV
+                  </button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -192,13 +375,44 @@ export default function AdminProductosPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-                    {filtered.map((p) => (
+                    {pageItems.map((p) => (
                       <AdminRow key={p.id} product={p} onSave={updateProduct} />
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
+
+            {!loading ? (
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-xs text-gray-600">
+                  Mostrando <span className="font-semibold text-gray-900">{pageItems.length}</span> de{' '}
+                  <span className="font-semibold text-gray-900">{filtered.length}</span> productos.
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage <= 1}
+                    className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-sm text-gray-700">
+                    Página <span className="font-semibold">{safePage}</span> /{' '}
+                    <span className="font-semibold">{pageCount}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    disabled={safePage >= pageCount}
+                    className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold disabled:opacity-50"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

@@ -16,6 +16,7 @@ export default function CartPage() {
     customerType?: 'RETAIL' | 'WHOLESALE' | null
     wholesaleStatus?: 'PENDING' | 'APPROVED' | null
     wholesaleTier?: 'NEW' | 'HISTORICAL' | null
+    wholesaleDiscountPercent?: number | null
   } | null>(null)
   const [meLoading, setMeLoading] = useState(false)
 
@@ -35,6 +36,7 @@ export default function CartPage() {
           customerType: data?.user?.customerType ?? null,
           wholesaleStatus: data?.user?.wholesaleStatus ?? null,
           wholesaleTier: data?.user?.wholesaleTier ?? null,
+          wholesaleDiscountPercent: data?.user?.wholesaleDiscountPercent ?? null,
         })
       } else {
         setMe(null)
@@ -52,12 +54,13 @@ export default function CartPage() {
       customerType: me?.customerType ?? null,
       wholesaleStatus: me?.wholesaleStatus ?? null,
       wholesaleTier: me?.wholesaleTier ?? null,
+      wholesaleDiscountPercent: me?.wholesaleDiscountPercent ?? null,
       itemsCount,
       retailTotal: total,
     })
     const { discounted, discountAmount } = applyPercentDiscount(total, percent)
     return { percent, discountAmount, finalTotal: discounted }
-  }, [session, me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, itemsCount, total])
+  }, [session, me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, me?.wholesaleDiscountPercent, itemsCount, total])
 
   if (items.length === 0) {
     return (

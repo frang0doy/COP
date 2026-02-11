@@ -9,6 +9,10 @@ const BodySchema = z.object({
   cuit: z.string().max(40).optional(),
 })
 
+function normalizeCuit(raw: string) {
+  return String(raw || '').replace(/\D+/g, '').trim()
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
@@ -20,10 +24,27 @@ export async function POST(req: NextRequest) {
     const data = BodySchema.parse(json)
 
     const customerType = data.customerType
-    const cuit = (data.cuit ?? '').trim()
+    const cuit = normalizeCuit(data.cuit ?? '')
 
     if (customerType === 'WHOLESALE' && !cuit) {
       return NextResponse.json({ error: 'El CUIT es obligatorio para mayoristas' }, { status: 400 })
+    }
+
+    let wholesaleTier: 'NEW' | 'HISTORICAL' | null = null
+    let wholesaleDiscountPercent: number | null = null
+
+    if (customerType === 'WHOLESALE') {
+      const historical = await prisma.wholesaleHistoricalCuit.findUnique({
+        where: { cuit },
+        select: { discountPercent: true },
+      })
+      if (historical) {
+        wholesaleTier = 'HISTORICAL'
+        wholesaleDiscountPercent = historical.discountPercent
+      } else {
+        wholesaleTier = 'NEW'
+        wholesaleDiscountPercent = 10
+      }
     }
 
     const user = await prisma.user.update({
@@ -33,13 +54,15 @@ export async function POST(req: NextRequest) {
           ? {
               customerType: 'WHOLESALE' as any,
               cuit,
-              wholesaleStatus: 'PENDING' as any,
-              wholesaleTier: null,
+              wholesaleStatus: 'APPROVED' as any,
+              wholesaleTier: wholesaleTier as any,
+              wholesaleDiscountPercent,
             }
           : {
               customerType: 'RETAIL' as any,
               wholesaleStatus: null,
               wholesaleTier: null,
+              wholesaleDiscountPercent: null,
             },
       select: {
         id: true,
@@ -49,6 +72,7 @@ export async function POST(req: NextRequest) {
         customerType: true,
         wholesaleStatus: true,
         wholesaleTier: true,
+        wholesaleDiscountPercent: true,
         cuit: true,
       },
     })

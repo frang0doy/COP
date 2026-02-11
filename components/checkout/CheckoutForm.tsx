@@ -16,6 +16,7 @@ type Me = {
   customerType?: 'RETAIL' | 'WHOLESALE' | null
   wholesaleStatus?: 'PENDING' | 'APPROVED' | null
   wholesaleTier?: 'NEW' | 'HISTORICAL' | null
+  wholesaleDiscountPercent?: number | null
 }
 
 type DeliveryMethod = 'PICKUP_FACTORY' | 'AGREE_WITH_COMPANY'
@@ -50,12 +51,13 @@ export default function CheckoutForm() {
       customerType: me?.customerType ?? null,
       wholesaleStatus: me?.wholesaleStatus ?? null,
       wholesaleTier: me?.wholesaleTier ?? null,
+      wholesaleDiscountPercent: me?.wholesaleDiscountPercent ?? null,
       itemsCount,
       retailTotal: total,
     })
     const { discounted, discountAmount } = applyPercentDiscount(total, percent)
     return { percent, discountedTotal: discounted, discountAmount }
-  }, [me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, itemsCount, total])
+  }, [me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, me?.wholesaleDiscountPercent, itemsCount, total])
 
   const canPayAtFactory =
     me?.customerType === 'WHOLESALE' &&

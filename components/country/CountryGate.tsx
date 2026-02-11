@@ -100,6 +100,18 @@ export default function CountryGate({ initialGateOpen }: Props) {
   const [mode, setMode] = useState<Mode>(initialGateOpen ? 'gate' : 'picker')
   const [mounted, setMounted] = useState(false)
 
+  const COUNTRY_CONFIRM_KEY = 'cop.country.confirmed'
+
+  const hasSelectedCountry = () => {
+    const fromCookie = getCookie('cop.country')
+    if (fromCookie) return true
+    try {
+      return Boolean(localStorage.getItem('cop.country'))
+    } catch {
+      return false
+    }
+  }
+
   const selectedCountry = useMemo(() => {
     // Preferimos cookie (usable por server/client). También espejamos en localStorage para lecturas rápidas.
     const fromCookie = getCookie('cop.country')
@@ -114,6 +126,36 @@ export default function CountryGate({ initialGateOpen }: Props) {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Requisito de UX: al entrar a la web, lo primero es elegir país.
+  // Para evitar que se muestre en bucle, lo pedimos 1 vez por sesión de navegador (sessionStorage).
+  useEffect(() => {
+    if (!mounted) return
+    try {
+      const confirmed = sessionStorage.getItem(COUNTRY_CONFIRM_KEY) === '1'
+      if (!confirmed) {
+        setMode('gate')
+        setOpen(true)
+      }
+    } catch {
+      // Si sessionStorage no está disponible, fallback: usar la lógica normal.
+    }
+  }, [mounted])
+
+  // Sincronizar con el server cuando cambia la sesión / layout (por ejemplo, después de iniciar sesión).
+  useEffect(() => {
+    if (!mounted) return
+    if (initialGateOpen && !hasSelectedCountry()) {
+      setMode('gate')
+      setOpen(true)
+      return
+    }
+    // Si el gate ya no es necesario, lo cerramos solo si estábamos en modo gate obligatorio.
+    if (!initialGateOpen && mode === 'gate') {
+      setOpen(false)
+      setMode('picker')
+    }
+  }, [initialGateOpen, mounted, mode])
 
   // Abrir desde cualquier parte de la UI (ej: Navbar "Cambiar país")
   useEffect(() => {
@@ -141,6 +183,9 @@ export default function CountryGate({ initialGateOpen }: Props) {
     setCookie('cop.country', 'AR', 365)
     try {
       localStorage.setItem('cop.country', 'AR')
+    } catch {}
+    try {
+      sessionStorage.setItem(COUNTRY_CONFIRM_KEY, '1')
     } catch {}
     try {
       window.dispatchEvent(new CustomEvent('cop:country-changed', { detail: { country: 'AR' } }))

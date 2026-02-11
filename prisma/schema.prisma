@@ -40,6 +40,7 @@ model User {
   customerType    CustomerType?
   wholesaleStatus WholesaleStatus?
   wholesaleTier   WholesaleTier?
+  wholesaleDiscountPercent Int?
 
   phone    String?
   cuit     String?
@@ -52,6 +53,16 @@ model User {
   updatedAt DateTime @updatedAt
 
   orders Order[]
+}
+
+model WholesaleHistoricalCuit {
+  id              Int      @id @default(autoincrement())
+  /// CUIT normalizado: solo dígitos (ej: "20123456789")
+  cuit            String   @unique
+  discountPercent Int      @default(15)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Order {

@@ -11,6 +11,10 @@ const RegisterSchema = z.object({
   cuit: z.string().max(40).optional(),
 })
 
+function normalizeCuit(raw: string) {
+  return String(raw || '').replace(/\D+/g, '').trim()
+}
+
 export async function POST(req: NextRequest) {
   try {
     const json = await req.json()
@@ -28,10 +32,28 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(data.password, 10)
 
     const customerType = data.customerType
-    const cuit = (data.cuit ?? '').trim()
+    const cuit = normalizeCuit(data.cuit ?? '')
 
     if (customerType === 'WHOLESALE' && !cuit) {
       return NextResponse.json({ error: 'El CUIT es obligatorio para mayoristas' }, { status: 400 })
+    }
+
+    let wholesaleTier: 'NEW' | 'HISTORICAL' | null = null
+    let wholesaleDiscountPercent: number | null = null
+    const wholesaleStatus = customerType === 'WHOLESALE' ? ('APPROVED' as const) : null
+
+    if (customerType === 'WHOLESALE') {
+      const historical = await prisma.wholesaleHistoricalCuit.findUnique({
+        where: { cuit },
+        select: { discountPercent: true },
+      })
+      if (historical) {
+        wholesaleTier = 'HISTORICAL'
+        wholesaleDiscountPercent = historical.discountPercent
+      } else {
+        wholesaleTier = 'NEW'
+        wholesaleDiscountPercent = 10
+      }
     }
 
     const user = await prisma.user.create({
@@ -41,7 +63,12 @@ export async function POST(req: NextRequest) {
         passwordHash,
         customerType: customerType as any,
         ...(customerType === 'WHOLESALE'
-          ? { wholesaleStatus: 'PENDING' as any, cuit }
+          ? {
+              wholesaleStatus: wholesaleStatus as any,
+              wholesaleTier: wholesaleTier as any,
+              wholesaleDiscountPercent,
+              cuit,
+            }
           : {}),
       },
       select: { id: true, email: true, name: true },

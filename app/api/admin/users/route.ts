@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
       customerType: true,
       wholesaleStatus: true,
       wholesaleTier: true,
+      wholesaleDiscountPercent: true,
       createdAt: true,
     },
   })

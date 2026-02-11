@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Se calcula siempre con el usuario autenticado.
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, email: true, customerType: true, wholesaleStatus: true, wholesaleTier: true },
+      select: { id: true, email: true, customerType: true, wholesaleStatus: true, wholesaleTier: true, wholesaleDiscountPercent: true },
     })
     if (!user) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
       customerType: (user.customerType as any) ?? null,
       wholesaleStatus: (user.wholesaleStatus as any) ?? null,
       wholesaleTier: (user.wholesaleTier as any) ?? null,
+      wholesaleDiscountPercent: (user.wholesaleDiscountPercent as any) ?? null,
       itemsCount,
       retailTotal,
     })

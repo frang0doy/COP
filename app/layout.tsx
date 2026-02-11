@@ -7,7 +7,7 @@ import ScrollProgress from '@/components/layout/ScrollProgress'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import CountryGate from '@/components/country/CountryGate'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,19 +31,24 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions)
   let initialGateOpen = true
 
+  // Si ya hay país seleccionado en cookie, no mostramos gate (para guests también).
+  const cookieCountry = cookies().get('cop.country')?.value
+  if (cookieCountry) initialGateOpen = false
+
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { country: true },
     })
-    initialGateOpen = !user?.country
+    // Si el usuario tiene país en DB, no mostramos gate.
+    // Si no lo tiene pero ya hay cookie, tampoco bloqueamos (se persiste luego del login).
+    initialGateOpen = !user?.country && !cookieCountry
   }
 
   return (
     <html lang="es" className={inter.variable}>
       <body>
-        <Providers>
-          <CountryGate initialGateOpen={initialGateOpen} />
+        <Providers initialGateOpen={initialGateOpen}>
           <ScrollProgress />
           {children}
           <Toaster

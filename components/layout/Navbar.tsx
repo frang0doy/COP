@@ -249,14 +249,8 @@ export default function Navbar() {
                         { href: '/', label: 'Inicio' },
                         { href: '/productos', label: 'Productos' },
                         { href: '/empresa', label: 'Empresa' },
+                        { href: '/tutoriales-cop', label: 'Tutoriales COP' },
                         { href: '/contacto', label: 'Contacto' },
-                        ...(isAdmin
-                          ? [
-                              { href: '/admin/productos', label: 'Admin productos' },
-                              { href: '/admin/pedidos', label: 'Admin pedidos' },
-                              { href: '/admin/usuarios', label: 'Admin usuarios' },
-                            ]
-                          : []),
                       ].map((item) => (
                         <Link
                           key={item.href}
@@ -269,42 +263,7 @@ export default function Navbar() {
                           <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                         </Link>
                       ))}
-
-                      <button
-                        type="button"
-                        onClick={openCountryPicker}
-                        className="group w-full flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
-                        role="menuitem"
-                      >
-                        <span className="text-base font-semibold">Cambiar país</span>
-                        <span className="text-sm font-semibold text-white/60 group-hover:text-orange-500 transition-colors">
-                          {countryLabel}
-                        </span>
-                      </button>
                     </div>
-
-                    {session && (
-                      <div className="border-t border-white/10 p-3">
-                        <Link
-                          href="/perfil"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
-                          role="menuitem"
-                        >
-                          Mi Perfil
-                        </Link>
-                        <button
-                          onClick={() => {
-                            signOut({ callbackUrl: '/' })
-                            setIsMenuOpen(false)
-                          }}
-                          className="w-full text-left px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
-                          role="menuitem"
-                        >
-                          Salir
-                        </button>
-                      </div>
-                    )}
                   </div>
                   ) : null}
                 </motion.div>
@@ -335,6 +294,15 @@ export default function Navbar() {
 
                         <div className="px-3 pb-3">
                           <Link
+                            href="/perfil"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                            role="menuitem"
+                          >
+                            <span className="text-base font-semibold">Mi perfil</span>
+                            <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
+                          </Link>
+                          <Link
                             href="/pedidos"
                             onClick={() => setIsUserMenuOpen(false)}
                             className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
@@ -344,28 +312,50 @@ export default function Navbar() {
                             <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
                           </Link>
                           {isAdmin ? (
-                            <Link
-                              href="/admin/productos"
-                              onClick={() => setIsUserMenuOpen(false)}
-                              className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
-                              role="menuitem"
-                            >
-                              <span className="text-base font-semibold">Admin productos</span>
-                              <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
-                            </Link>
+                            <>
+                              <Link
+                                href="/admin/productos"
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                                role="menuitem"
+                              >
+                                <span className="text-base font-semibold">Admin productos</span>
+                                <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
+                              </Link>
+                              <Link
+                                href="/admin/pedidos"
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                                role="menuitem"
+                              >
+                                <span className="text-base font-semibold">Admin pedidos</span>
+                                <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
+                              </Link>
+                              <Link
+                                href="/admin/usuarios"
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+                                role="menuitem"
+                              >
+                                <span className="text-base font-semibold">Admin usuarios</span>
+                                <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
+                              </Link>
+                            </>
                           ) : null}
-                          <Link
-                            href="/perfil"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="group flex items-center justify-between px-4 py-3 text-white/85 hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
-                            role="menuitem"
-                          >
-                            <span className="text-base font-semibold">Mis datos</span>
-                            <span className="h-[2px] w-0 bg-orange-500 group-hover:w-10 transition-all duration-300" />
-                          </Link>
                         </div>
 
                         <div className="border-t border-white/10 p-3">
+                          <button
+                            type="button"
+                            onClick={openCountryPicker}
+                            className="group w-full flex items-center justify-between px-4 py-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-colors font-semibold"
+                            role="menuitem"
+                          >
+                            <span>Cambiar país</span>
+                            <span className="text-sm font-semibold text-white/60 group-hover:text-orange-500 transition-colors">
+                              {countryLabel}
+                            </span>
+                          </button>
                           <button
                             onClick={() => {
                               signOut({ callbackUrl: '/' })

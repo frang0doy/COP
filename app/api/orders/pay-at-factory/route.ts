@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { customerType: true, wholesaleStatus: true, wholesaleTier: true, email: true },
+      select: { customerType: true, wholesaleStatus: true, wholesaleTier: true, wholesaleDiscountPercent: true, email: true },
     })
 
     const canPayAtFactory =
@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
       customerType: user?.customerType as any,
       wholesaleStatus: user?.wholesaleStatus as any,
       wholesaleTier: user?.wholesaleTier as any,
+      wholesaleDiscountPercent: (user as any)?.wholesaleDiscountPercent ?? null,
       itemsCount,
       retailTotal,
     })

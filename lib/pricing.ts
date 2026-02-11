@@ -13,6 +13,7 @@ export function getDiscountPercent(params: {
   customerType?: CustomerType | null
   wholesaleStatus?: WholesaleStatus | null
   wholesaleTier?: WholesaleTier | null
+  wholesaleDiscountPercent?: number | null
   itemsCount: number
   retailTotal: number
 }): { percent: number; reason: DiscountReason } {
@@ -20,11 +21,28 @@ export function getDiscountPercent(params: {
     customerType,
     wholesaleStatus,
     wholesaleTier,
+    wholesaleDiscountPercent,
     itemsCount,
     retailTotal,
   } = params
 
   if (customerType === 'WHOLESALE' && wholesaleStatus === 'APPROVED') {
+    const safeCustomPercent =
+      typeof wholesaleDiscountPercent === 'number' && Number.isFinite(wholesaleDiscountPercent)
+        ? Math.min(100, Math.max(0, Math.floor(wholesaleDiscountPercent)))
+        : null
+
+    const reason: DiscountReason =
+      wholesaleTier === 'HISTORICAL'
+        ? 'WHOLESALE_HISTORICAL'
+        : wholesaleTier === 'NEW'
+          ? 'WHOLESALE_NEW'
+          : null
+
+    if (safeCustomPercent !== null) {
+      return { percent: safeCustomPercent, reason }
+    }
+
     if (wholesaleTier === 'HISTORICAL') return { percent: 15, reason: 'WHOLESALE_HISTORICAL' }
     if (wholesaleTier === 'NEW') return { percent: 10, reason: 'WHOLESALE_NEW' }
     // Aprobado pero sin tier definido: por seguridad no aplicamos descuento.
