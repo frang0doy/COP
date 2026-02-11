@@ -13,24 +13,44 @@ type Product = {
   category: string
   price: number
   stock: number
-  image?: string | null
-  isNew?: boolean
-  isActive?: boolean
+  isNew?: boolean | null
+  isActive?: boolean | null
+}
+
+type SortKey = 'id' | 'sku' | 'name' | 'category' | 'price' | 'stock' | 'isActive'
+
+function downloadCsv(filename: string, rows: Array<Record<string, any>>) {
+  const headers = Object.keys(rows[0] || {})
+  const esc = (v: any) => {
+    const s = String(v ?? '')
+    const needs = /[",\n]/.test(s)
+    const out = s.replace(/"/g, '""')
+    return needs ? `"${out}"` : out
+  }
+  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
 }
 
 export default function AdminProductosPage() {
   const { data: session, status } = useSession()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('ALL')
   const [active, setActive] = useState<'ALL' | 'ACTIVE' | 'PAUSED'>('ALL')
   const [stock, setStock] = useState<'ALL' | 'LOW' | 'OUT'>('ALL')
   const [isNew, setIsNew] = useState<'ALL' | 'YES' | 'NO'>('ALL')
-  const [sortKey, setSortKey] = useState<
-    'id' | 'sku' | 'name' | 'category' | 'price' | 'stock' | 'isActive'
-  >('id')
+  const [sortKey, setSortKey] = useState<SortKey>('id')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [page, setPage] = useState(1)
   const pageSize = 25
@@ -58,9 +78,7 @@ export default function AdminProductosPage() {
 
   useEffect(() => {
     if (status !== 'authenticated') return
-    if (isAdmin === false) return
-    if (isAdmin === null) return
-
+    if (isAdmin !== true) return
     let cancelled = false
     setLoading(true)
     ;(async () => {
@@ -88,9 +106,9 @@ export default function AdminProductosPage() {
     const list = products
       .filter((p) => {
         if (category !== 'ALL' && p.category !== category) return false
-        const isActive = p.isActive ?? true
-        if (active === 'ACTIVE' && !isActive) return false
-        if (active === 'PAUSED' && isActive) return false
+        const act = p.isActive ?? true
+        if (active === 'ACTIVE' && !act) return false
+        if (active === 'PAUSED' && act) return false
         const st = Number(p.stock ?? 0)
         if (stock === 'LOW' && !(st > 0 && st <= 5)) return false
         if (stock === 'OUT' && st !== 0) return false
@@ -100,22 +118,22 @@ export default function AdminProductosPage() {
         if (!q) return true
         return (
           String(p.id).includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
+          String(p.sku || '').toLowerCase().includes(q) ||
+          String(p.name || '').toLowerCase().includes(q) ||
+          String(p.category || '').toLowerCase().includes(q)
         )
       })
       .slice()
 
     list.sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1
-      const av = (a as any)[sortKey]
-      const bv = (b as any)[sortKey]
       if (sortKey === 'isActive') {
         const aa = (a.isActive ?? true) ? 1 : 0
         const bb = (b.isActive ?? true) ? 1 : 0
         return (aa - bb) * dir
       }
+      const av = (a as any)[sortKey]
+      const bv = (b as any)[sortKey]
       if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir
       return String(av ?? '').localeCompare(String(bv ?? ''), 'es', { sensitivity: 'base' }) * dir
     })
@@ -133,26 +151,6 @@ export default function AdminProductosPage() {
     const start = (safePage - 1) * pageSize
     return filtered.slice(start, start + pageSize)
   }, [filtered, safePage])
-
-  const downloadCsv = (filename: string, rows: Array<Record<string, any>>) => {
-    const headers = Object.keys(rows[0] || {})
-    const esc = (v: any) => {
-      const s = String(v ?? '')
-      const needs = /[",\n]/.test(s)
-      const out = s.replace(/"/g, '""')
-      return needs ? `"${out}"` : out
-    }
-    const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
-  }
 
   const updateProduct = async (id: number, patch: Partial<Product>) => {
     const res = await fetch(`/api/admin/products/${id}`, {
@@ -172,7 +170,6 @@ export default function AdminProductosPage() {
       </div>
     )
   }
-
   if (!session) return null
 
   const totalProducts = products.length
@@ -180,15 +177,13 @@ export default function AdminProductosPage() {
   const lowStockCount = products.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5).length
 
   return (
-    <main className="min-h-screen pt-16 bg-gray-100">
+    <div className="min-h-screen pt-16 bg-gray-100">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Admin · Productos</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Editá stock/precio y pausá productos del catálogo.
-            </p>
+            <p className="text-sm text-gray-600 mt-1">Editá stock/precio y pausá productos del catálogo.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="px-3 py-1 rounded-full border border-gray-200 bg-white text-gray-700">
@@ -209,9 +204,7 @@ export default function AdminProductosPage() {
               <div className="h-10 w-1 rounded-full bg-orange-500/70" />
               <div>
                 <p className="text-gray-900 font-bold">No autorizado</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  Para habilitar admin, agregá tu email en <code className="font-semibold">ADMIN_EMAILS</code> (Vercel env) y volvé a iniciar sesión.
-                </p>
+                <p className="text-sm text-gray-600 mt-1">Este panel es solo para administradores.</p>
               </div>
             </div>
           </div>
@@ -220,9 +213,7 @@ export default function AdminProductosPage() {
             <div className="flex flex-col gap-3 mb-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
                 <div className="w-full">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Buscar
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Buscar</label>
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -284,31 +275,29 @@ export default function AdminProductosPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-                <div className="flex items-end gap-2">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Orden</label>
-                    <div className="flex gap-2">
-                      <select
-                        value={sortKey}
-                        onChange={(e) => setSortKey(e.target.value as any)}
-                        className="px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
-                      >
-                        <option value="id">ID</option>
-                        <option value="sku">SKU</option>
-                        <option value="name">Nombre</option>
-                        <option value="category">Categoría</option>
-                        <option value="price">Precio</option>
-                        <option value="stock">Stock</option>
-                        <option value="isActive">Activo</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
-                        className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold"
-                      >
-                        {sortDir === 'asc' ? 'Asc' : 'Desc'}
-                      </button>
-                    </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Orden</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={sortKey}
+                      onChange={(e) => setSortKey(e.target.value as any)}
+                      className="px-3 py-2 border border-gray-200 rounded-xl focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                    >
+                      <option value="id">ID</option>
+                      <option value="sku">SKU</option>
+                      <option value="name">Nombre</option>
+                      <option value="category">Categoría</option>
+                      <option value="price">Precio</option>
+                      <option value="stock">Stock</option>
+                      <option value="isActive">Activo</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                      className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition font-semibold"
+                    >
+                      {sortDir === 'asc' ? 'Asc' : 'Desc'}
+                    </button>
                   </div>
                 </div>
 
@@ -316,10 +305,7 @@ export default function AdminProductosPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (filtered.length === 0) {
-                        toast.error('No hay productos para exportar')
-                        return
-                      }
+                      if (filtered.length === 0) return toast.error('No hay productos para exportar')
                       downloadCsv(
                         `productos_${new Date().toISOString().slice(0, 10)}.csv`,
                         filtered.map((p) => ({
@@ -355,6 +341,7 @@ export default function AdminProductosPage() {
                   >
                     Refrescar
                   </button>
+                </div>
               </div>
             </div>
 
@@ -417,7 +404,7 @@ export default function AdminProductosPage() {
         )}
       </div>
       <Footer />
-    </main>
+    </div>
   )
 }
 
@@ -430,19 +417,19 @@ function AdminRow({
 }) {
   const [price, setPrice] = useState(String(product.price))
   const [stock, setStock] = useState(String(product.stock))
-  const [isActive, setIsActive] = useState(product.isActive ?? true)
+  const [isActive, setIsActive] = useState(Boolean(product.isActive ?? true))
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setPrice(String(product.price))
     setStock(String(product.stock))
-    setIsActive(product.isActive ?? true)
+    setIsActive(Boolean(product.isActive ?? true))
   }, [product.price, product.stock, product.isActive])
 
   const dirty =
     Number(price) !== product.price ||
     Number(stock) !== product.stock ||
-    (product.isActive ?? true) !== isActive
+    Boolean(product.isActive ?? true) !== isActive
 
   return (
     <tr className="border-b last:border-b-0 border-gray-100 align-top hover:bg-orange-50/30 transition-colors">
@@ -451,7 +438,7 @@ function AdminRow({
       <td className="py-3 px-4">
         <div className="flex items-center gap-2">
           <span className="text-gray-900">{product.name}</span>
-          {(product.isActive ?? true) ? null : (
+          {isActive ? null : (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 border border-orange-200">
               PAUSADO
             </span>
@@ -494,9 +481,9 @@ function AdminRow({
               }
             }}
             className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-orange-100"
-            title={(product.isActive ?? true) ? 'Pausar (ocultar del catálogo)' : 'Activar (mostrar en catálogo)'}
+            title={isActive ? 'Pausar (ocultar del catálogo)' : 'Activar (mostrar en catálogo)'}
           >
-            {(product.isActive ?? true) ? 'Pausar' : 'Activar'}
+            {isActive ? 'Pausar' : 'Activar'}
           </button>
           <button
             type="button"
