@@ -338,23 +338,23 @@ export default function AdminProductosPage() {
                   >
                     Exportar CSV
                   </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      setLoading(true)
-                      await loadProducts()
-                      toast.success('Productos actualizados')
-                    } catch (e: any) {
-                      toast.error(e?.message ?? 'Error')
-                    } finally {
-                      setLoading(false)
-                    }
-                  }}
-                  className="px-4 py-2 rounded-xl border border-orange-200 bg-orange-50/70 text-orange-800 font-semibold hover:bg-orange-50 hover:border-orange-300 transition disabled:opacity-50"
-                >
-                  Refrescar
-                </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        setLoading(true)
+                        await loadProducts()
+                        toast.success('Productos actualizados')
+                      } catch (e: any) {
+                        toast.error(e?.message ?? 'Error')
+                      } finally {
+                        setLoading(false)
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl border border-orange-200 bg-orange-50/70 text-orange-800 font-semibold hover:bg-orange-50 hover:border-orange-300 transition disabled:opacity-50"
+                  >
+                    Refrescar
+                  </button>
               </div>
             </div>
 
