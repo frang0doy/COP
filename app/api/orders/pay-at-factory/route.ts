@@ -44,8 +44,7 @@ export async function POST(req: NextRequest) {
 
     const canPayAtFactory =
       user?.customerType === 'WHOLESALE' &&
-      user?.wholesaleStatus === 'APPROVED' &&
-      user?.wholesaleTier === 'HISTORICAL'
+      user?.wholesaleStatus === 'APPROVED'
 
     if (!canPayAtFactory) {
       return NextResponse.json({ error: 'No autorizado para pagar en fábrica' }, { status: 403 })

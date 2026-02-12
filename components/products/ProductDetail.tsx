@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
-import { ShoppingCart, ArrowLeft, CheckCircle, Download, XCircle } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, CheckCircle, Download, XCircle, Calculator } from 'lucide-react'
 import Link from 'next/link'
 import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
+import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
 
 interface ProductDetailProps {
   productId: string
@@ -15,6 +16,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+  const [showCalculator, setShowCalculator] = useState(false)
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -130,31 +132,49 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             {categoryLabel}
           </span>
 
-          <div className="mt-2 mb-4 flex items-start gap-3 flex-wrap">
-            <h1 className="text-4xl font-bold text-black tracking-tight">{product.name}</h1>
-            {product.technicalSheet ? (
-              <a
-                href={product.technicalSheet}
-                download
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-sm font-semibold hover:border-orange-500 transition-colors"
-                aria-label="Descargar ficha técnica"
-                title="Descargar ficha técnica"
-              >
-                <Download className="w-4 h-4" />
-                Descargar ficha técnica
-              </a>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-gray-50 text-sm font-semibold text-gray-400 cursor-not-allowed"
-                aria-label="Ficha técnica no disponible"
-                title="Ficha técnica no disponible"
-              >
-                <Download className="w-4 h-4" />
-                Descargar ficha técnica
-              </button>
-            )}
+          <div className="mt-2 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+              <h1 className="text-4xl font-bold text-black tracking-tight sm:flex-1 sm:whitespace-nowrap sm:overflow-hidden sm:text-ellipsis">
+                {product.name}
+              </h1>
+
+              <div className="flex flex-col gap-2 w-full sm:w-[260px] shrink-0">
+                {product.technicalSheet ? (
+                  <a
+                    href={product.technicalSheet}
+                    download
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-white text-xs sm:text-sm font-semibold hover:border-orange-500 transition-colors"
+                    aria-label="Descargar ficha técnica"
+                    title="Descargar ficha técnica"
+                  >
+                    <Download className="w-4 h-4" />
+                    Descargar ficha técnica
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-gray-50 text-xs sm:text-sm font-semibold text-gray-400 cursor-not-allowed"
+                    aria-label="Ficha técnica no disponible"
+                    title="Ficha técnica no disponible"
+                  >
+                    <Download className="w-4 h-4" />
+                    Descargar ficha técnica
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowCalculator(true)}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-white text-xs sm:text-sm font-semibold hover:border-orange-500 hover:bg-orange-50 transition-colors"
+                  aria-label="Abrir calculadora de consumo"
+                  title="Calculadora de consumo"
+                >
+                  <Calculator className="w-4 h-4" />
+                  Calculadora de consumo
+                </button>
+              </div>
+            </div>
           </div>
           <p className="text-2xl font-bold text-black mb-6">
             ${product.price.toLocaleString('es-MX')}
@@ -327,6 +347,12 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </div>
         </div>
       </div>
+
+      <ConsumptionCalculatorModal
+        open={showCalculator}
+        onClose={() => setShowCalculator(false)}
+        technicalSummary={technicalSummary}
+      />
     </div>
   )
 }

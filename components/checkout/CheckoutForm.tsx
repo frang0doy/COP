@@ -61,8 +61,7 @@ export default function CheckoutForm() {
 
   const canPayAtFactory =
     me?.customerType === 'WHOLESALE' &&
-    me?.wholesaleStatus === 'APPROVED' &&
-    me?.wholesaleTier === 'HISTORICAL'
+    me?.wholesaleStatus === 'APPROVED'
 
   const hasSavedShipping = useMemo(() => {
     if (!me) return false
@@ -433,8 +432,8 @@ export default function CheckoutForm() {
           {canPayAtFactory ? (
             <div className="p-3 bg-gray-50 rounded-lg mt-3 border border-gray-200">
               <p className="text-xs text-gray-800">
-                <strong>Mayorista histórico:</strong> también podés elegir “Pagar en fábrica”. El pedido queda pendiente
-                hasta confirmación de COP.
+                <strong>Mayorista:</strong> también podés elegir “Pagar en fábrica / otros medios”. El pedido queda
+                pendiente hasta confirmación de COP y te vamos a redirigir a WhatsApp para coordinar.
               </p>
             </div>
           ) : null}
