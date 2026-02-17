@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
+import WhatsAppFloatingButton from '@/components/layout/WhatsAppFloatingButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // WhatsApp empresa. Si no está seteado en env, usamos fallback para que el botón siempre se vea.
+  const companyWhatsapp = (
+    process.env.NEXT_PUBLIC_COMPANY_WHATSAPP ||
+    '5492314577877'
+  ).trim()
   const session = await getServerSession(authOptions)
   let initialGateOpen = true
 
@@ -51,6 +57,7 @@ export default async function RootLayout({
         <Providers initialGateOpen={initialGateOpen}>
           <ScrollProgress />
           {children}
+          <WhatsAppFloatingButton phone={companyWhatsapp} />
           <Toaster
             position="top-right"
             toastOptions={{

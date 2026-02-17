@@ -9,8 +9,10 @@ export default function Footer() {
   const instagramUrl = 'https://www.instagram.com/coprecubrimientosar?igsh=aXpvZ3F4d2c2cTJq'
   const facebookUrl = '' // TODO: completar cuando nos pases el link de Facebook
   const email = 'pedidoscoprecubrimientos@gmail.com'
-  const addressLine1 = `31°26'41.6"S 64°05'43.4"W`
-  const addressLine2 = 'Córdoba, Argentina'
+  const addressLine1 = 'Sta. Bárbara'
+  const addressLine2 = 'X5006 Córdoba, Argentina'
+  const addressQuery = `${addressLine1}, ${addressLine2}`
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressQuery)}`
 
   return (
     <footer className="bg-black text-gray-300">
@@ -134,7 +136,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <motion.a
-                  href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
+                  href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start space-x-3 group hover:text-orange-500 transition-colors"

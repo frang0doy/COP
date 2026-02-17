@@ -34,6 +34,8 @@ function CheckoutSuccessContent() {
   const orderId = searchParams.get('order_id')
   const deliveryMethodParam = (searchParams.get('delivery_method') || '').trim() as DeliveryMethod | ''
   const { clearCart } = useCart()
+  const factoryAddressLine1 = 'Sta. Bárbara'
+  const factoryAddressLine2 = 'X5006 Córdoba, Argentina'
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [orderStatus, setOrderStatus] = useState<string | null>(null)
@@ -214,7 +216,7 @@ function CheckoutSuccessContent() {
           <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
             <p className="text-sm text-blue-900 font-semibold">Entrega: Retiro en fábrica</p>
             <p className="text-xs text-blue-900/80">
-              Dirección: 31°26&apos;41.6&quot;S 64°05&apos;43.4&quot;W, Córdoba, Argentina.
+              Dirección: {factoryAddressLine1}, {factoryAddressLine2}.
             </p>
           </div>
         ) : deliveryMethod === 'AGREE_WITH_COMPANY' ? (

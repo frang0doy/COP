@@ -24,6 +24,10 @@ type DeliveryMethod = 'PICKUP_FACTORY' | 'AGREE_WITH_COMPANY'
 export default function CheckoutForm() {
   const { items, total, clearCart } = useCart()
   const { data: session } = useSession()
+  const factoryAddressLine1 = 'Sta. Bárbara'
+  const factoryAddressLine2 = 'X5006 Córdoba, Argentina'
+  const factoryAddressQuery = `${factoryAddressLine1}, ${factoryAddressLine2}`
+  const factoryGoogleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(factoryAddressQuery)}`
   const [shippingData, setShippingData] = useState<{
     name: string
     email: string
@@ -320,11 +324,10 @@ export default function CheckoutForm() {
                   <p className="font-semibold text-gray-900">Retirar gratis en fábrica</p>
                   <p className="text-sm text-gray-600">
                     Retiro sin costo. Dirección:
-                    <span className="font-medium"> 31°26&apos;41.6&quot;S 64°05&apos;43.4&quot;W</span>, Córdoba,
-                    Argentina.
+                    <span className="font-medium"> {factoryAddressLine1}</span>, {factoryAddressLine2}.
                   </p>
                   <a
-                    href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
+                    href={factoryGoogleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-semibold text-black underline hover:text-gray-700"

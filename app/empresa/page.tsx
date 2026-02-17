@@ -4,12 +4,76 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AnimatedTitle from '@/components/ui/AnimatedTitle'
 import AnimatedParagraph from '@/components/ui/AnimatedParagraph'
-import { Mail, Phone, Clock, MapPin, Target, ShieldCheck } from 'lucide-react'
+import Image from 'next/image'
+import { Mail, Phone, Clock, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function EmpresaPage() {
-  const addressLine1 = `31°26'41.6"S 64°05'43.4"W`
-  const addressLine2 = 'Córdoba, Argentina'
+  const addressLine1 = 'Sta. Bárbara'
+  const addressLine2 = 'X5006 Córdoba, Argentina'
+  const addressQuery = `${addressLine1}, ${addressLine2}`
+  const placeName = 'COP Recubrimientos'
+  const mapsQuery = `${placeName}, ${addressQuery}`
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
+  const googleMapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(mapsQuery)}&hl=es&z=16&output=embed`
+
+  const valueItems: Array<{ label: string; icon: React.ReactNode }> = [
+    {
+      label: 'RESPETO',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M6 14l4-8 4 8" />
+          <path d="M4 14h16" />
+          <path d="M7 18h10" />
+        </svg>
+      ),
+    },
+    {
+      label: 'RESPONSABILIDAD',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M12 3v4" />
+          <path d="M7 6h10" />
+          <path d="M6 21a6 6 0 1 1 12 0" />
+          <path d="M12 11v4l3 2" />
+        </svg>
+      ),
+    },
+    {
+      label: 'HONESTIDAD',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M12 3l7 4v6c0 5-3 8-7 8s-7-3-7-8V7l7-4z" />
+          <path d="M9 12l2 2 4-5" />
+        </svg>
+      ),
+    },
+    {
+      label: 'COMPROMISO',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M9 11l3 3 8-8" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+    },
+    {
+      label: 'EXCELENCIA',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M12 2l2.7 5.6 6.2.9-4.5 4.4 1.1 6.2L12 16.9 6.5 19l1.1-6.2L3.1 8.5l6.2-.9L12 2z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'CONFIANZA',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7">
+          <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.6-7 10-7 10z" />
+        </svg>
+      ),
+    },
+  ]
 
   return (
     <main className="min-h-screen pt-24 bg-gray-100">
@@ -51,115 +115,275 @@ export default function EmpresaPage() {
           </div>
         </div>
 
-        {/* Contenido institucional (debajo de "Somos COP") */}
+        {/* ¿Quiénes somos? (estilo referencia: fotos + texto + métrica) */}
+        <motion.section
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-120px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="max-w-7xl mx-auto mb-16 md:mb-20"
+          aria-label="Quiénes somos"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            {/* Collage de imágenes */}
+            <div className="lg:col-span-6">
+              <div className="relative">
+                <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+                  <div className="relative aspect-[16/11]">
+                    <Image
+                      src="/images/cop1.jpg"
+                      alt="COP - Proyecto"
+                      fill
+                      sizes="(min-width: 1024px) 520px, 100vw"
+                      className="object-cover"
+                      priority={false}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+                  </div>
+                </div>
+
+                <div className="hidden sm:block absolute -bottom-10 -left-10 w-[58%] max-w-[340px] overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg">
+                  <div className="relative aspect-square">
+                    <Image
+                      src="/images/cop2.png"
+                      alt="COP - Aplicación"
+                      fill
+                      sizes="340px"
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Texto */}
+            <div className="lg:col-span-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-black tracking-tight">
+                ¿Quiénes somos?
+              </h2>
+
+              <p className="mt-5 text-base md:text-lg text-gray-700 leading-relaxed">
+                Somos una empresa fundada en 1990, con más de 35 años de experiencia en la producción,
+                venta y aplicación de materiales para la construcción. Somos una empresa en constante
+                crecimiento y evolución, siguiendo la filosofía de la mejora continua.
+              </p>
+
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch">
+                <div className="rounded-3xl bg-black text-white p-7 shadow-sm">
+                  <div className="text-white/70 text-xs tracking-widest uppercase">Trayectoria</div>
+                  <div className="mt-3 text-4xl font-bold leading-none">35+</div>
+                  <div className="mt-2 text-sm text-white/80">Años de experiencia</div>
+                  <div className="mt-6 h-px bg-white/10" />
+                  <div className="mt-5 text-xs text-white/70 leading-relaxed">
+                    Asesoramiento técnico y soporte en obra.
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-gray-200 bg-white p-7 shadow-sm">
+                  <div className="text-sm font-semibold text-gray-900 mb-3">
+                    Lo que nos define
+                  </div>
+                  <ul className="space-y-3 text-sm md:text-base text-gray-700">
+                    {['Estándares de calidad', 'Mejora continua', 'Innovación'].map((t) => (
+                      <li key={t} className="flex items-start gap-3">
+                        <span className="mt-2 h-2 w-2 rounded-full bg-orange-500 shrink-0" />
+                        <span className="leading-relaxed">{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Bento: Misión / Visión / Objetivos (cards de distintos tamaños) */}
+        <motion.section
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-120px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="max-w-7xl mx-auto mb-16 md:mb-20"
+          aria-label="Misión y visión"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-120px' }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="md:col-span-7 rounded-3xl border border-gray-200 bg-white p-8 md:p-10 shadow-sm relative overflow-hidden"
+            >
+              <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-orange-200/40 blur-3xl" />
+              <div className="relative">
+                <div className="text-xs tracking-widest uppercase text-gray-500">Misión</div>
+                <h3 className="mt-2 text-2xl md:text-3xl font-semibold tracking-tight text-black">
+                  Fabricar soluciones confiables e innovadoras
+                </h3>
+                <p className="mt-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                  Somos una empresa líder en el mercado en la fabricación de recubrimientos para la industria
+                  de la construcción, con el objetivo de satisfacer las necesidades de quienes nos eligen de
+                  manera global brindando líneas de productos de calidad y enfocadas en la innovación.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-120px' }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="md:col-span-5 rounded-3xl border border-orange-200 bg-gradient-to-br from-white to-orange-50 p-8 md:p-10 shadow-sm"
+            >
+              <div className="text-xs tracking-widest uppercase text-gray-500">Visión</div>
+              <h3 className="mt-2 text-2xl md:text-3xl font-semibold tracking-tight text-black">
+                Ser la elección N°1 en recubrimientos
+              </h3>
+              <p className="mt-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                Ser la empresa número uno en la fabricación y venta de recubrimientos.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-120px' }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="md:col-span-12 rounded-3xl border border-gray-200 bg-white p-8 md:p-10 shadow-sm"
+            >
+              <div className="flex items-end justify-between gap-6 flex-wrap">
+                <div>
+                  <div className="text-xs tracking-widest uppercase text-gray-500">Objetivos</div>
+                  <h3 className="mt-2 text-2xl md:text-3xl font-semibold tracking-tight text-black">
+                    Una marca sólida en cada obra
+                  </h3>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  'Transmitir calidad y durabilidad, asociándose a productos confiables y de alto desempeño.',
+                  'Proyectar innovación, demostrando desarrollo continuo y soluciones modernas.',
+                  'Consolidarse como la elección segura para instaladores, arquitectos y constructoras, minimizando riesgos en obra.',
+                  'Destacar la facilidad de instalación, aportando eficiencia y practicidad al proceso constructivo.',
+                  'Comunicar una excelente relación costo–beneficio, reforzando el valor de la inversión.',
+                  'Ser reconocida como empresa seria y responsable, con soporte y cumplimiento institucional.',
+                ].map((o) => (
+                  <div key={o} className="flex items-start gap-3">
+                    <span className="mt-2 h-2 w-2 rounded-full bg-orange-500 shrink-0" />
+                    <p className="text-base md:text-lg text-gray-700 leading-relaxed">{o}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* Nuestros valores (íconos en fila) */}
+        <motion.section
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-120px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="max-w-7xl mx-auto mb-16 md:mb-20"
+          aria-label="Nuestros valores"
+        >
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-semibold text-black tracking-tight">
+            Nuestros Valores
+          </h2>
+
+          <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 md:gap-6">
+            {valueItems.map((v) => (
+              <div
+                key={v.label}
+                className="group rounded-3xl bg-white border border-gray-200 p-6 md:p-7 text-center shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 border border-orange-100">
+                  {v.icon}
+                </div>
+                <div className="mt-4 text-xs md:text-sm font-semibold tracking-widest text-gray-900">
+                  {v.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Distribuidores / Mayoristas (placeholder para logos) */}
         <motion.section
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.1 }}
           className="max-w-7xl mx-auto mb-16 md:mb-20"
+          aria-label="Distribuidores"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-            {/* Historia */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                Nuestra historia
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
-                Somos una empresa fundada en 1990 con más de 35 años de experiencia en la
-                producción, venta y aplicación de materiales para la construcción. Nos
-                destacamos por nuestro constante crecimiento, evolución y mejora continua.
-              </p>
+          <div className="relative rounded-3xl bg-black text-white overflow-hidden border border-gray-900">
+            <div className="pointer-events-none absolute inset-0 opacity-70">
+              <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-orange-500/25 blur-3xl" />
+              <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-orange-500/15 blur-3xl" />
             </div>
 
-            {/* Misión */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                Misión
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
-                Somos una empresa líder en el mercado en la fabricación de recubrimientos
-                para la industria de la construcción, con el objetivo de satisfacer las
-                necesidades de quienes nos eligen de manera global brindando líneas de
-                productos de calidad y enfocados en la innovación.
-              </p>
-            </div>
+            <div className="relative p-7 md:p-10">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                <div className="max-w-2xl">
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                    Red de distribuidores y mayoristas
+                  </h2>
+                  <p className="text-white/75 mt-3 text-sm md:text-base leading-relaxed">
+                    Sumamos una “tira” de logos más liviana (sin tarjetas). Cuando me pases los logos reales,
+                    reemplazo estos placeholders.
+                  </p>
+                </div>
 
-            {/* Visión */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                Visión
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
-                Ser la empresa número uno en la fabricación y venta de recubrimientos.
-              </p>
-            </div>
-
-            {/* Tono y voz */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                Tono y voz
-              </h2>
-              <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed mt-4">
-                COP habla desde un tono amigable, respetuoso y con autoridad debido a su
-                trayectoria y conocimiento sobre la industria y los productos que ofrecen. Por
-                otro lado, su voz imparte conocimientos, vanguardia y alienta al sector a
-                trabajar en nuevos usos y enfocados en resultados positivos desde una
-                mirada fresca e innovadora.
-              </p>
-            </div>
-
-            {/* Valores */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden lg:col-span-2">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="w-5 h-5 text-orange-600" />
-                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                  Valores
-                </h2>
+                <a
+                  href="mailto:pedidoscoprecubrimientos@gmail.com"
+                  className="inline-flex items-center justify-center px-5 py-3 border border-white/15 bg-white/5 hover:bg-white/10 transition rounded-full text-sm font-semibold"
+                >
+                  Quiero sumar mi logo
+                </a>
               </div>
-              <div className="mt-5 flex flex-wrap gap-3">
-                {['Pasión', 'Compromiso', 'Honestidad', 'Respeto', 'Atención'].map((v) => (
-                  <span
-                    key={v}
-                    className="px-4 py-2 border border-orange-200 bg-orange-50 text-gray-900 text-base font-medium"
-                  >
-                    {v}
-                  </span>
-                ))}
-              </div>
-            </div>
 
-            {/* Objetivos */}
-            <div className="bg-white border border-gray-200 p-7 md:p-10 shadow-sm relative overflow-hidden lg:col-span-2">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
-              <div className="flex items-center gap-3">
-                <Target className="w-5 h-5 text-orange-600" />
-                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                  Objetivos
-                </h2>
+              <div className="mt-8 relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-black to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black to-transparent" />
+
+                <div className="flex gap-4 overflow-x-auto py-2 pr-2 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent">
+                  {[
+                    'Distribuidor',
+                    'Mayorista',
+                    'Corralón',
+                    'Ferretería',
+                    'Aplicadores',
+                    'Constructora',
+                    'Retail',
+                    'Arquitectura',
+                  ].map((label) => (
+                    <div
+                      key={label}
+                      className="min-w-[220px] sm:min-w-[240px] rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition px-5 py-4"
+                      title="Logo/partner (placeholder)"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-24 relative shrink-0 opacity-90">
+                          <Image
+                            src="/images/logocop.png"
+                            alt="Logo placeholder"
+                            fill
+                            sizes="96px"
+                            className="object-contain grayscale brightness-200 opacity-80"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs tracking-widest text-white/60 uppercase">Partner</div>
+                          <div className="mt-1 text-base font-semibold text-white truncate">{label}</div>
+                          <div className="mt-1 text-[11px] text-white/55">Logo aquí</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <ul className="mt-5 space-y-4">
-                {[
-                  'Transmitir calidad y durabilidad, asociándose a productos confiables y de alto desempeño.',
-                  'Proyectar innovación, demostrando desarrollo continuo y soluciones modernas.',
-                  'Consolidarse como la elección segura para instaladores, arquitectos, constructoras, etc., minimizando riesgos en obra.',
-                  'Destacar la facilidad de instalación, aportando eficiencia y practicidad al proceso constructivo.',
-                  'Comunicar una excelente relación costo–beneficio, reforzando el valor de la inversión.',
-                  'Ser reconocida como empresa seria y responsable, con soporte y cumplimiento institucional.',
-                ].map((o) => (
-                  <li key={o} className="flex items-start gap-3">
-                    <span className="mt-2 w-2 h-2 bg-orange-500 shrink-0" />
-                    <span className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed">
-                      {o}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </motion.section>
@@ -175,7 +399,7 @@ export default function EmpresaPage() {
           {/* Información de contacto */}
           <div className="space-y-8">
             <motion.a
-              href="https://www.google.com/maps/place/31%C2%B026'41.6%22S+64%C2%B005'43.4%22W/@-31.4468143,-64.1124865,14.66z/data=!4m4!3m3!8m2!3d-31.4449!4d-64.0954?entry=ttu&g_ep=EgoyMDI2MDEwNy4wIKXMDSoASAFQAw%3D%3D"
+              href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-start space-x-3 md:space-x-4 group hover:text-brand-orange transition-colors cursor-pointer"
@@ -236,7 +460,7 @@ export default function EmpresaPage() {
           {/* Mapa */}
           <div className="h-full min-h-[400px] md:min-h-[500px] rounded-lg overflow-hidden shadow-lg border border-gray-200 order-1 lg:order-2">
             <iframe
-              src="https://www.google.com/maps?q=-31.4449,-64.0954&hl=es&z=16&output=embed"
+              src={googleMapsEmbedUrl}
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -244,7 +468,7 @@ export default function EmpresaPage() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="w-full h-full"
-              title="Ubicación COP"
+              title="Ubicación COP Recubrimientos"
             />
           </div>
         </motion.div>

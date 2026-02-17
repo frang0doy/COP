@@ -7,9 +7,10 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 
 const images = [
-  '/images/cop1.jpg',
-  '/images/cop2.png',
   '/images/cop3.png',
+  '/images/cop2.png',
+  '/images/cop8.png',
+  '/images/cop5.png',
 ]
 
 const SLIDE_DURATION = 5000 // 5 segundos por slide

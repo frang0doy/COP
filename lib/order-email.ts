@@ -88,7 +88,7 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
       <strong>Entrega:</strong>
       ${
         deliveryMethod === 'PICKUP_FACTORY'
-          ? `Retiro gratis en fábrica (31°26'41.6"S 64°05'43.4"W, Córdoba, Argentina).`
+          ? `Retiro gratis en fábrica (Sta. Bárbara, X5006 Córdoba, Argentina).`
           : deliveryMethod === 'AGREE_WITH_COMPANY'
             ? `Envío a coordinar con COP (costo a cargo del cliente). ${whatsappLink ? `WhatsApp: <a href="${whatsappLink}">${whatsappLink}</a>` : ''}`
             : `Por el momento se coordina luego de la compra. Te contactaremos para acordar la entrega.`
@@ -113,7 +113,7 @@ export async function maybeSendOrderApprovedEmail(orderId: string) {
     `Total: ${formatMoney(order.total)}`,
     '',
     deliveryMethod === 'PICKUP_FACTORY'
-      ? 'Entrega: Retiro gratis en fábrica (31°26\'41.6"S 64°05\'43.4"W, Córdoba, Argentina).'
+      ? 'Entrega: Retiro gratis en fábrica (Sta. Bárbara, X5006 Córdoba, Argentina).'
       : deliveryMethod === 'AGREE_WITH_COMPANY'
         ? `Entrega: Envío a coordinar con COP (costo a cargo del cliente).${whatsappLink ? ` WhatsApp: ${whatsappLink}` : ''}`
         : 'Entrega: por el momento se coordina luego de la compra.',

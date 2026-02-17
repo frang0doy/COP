@@ -13,7 +13,7 @@ export default function Home() {
       <Hero />
       <Features />
       <ProductsPreview />
-      <VideoShowcase src="/videos/albanileria.mp4" />
+      <VideoShowcase src="/videos/video%20nuevo%20estucado.mp4" />
       <CTA />
       <Footer />
     </main>
