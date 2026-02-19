@@ -16,11 +16,22 @@ function parseM2PerUnitFromRendimiento(rendimiento?: string | null) {
   return m ? toNumber(m[1]) : null
 }
 
-function parseKgPerUnitFromText(text?: string | null) {
-  // Ej: "Bolsa de 30 kg." o "4 m² por bolsa de 30 kg."
+type AmountUnit = 'kg' | 'lt'
+
+function parseAmountPerUnitFromText(text?: string | null): {
+  amount: number | null
+  unit: AmountUnit | null
+} {
+  // Ej: "Bolsa de 30 kg." / "Balde de 20 lt." / "15 m² por balde de 15 lt..."
   const t = String(text || '')
-  const m = t.match(/(\d+(?:[.,]\d+)?)\s*kg\b/i)
-  return m ? toNumber(m[1]) : null
+
+  const mKg = t.match(/(\d+(?:[.,]\d+)?)\s*kg\b/i)
+  if (mKg) return { amount: toNumber(mKg[1]), unit: 'kg' }
+
+  const mLt = t.match(/(\d+(?:[.,]\d+)?)\s*(?:lt|l)\b/i)
+  if (mLt) return { amount: toNumber(mLt[1]), unit: 'lt' }
+
+  return { amount: null, unit: null }
 }
 
 function parseUnitLabelFromPresentacion(presentacion?: string | null) {
@@ -58,13 +69,15 @@ export default function ConsumptionCalculatorModal(props: {
   const [touched, setTouched] = useState(false)
 
   const parsedM2PerUnit = parseM2PerUnitFromRendimiento(technicalSummary?.rendimiento ?? null)
-  const parsedKgPerUnit =
-    parseKgPerUnitFromText(technicalSummary?.presentacion ?? null) ??
-    parseKgPerUnitFromText(technicalSummary?.rendimiento ?? null)
+  const parsedFromPresentacion = parseAmountPerUnitFromText(technicalSummary?.presentacion ?? null)
+  const parsedFromRendimiento = parseAmountPerUnitFromText(technicalSummary?.rendimiento ?? null)
+  const parsedAmountPerUnit = parsedFromPresentacion.amount ?? parsedFromRendimiento.amount
+  const parsedAmountUnit = parsedFromPresentacion.unit ?? parsedFromRendimiento.unit
   const parsedLabel = parseUnitLabelFromPresentacion(technicalSummary?.presentacion ?? null)
 
   const m2PerUnit = parsedM2PerUnit ?? defaultM2PerUnit
-  const kgPerUnit = parsedKgPerUnit ?? defaultKgPerUnit
+  const amountPerUnit = parsedAmountPerUnit ?? defaultKgPerUnit
+  const amountUnit: AmountUnit = parsedAmountUnit ?? 'kg'
   const unitLabel = parsedLabel ? `${parsedLabel}` : defaultUnitLabel
 
   const areaNum = useMemo(() => {
@@ -78,9 +91,9 @@ export default function ConsumptionCalculatorModal(props: {
     if (!touched) return null
     if (!areaNum) return null
     const units = Math.max(1, Math.ceil(areaNum / m2PerUnit))
-    const totalKg = Math.round(units * kgPerUnit * 100) / 100
-    return { units, totalKg }
-  }, [touched, areaNum, m2PerUnit, kgPerUnit])
+    const totalAmount = Math.round(units * amountPerUnit * 100) / 100
+    return { units, totalAmount }
+  }, [touched, areaNum, m2PerUnit, amountPerUnit])
 
   useEffect(() => {
     if (!open) return
@@ -157,7 +170,8 @@ export default function ConsumptionCalculatorModal(props: {
                   <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">Total</p>
                     <p className="mt-2 text-2xl font-extrabold text-gray-900">
-                      {result ? `${result.totalKg}` : '—'} <span className="text-base font-bold text-gray-700">kg</span>
+                      {result ? `${result.totalAmount}` : '—'}{' '}
+                      <span className="text-base font-bold text-gray-700">{amountUnit}</span>
                     </p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -180,7 +194,7 @@ export default function ConsumptionCalculatorModal(props: {
             ) : null}
 
             <p className="text-xs text-gray-500 mt-4">
-              Referencia utilizada: {m2PerUnit} m² por unidad · {kgPerUnit} kg por unidad.
+              Referencia utilizada: {m2PerUnit} m² por unidad · {amountPerUnit} {amountUnit} por unidad.
             </p>
           </div>
         </div>

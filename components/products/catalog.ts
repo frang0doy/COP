@@ -133,6 +133,8 @@ const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {
   35: 'laca_polim_brillosa.png', // imagen: laca_poli_brillo1.png (archivo sin _ficha)
 }
 
+
+
 function stripDiacritics(input: string) {
   // NFD separa letras y diacríticos; luego removemos los diacríticos.
   return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -148,6 +150,8 @@ function normalizeToSheetBase(input: string) {
       .replace(/[^a-z0-9]+/g, '_') // espacios y símbolos -> "_"
       .replace(/^_+|_+$/g, '')
       .replace(/_+/g, '_')
+      // Ignorar sufijos típicos de imágenes "actualizadas"
+      .replace(/_(nuevo|nueva)$/g, '')
       // versiones/sufijos típicos en nombres de imágenes: "...4", "...1", etc.
       .replace(/_\d+$/g, '')
   )
@@ -176,58 +180,58 @@ function computeTechnicalSheet(product: Product): string | undefined {
 const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
   // Adhesivos
   1: {
-    rendimiento: '4 m² por bolsa de 30 kg.',
+    rendimiento: '4 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos: 'Colocación de piezas cerámicas de alta absorción sobre carpetas o revoques interiores.',
   },
   2: {
-    rendimiento: '4 m² por bolsa de 30 kg.',
+    rendimiento: '4 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos: 'Colocación de porcelanatos en pisos y paredes interiores o exteriores.',
   },
   3: {
-    rendimiento: '4 m² por bolsa de 30 kg.',
+    rendimiento: '4 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos: 'Colocación de grandes formatos y/o sobre pisos existentes sin retirar el revestimiento anterior.',
   },
   4: {
-    rendimiento: '15 m² por bolsa de 30 kg.',
+    rendimiento: '15 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos: 'Elevación de mampostería (ladrillo cerámico/block/arcilla) en muros interiores/exteriores no estructurales.',
   },
   5: {
-    rendimiento: '80 m² por bolsa de 25 kg.',
+    rendimiento: '80 m² por bolsa de 15 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 25 kg.',
+    presentacion: 'Bolsa de 15 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Blanco, gris natural y gris oscuro.',
     usos: 'Relleno de juntas entre piezas cerámicas, pisos y azulejos.',
   },
   6: {
-    rendimiento: '15 m² por balde de 25 kg.',
+    rendimiento: '15 m² por balde de 25 lt.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 25 kg.',
+    presentacion: 'Balde de 25 lt.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Blanco marfil.',
     usos: 'Adhesivo acrílico listo para usar; recomendado para trabajos de colocación en interiores/exteriores no estructurales.',
     observaciones: 'Nuevo producto.',
   },
   7: {
-    rendimiento: '15 m² por balde de 25 kg.',
+    rendimiento: '15 m² por balde de 25 lt.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 25 kg.',
+    presentacion: 'Balde de 25 lt.',
     conservacion: '6 meses desde la fecha de fabricación.',
     usos: 'Adhesivo listo para usar; elevación de mampostería en muros interiores/exteriores no estructurales.',
     observaciones: 'Nuevo producto.',
@@ -235,9 +239,9 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
 
   // Estucados
   9: {
-    rendimiento: '15 m² por balde de 15 kg (a 2 mm de espesor).',
+    rendimiento: '15 m² por balde de 15 lt (a 2 mm de espesor).',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 15 kg.',
+    presentacion: 'Balde de 15 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores:
       'Gris natural/plata/perla/oscuro, marrón, chukum, blanco y negro.',
@@ -254,9 +258,9 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
       'Aplicación sobre revoque fino, placas de cartón yeso, base coat y fibrocemento; recomendado sellar previamente según soporte.',
   },
   11: {
-    rendimiento: '15 m² por balde de 5 kg (a tres manos).',
+    rendimiento: '15 m² por balde de 5 lt (a tres manos).',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 5 kg.',
+    presentacion: 'Balde de 5 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores:
       'Marrón, azul, rojo, gris, amarillo, verde, negro, chukum y blanco mármol.',
@@ -343,18 +347,18 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     observaciones: 'Nuevo producto.',
   },
   40: {
-    rendimiento: '50 m² por balde de 30 kg.',
+    rendimiento: '50 m² por balde de 30 lt.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 30 kg.',
+    presentacion: 'Balde de 30 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Blanco.',
     usos:
       'Pasta base acrílica para juntas en construcción en seco y corrección de imperfecciones (con sellado previo).',
   },
   41: {
-    rendimiento: '15 m² por bolsa de 25 kg.',
+    rendimiento: '15 m² por bolsa de 15 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 25 kg.',
+    presentacion: 'Bolsa de 15 kg.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Blanco o gris.',
     usos:
@@ -364,9 +368,9 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
 
   // Revestimientos
   16: {
-    rendimiento: '8–15 m² por balde de 25 kg (según método).',
+    rendimiento: '8–15 m² por balde de 25 lt (según método).',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 25 kg.',
+    presentacion: 'Balde de 25 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores:
       'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
@@ -374,9 +378,9 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
       'Aplicación sobre revoque fino/grueso alisado, placas de cartón yeso, base coat y fibrocemento (con sellado previo).',
   },
   17: {
-    rendimiento: '8–15 m² por balde de 25 kg (según método).',
+    rendimiento: '8–15 m² por balde de 25 lt (según método).',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 25 kg.',
+    presentacion: 'Balde de 25 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Blanco marfil.',
     usos:
@@ -392,18 +396,18 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
       'Aplicación sobre revoque fino, revoque grueso alisado y base coat (con sellado previo).',
   },
   19: {
-    rendimiento: '7 m² por balde de 25 kg (según método).',
+    rendimiento: '7 m² por balde de 25 lt (según método).',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Balde de 25 kg.',
+    presentacion: 'Balde de 25 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Negro, dálmata, verona, paraná.',
     usos: 'Aplicación sobre revoque fino (con sellado previo).',
     observaciones: 'Nuevo producto.',
   },
   20: {
-    rendimiento: '10 m² por bolsa de 20 kg.',
+    rendimiento: '10 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 20 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Blanco.',
     usos:
@@ -480,27 +484,27 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
 
   // Impermeabilizables
   28: {
-    rendimiento: '10 m² por bolsa de 30 kg.',
+    rendimiento: '10 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos:
       'Impermeabilización en techos, balcones, baños, piscinas, cisternas y tanques de agua.',
   },
   29: {
-    rendimiento: '10 m² por bolsa de 30 kg.',
+    rendimiento: '10 m² por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos:
       'Tratamiento anti salitre para prevenir o reparar eflorescencias y humedades ascendentes por capilaridad.',
   },
   30: {
-    rendimiento: '30 m² con rodillo / 12 m² con llana por bolsa de 30 kg.',
+    rendimiento: '30 m² con rodillo / 12 m² con llana por bolsa de 25 kg.',
     almacenaje: 'Envase original herméticamente cerrado.',
-    presentacion: 'Bolsa de 30 kg.',
+    presentacion: 'Bolsa de 25 kg.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores: 'Gris.',
     usos:
@@ -566,7 +570,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'adhesivos',
     stock: 50,
     sku: 'ADH-001',
-    image: '/Foto-productos/pega_ceramico.png',
+    image: '/Foto-productos/pega_ceramico_nuevo.png',
   },
   {
     id: 2,
@@ -576,7 +580,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'adhesivos',
     stock: 35,
     sku: 'ADH-002',
-    image: '/Foto-productos/pega_porcelanato.png',
+    image: '/Foto-productos/pega_porcelanato_nuevo.png',
   },
   {
     id: 3,
@@ -586,7 +590,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'adhesivos',
     stock: 28,
     sku: 'ADH-003',
-    image: '/Foto-productos/pisosobrepiso_flex.png',
+    image: '/Foto-productos/pisosobrepiso_flex_nuevo.png',
   },
   {
     id: 4,
@@ -596,7 +600,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'adhesivos',
     stock: 22,
     sku: 'ADH-004',
-    image: '/Foto-productos/pega_block.png',
+    image: '/Foto-productos/pega_block_nuevo.png',
   },
   {
     id: 5,
@@ -606,7 +610,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'adhesivos',
     stock: 18,
     sku: 'ADH-005',
-    image: '/Foto-productos/pastina_impermeable.png',
+    image: '/Foto-productos/pastina_impermeable_nuevo.png',
   },
   {
     id: 6,
@@ -627,7 +631,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 60,
     sku: 'ADH-007',
     isNew: true,
-    image: '/Foto-productos/pega_cop.png',
+    image: '/Foto-productos/pega_cop_nuevo.png',
   },
 
   // Estucados (9-15)
@@ -639,7 +643,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'estucados',
     stock: 40,
     sku: 'EST-001',
-    image: '/Foto-productos/microtex.png',
+    image: '/Foto-productos/microtex_nuevo.png',
   },
   {
     id: 10,
@@ -649,7 +653,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'estucados',
     stock: 30,
     sku: 'EST-002',
-    image: '/Foto-productos/concreto_aparente.png',
+    image: '/Foto-productos/concreto_aparente_nuevo.png',
   },
   {
     id: 11,
@@ -659,7 +663,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'estucados',
     stock: 45,
     sku: 'EST-003',
-    image: '/Foto-productos/veneziano.png',
+    image: '/Foto-productos/veneziano_nuevo.png',
   },
   {
     id: 12,
@@ -669,7 +673,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'estucados',
     stock: 27,
     sku: 'EST-004',
-    image: '/Foto-productos/micro_piscinas.png',
+    image: '/Foto-productos/micro_piscinas_nuevo.png',
   },
   {
     id: 13,
@@ -680,7 +684,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 24,
     sku: 'EST-005',
     isNew: true,
-    image: '/Foto-productos/pasta_chukum.png',
+    image: '/Foto-productos/pasta_chukum_nuevo.png',
   },
   {
     id: 14,
@@ -691,7 +695,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 21,
     sku: 'EST-006',
     isNew: true,
-    image: '/Foto-productos/cuarzotex.png',
+    image: '/Foto-productos/cuarzotex_nuevo.png',
   },
   {
     id: 15,
@@ -702,7 +706,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'selladores_y_pinturas',
     stock: 33,
     sku: 'SEL-000',
-    image: '/Foto-productos/plasticop.png',
+    image: '/Foto-productos/plasticop_nuevo.png',
   },
 
   // Revestimientos (16-21)
@@ -714,7 +718,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revestimientos',
     stock: 30,
     sku: 'REV-001',
-    image: '/Foto-productos/marmolatex.png',
+    image: '/Foto-productos/marmolatex_nuevo.png',
   },
   {
     id: 17,
@@ -724,7 +728,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revestimientos',
     stock: 40,
     sku: 'REV-002',
-    image: '/Foto-productos/textucop_acrilico.png',
+    image: '/Foto-productos/textucop_acrilico_nuevo.png',
   },
   {
     id: 18,
@@ -734,7 +738,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revestimientos',
     stock: 28,
     sku: 'REV-003',
-    image: '/Foto-productos/textucopL.png',
+    image: '/Foto-productos/textucopL_nuevo.png',
   },
   {
     id: 19,
@@ -745,7 +749,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 36,
     sku: 'REV-004',
     isNew: true,
-    image: '/Foto-productos/stone_cop.png',
+    image: '/Foto-productos/stone_cop_nuevo.png',
   },
   {
     id: 20,
@@ -756,7 +760,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 19,
     sku: 'REV-005',
     isNew: true,
-    image: '/Foto-productos/micro_atermico.png',
+    image: '/Foto-productos/micro_atermico_nuevo.png',
   },
   {
     id: 21,
@@ -768,7 +772,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 14,
     sku: 'REV-006',
     isNew: true,
-    image: '/Foto-productos/pasta_niveladora.png',
+    image: '/Foto-productos/pasta_niveladora_nuevo.png',
   },
 
   // Revoques (22-27)
@@ -780,7 +784,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revoques',
     stock: 35,
     sku: 'REQ-001',
-    image: '/Foto-productos/revoque_4en1.png',
+    image: '/Foto-productos/revoque_4en1_nuevo.png',
   },
   {
     id: 23,
@@ -790,7 +794,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revoques',
     stock: 46,
     sku: 'REQ-002',
-    image: '/Foto-productos/revoque_3en1.png',
+    image: '/Foto-productos/revoque_3en1_nuevo.png',
   },
   {
     id: 24,
@@ -800,7 +804,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revoques',
     stock: 52,
     sku: 'REQ-003',
-    image: '/Foto-productos/base_cop.png',
+    image: '/Foto-productos/base_cop_nuevo.png',
   },
   {
     id: 25,
@@ -810,7 +814,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revoques',
     stock: 23,
     sku: 'REQ-004',
-    image: '/Foto-productos/base_niveladora.png',
+    image: '/Foto-productos/base_niveladora_nuevo.png',
   },
   {
     id: 26,
@@ -820,7 +824,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'revoques',
     stock: 58,
     sku: 'REQ-005',
-    image: '/Foto-productos/yeso_cop.png',
+    image: '/Foto-productos/yeso_cop_nuevo.png',
   },
   {
     id: 27,
@@ -831,7 +835,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 31,
     sku: 'REQ-006',
     isNew: true,
-    image: '/Foto-productos/hormicop.png',
+    image: '/Foto-productos/hormicop_nuevo.png',
   },
 
   // Impermeabilizables (28-33)
@@ -843,7 +847,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'impermeabilizables',
     stock: 25,
     sku: 'IMP-001',
-    image: '/Foto-productos/impercop.png',
+    image: '/Foto-productos/impercop_nuevo.png',
   },
   {
     id: 29,
@@ -853,7 +857,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'impermeabilizables',
     stock: 32,
     sku: 'IMP-002',
-    image: '/Foto-productos/anti_salitre.png',
+    image: '/Foto-productos/anti_salitre_nuevo.png',
   },
   {
     id: 30,
@@ -863,7 +867,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'impermeabilizables',
     stock: 20,
     sku: 'IMP-003',
-    image: '/Foto-productos/monoelastic.png',
+    image: '/Foto-productos/monoelastic_nuevo.png',
   },
   {
     id: 31,
@@ -873,7 +877,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'impermeabilizables',
     stock: 17,
     sku: 'IMP-004',
-    image: '/Foto-productos/memb_liquida.png',
+    image: '/Foto-productos/memb_liquida_nueva.png',
   },
   {
     id: 32,
@@ -883,7 +887,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'impermeabilizables',
     stock: 15,
     sku: 'IMP-005',
-    image: '/Foto-productos/Membrana_Poliuretánica.png',
+    image: '/Foto-productos/membrana_poliuretanica_nueva.png',
   },
   {
     id: 33,
@@ -894,7 +898,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'selladores_y_pinturas',
     stock: 29,
     sku: 'SEL-003',
-    image: '/Foto-productos/plastiband.png',
+    image: '/Foto-productos/plastiband_nuevo.png',
   },
 
   // Laca y barnices (34-37)
@@ -906,7 +910,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'laca_y_barnices',
     stock: 38,
     sku: 'LAC-001',
-    image: '/Foto-productos/laca_poli_mate1.png',
+    image: '/Foto-productos/laca_poli_mate_balde4_nuevo.png',
   },
   {
     id: 35,
@@ -916,7 +920,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'laca_y_barnices',
     stock: 42,
     sku: 'LAC-002',
-    image: '/Foto-productos/laca_poli_brillo1.png',
+    image: '/Foto-productos/laca_poli_brillo_balde4_nuevo.png',
   },
   {
     id: 36,
@@ -926,7 +930,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'laca_y_barnices',
     stock: 50,
     sku: 'LAC-003',
-    image: '/Foto-productos/cop_silicon4.png',
+    image: '/Foto-productos/cop_silicon4_nuevo.png',
   },
   {
     id: 37,
@@ -937,7 +941,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'selladores_y_pinturas',
     stock: 27,
     sku: 'SEL-004',
-    image: '/Foto-productos/fondo_cop.png',
+    image: '/Foto-productos/fondo_cop_nuevo.png',
   },
 
   // Selladores y pinturas (38-41)
@@ -949,7 +953,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'selladores_y_pinturas',
     stock: 44,
     sku: 'SEL-001',
-    image: '/Foto-productos/pintucop.png',
+    image: '/Foto-productos/pintucop_nuevo.png',
   },
   {
     id: 39,
@@ -960,7 +964,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 41,
     sku: 'SEL-002',
     isNew: true,
-    image: '/Foto-productos/mastercril.png',
+    image: '/Foto-productos/mastercril_nuevo.png',
   },
   {
     id: 40,
@@ -970,7 +974,7 @@ const RAW_PRODUCTS: Product[] = [
     category: 'selladores_y_pinturas',
     stock: 34,
     sku: 'SEL-005',
-    image: '/Foto-productos/redimix.png',
+    image: '/Foto-productos/redimix_nuevo.png',
   },
   {
     id: 41,
@@ -981,7 +985,7 @@ const RAW_PRODUCTS: Product[] = [
     stock: 25,
     sku: 'SEL-006',
     isNew: true,
-    image: '/Foto-productos/skim_coat.png',
+    image: '/Foto-productos/skim_coat_nuevo.png',
   },
   // Combos
   {
@@ -1011,5 +1015,9 @@ export const PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({
   technicalSheet: (p as any).technicalSheet ?? computeTechnicalSheet(p),
   technicalSummary: TECHNICAL_SUMMARY_BY_ID[p.id],
 }))
+
+export function getTechnicalSummaryById(id: number): TechnicalSummary | undefined {
+  return TECHNICAL_SUMMARY_BY_ID[id]
+}
 
 

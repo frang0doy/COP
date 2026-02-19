@@ -17,6 +17,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [showCalculator, setShowCalculator] = useState(false)
+  const [lacaView, setLacaView] = useState<'4 lt' | '1 lt'>('4 lt')
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -39,6 +40,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     return () => {
       cancelled = true
     }
+  }, [productId])
+
+  useEffect(() => {
+    setLacaView('4 lt')
   }, [productId])
 
   if (isLoading) {
@@ -92,6 +97,30 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     categoryKey in CATEGORY_LABEL ? CATEGORY_LABEL[categoryKey] : 'Producto'
 
   const technicalSummary = (product.technicalSummary ?? null) as any
+  const lacaImageOptions =
+    product.id === 34
+      ? {
+          '1 lt': '/Foto-productos/laca_poli_mate_balde1_nuevo.png',
+          '4 lt': '/Foto-productos/laca_poli_mate_balde4_nuevo.png',
+        }
+      : product.id === 35
+        ? {
+            '1 lt': '/Foto-productos/laca_poli_brillo_balde1_nuevo.png',
+            '4 lt': '/Foto-productos/laca_poli_brillo_balde4_nuevo.png',
+          }
+        : null
+
+  const imageSrc = lacaImageOptions ? lacaImageOptions[lacaView] : product.image
+  const technicalSummaryForCalculator = lacaImageOptions
+    ? {
+        ...(technicalSummary ?? {}),
+        presentacion: lacaView === '1 lt' ? 'Balde de 1 lt.' : 'Balde de 4 lt.',
+        rendimiento:
+          lacaView === '1 lt'
+            ? '4 m² por balde de 1 lt.'
+            : '16 m² por balde de 4 lt.',
+      }
+    : technicalSummary
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -113,12 +142,36 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           {/* Columna izquierda: imagen (se estira a la altura del panel derecho) */}
           <div className="bg-gray-50 p-6 sm:p-10 flex items-center justify-center">
             <div className="w-full flex items-center justify-center">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="block w-full max-w-[600px] lg:max-w-[680px] max-h-[560px] lg:max-h-[640px] object-contain"
-                />
+              {imageSrc ? (
+                <div className="w-full">
+                  <img
+                    src={imageSrc}
+                    alt={product.name}
+                    className="block w-full max-w-[600px] lg:max-w-[680px] max-h-[560px] lg:max-h-[640px] object-contain mx-auto"
+                  />
+                  {lacaImageOptions ? (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      {(['4 lt', '1 lt'] as const).map((k) => {
+                        const selected = lacaView === k
+                        return (
+                          <button
+                            key={k}
+                            type="button"
+                            onClick={() => setLacaView(k)}
+                            className={[
+                              'px-3 py-1.5 text-xs sm:text-sm font-semibold border transition-colors',
+                              selected
+                                ? 'border-orange-500 bg-orange-500 text-white'
+                                : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-600',
+                            ].join(' ')}
+                          >
+                            {k}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               ) : (
                 <span className="text-gray-400">Imagen del Producto</span>
               )}
@@ -351,7 +404,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       <ConsumptionCalculatorModal
         open={showCalculator}
         onClose={() => setShowCalculator(false)}
-        technicalSummary={technicalSummary}
+        technicalSummary={technicalSummaryForCalculator}
       />
     </div>
   )
