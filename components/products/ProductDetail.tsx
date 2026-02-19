@@ -123,7 +123,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     : technicalSummary
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <Link
         href="/productos"
         className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors mb-6"
@@ -140,14 +140,14 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Columna izquierda: imagen (se estira a la altura del panel derecho) */}
-          <div className="bg-gray-50 p-6 sm:p-10 flex items-center justify-center">
+          <div className="bg-gray-50 p-4 sm:p-10 flex items-center justify-center">
             <div className="w-full flex items-center justify-center">
               {imageSrc ? (
                 <div className="w-full">
                   <img
                     src={imageSrc}
                     alt={product.name}
-                    className="block w-full max-w-[600px] lg:max-w-[680px] max-h-[560px] lg:max-h-[640px] object-contain mx-auto"
+                    className="block w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] max-h-[420px] sm:max-h-[560px] lg:max-h-[640px] object-contain mx-auto"
                   />
                   {lacaImageOptions ? (
                     <div className="mt-4 flex items-center justify-center gap-2">
@@ -179,7 +179,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </div>
 
           {/* Columna derecha: información */}
-          <div className="border-t border-gray-200 lg:border-t-0 lg:border-l p-6 sm:p-10">
+          <div className="border-t border-gray-200 lg:border-t-0 lg:border-l p-4 sm:p-10">
           <span className="text-xs text-gray-600 font-medium tracking-wider uppercase flex items-center gap-2">
             <span className={['w-2 h-2', theme.accent].join(' ')} />
             {categoryLabel}
@@ -187,11 +187,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
           <div className="mt-2 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-              <h1 className="text-4xl font-bold text-black tracking-tight sm:flex-1 sm:whitespace-nowrap sm:overflow-hidden sm:text-ellipsis">
+              <h1 className="text-2xl sm:text-4xl font-bold text-black tracking-tight sm:flex-1 sm:whitespace-nowrap sm:overflow-hidden sm:text-ellipsis">
                 {product.name}
               </h1>
 
-              <div className="flex flex-col gap-2 w-full sm:w-[260px] shrink-0">
+              <div className="flex flex-col gap-2 w-full max-w-[240px] mx-auto sm:mx-0 sm:max-w-none sm:w-[260px] shrink-0">
                 {product.technicalSheet ? (
                   <a
                     href={product.technicalSheet}
@@ -229,12 +229,12 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               </div>
             </div>
           </div>
-          <p className="text-2xl font-bold text-black mb-6">
+          <p className="text-xl sm:text-2xl font-bold text-black mb-4 sm:mb-6">
             ${product.price.toLocaleString('es-MX')}
           </p>
 
-          <div className="mb-6">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
+          <div className="mb-5 sm:mb-6">
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
           </div>
 
           {/* INFOGRAFÍA (estilo ficha, inspirado en la referencia) */}

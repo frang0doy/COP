@@ -23,7 +23,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="h-full">
         <div className="bg-white border border-gray-200 overflow-hidden h-full flex flex-col group">
           {/* Imagen del producto */}
-          <div className="relative h-48 sm:h-56 md:h-64 bg-gray-100 overflow-hidden">
+          <div className="relative h-40 sm:h-56 md:h-64 bg-gray-100 overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center text-gray-400">
               {product.image ? (
                 <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
@@ -40,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Información del producto */}
           <div className="p-3 md:p-4 flex-1 flex flex-col">
-            <h3 className="text-base md:text-lg font-semibold text-black line-clamp-2">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-black line-clamp-2">
               <span className="relative inline-block">
                 {product.name}
                 {/* Subrayado deslizante */}
@@ -50,12 +50,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
             <div className="mt-auto">
               <div className="flex items-center justify-between gap-3 mt-3">
-                <span className="text-xl md:text-2xl font-bold text-black">
+                <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
                   ${product.price.toLocaleString('es-MX')}
                 </span>
                 <Link
                   href={`/productos/${product.id}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-sm font-semibold transition-transform duration-200 hover:scale-[1.03] hover:border-orange-500"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-200 bg-white text-xs sm:text-sm font-semibold transition-transform duration-200 hover:scale-[1.03] hover:border-orange-500"
                 >
                   Ver
                   <ArrowRight className="w-4 h-4" />

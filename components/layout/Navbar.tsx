@@ -199,7 +199,7 @@ export default function Navbar() {
         duration: 0.6,
         ease: [0.22, 1, 0.36, 1]
       }}
-      className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out ${
+      className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out will-change-transform ${
         scrolled || isMenuOpen ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}
     >
@@ -378,7 +378,117 @@ export default function Navbar() {
         )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 md:h-24">
+        {/* MOBILE (no toca desktop) */}
+        <div className="md:hidden h-16">
+          <div className="grid grid-cols-3 items-center h-full">
+            {/* Izquierda: menú */}
+            <div className="flex items-center justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen((v) => !v)
+                  setIsUserMenuOpen(false)
+                }}
+                aria-haspopup="menu"
+                aria-expanded={isMenuOpen}
+                ref={menuButtonRef}
+                className={[
+                  'inline-flex h-10 w-10 items-center justify-center border transition-all',
+                  scrolled
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
+                ].join(' ')}
+                aria-label="Abrir menú"
+                title="Menú"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Centro: logo */}
+            <div className="flex items-center justify-center">
+              <Link href="/" className="flex items-center justify-center">
+                <div className="relative h-10 w-32 flex items-center justify-center">
+                  <Image
+                    src="/images/logocop.png"
+                    alt="COP - Materiales de Construcción"
+                    width={160}
+                    height={64}
+                    className="object-contain drop-shadow-lg"
+                    priority
+                    unoptimized
+                  />
+                </div>
+              </Link>
+            </div>
+
+            {/* Derecha: usuario + carrito */}
+            <div className="flex items-center justify-end gap-2">
+              {session ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen((v) => !v)
+                    setIsMenuOpen(false)
+                  }}
+                  aria-haspopup="menu"
+                  aria-expanded={isUserMenuOpen}
+                  ref={userButtonRef}
+                  className={[
+                    'inline-flex h-10 w-10 items-center justify-center border transition-all',
+                    scrolled
+                      ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                      : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
+                  ].join(' ')}
+                  aria-label="Mi cuenta"
+                  title="Mi cuenta"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className={[
+                    'inline-flex h-10 w-10 items-center justify-center border transition-all',
+                    scrolled
+                      ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                      : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
+                  ].join(' ')}
+                  aria-label="Iniciar sesión"
+                  title="Iniciar sesión"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+              )}
+
+              <Link
+                href="/carrito"
+                className={[
+                  'relative inline-flex h-10 w-10 items-center justify-center border transition-all',
+                  scrolled
+                    ? 'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-orange-500 hover:text-orange-500'
+                    : 'border-white/20 bg-white/10 text-white hover:bg-white/15 hover:border-orange-500 hover:text-orange-500 drop-shadow-lg',
+                ].join(' ')}
+                aria-label="Carrito"
+                title="Carrito"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {itemsCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-2 -right-2 bg-white text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+                  >
+                    {itemsCount}
+                  </motion.span>
+                )}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* DESKTOP (se deja igual) */}
+        <div className="hidden md:flex justify-between items-center h-20 md:h-24">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <div className="relative h-10 w-24 md:h-16 md:w-40 flex items-center justify-center">

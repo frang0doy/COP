@@ -41,34 +41,34 @@ export default function TutorialesCopPage() {
   const tutorials: Tutorial[] = useMemo(
     () => [
       {
-        title: 'Tutorial COP 01',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
-        youtubeUrl: 'https://www.youtube.com/watch?v=2bIsBOo2brU',
+        title: 'Pintura ACRILPLUS 7000H',
+        description:
+          'Es una pintura lavable de excelente poder cubriente y gran resistencia al intemperismo. Se aplica fácilmente mediante rodillo o brocha sobre superficies de hormigón, yeso, aplanado tradicional, tablaroca, superficies metálicas o cualquier tipo de panelería ligera. Es una pintura recomendada para decorar y pintar áreas como cocina, baños, pasillos y muebles de madera ó metálicos por su fácil aplicación, tiempo de secado, fácil limpieza y bajo olor.',
+        youtubeUrl: 'https://www.youtube.com/watch?v=yBgmyMXr9CY',
       },
       {
-        title: 'Tutorial COP 02',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
+        title: 'Sistema Cop para recubrimiento de alberca',
+        description:
+          'Aplicación de recubrimientos decorativos ESTUCOP ALBERCA que combina agregados de carbonato de color natural, cemento portland blanco fortificado y polímeros hidrorepelentes, que al ser mezclado con agua y/o concentrado chukum logran un acabado único de gran resistencia y espectacular vista para pisos, muros y escaleras de albercas, jacuzzis, estanques, acuarios, fuentes y ríos artificiales, que da una apariencia al agua de azul o verde turquesa.',
         youtubeUrl: 'https://www.youtube.com/watch?v=diNZcES_y_w',
       },
       {
-        title: 'Tutorial COP 03',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
+        title: 'Recubrimiento para plafones de poliestireno',
+        description: 'Próximamente agregamos la descripción detallada.',
         youtubeUrl: 'https://www.youtube.com/watch?v=kDau_jiDAhA',
       },
       {
-        title: 'Tutorial COP 04',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
+        title: 'Aplicación de ESTUCOP FINO, CHUKUM y concreto aparente sobre muro interior',
+        description:
+          'Aplicación de recubrimiento decorativo ESTUCOP FINO, el cual permite ser utilizado en acabados de alta calidad y belleza, muy similar al yeso tradicional, pero con mayor fortaleza por ser base cementosa; ESTUCOP CHUKUM, que sirve para la decoración en muros exteriores e interiores, dando a estos un aspecto natural con vetas de distintas tonalidades o intensidades; y concreto aparente sobre muros internos pintados.',
         youtubeUrl: 'https://www.youtube.com/watch?v=OxIL3WaqtBo',
       },
       {
         title: 'Tutorial COP 05',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
+        description:
+          'Aplicación de recubrimiento decorativo ESTUCOP FINO, el cual permite ser utilizado en acabados de alta calidad y belleza, muy similar al yeso tradicional, pero con mayor fortaleza por ser base cementosa; ESTUCOP CHUKUM, que sirve para la decoración en muros exteriores e interiores, dando a estos un aspecto natural con vetas de distintas tonalidades o intensidades; y concreto aparente sobre muros externos pintados.',
+        title: 'Aplicación de ESTUCOP FINO y CHUKUM sobre muro exterior',
         youtubeUrl: 'https://www.youtube.com/watch?v=JkGkwU4a9s0',
-      },
-      {
-        title: 'Tutorial COP 06',
-        description: 'Video tutorial COP. Próximamente agregamos la descripción detallada.',
-        youtubeUrl: 'https://www.youtube.com/watch?v=u31hn90Pk9Q',
       },
     ],
     []
@@ -79,7 +79,7 @@ export default function TutorialesCopPage() {
   return (
     <main className="min-h-screen pt-24 bg-gray-100">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,12 +108,13 @@ export default function TutorialesCopPage() {
               </p>
             </div>
           ) : (
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {tutorials.map((t, i) => {
                 const id = getYoutubeId(t.youtubeUrl)
                 const isPlaying = Boolean(id && playingId === id)
                 const thumbnail = id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null
                 const embed = id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0` : null
+                const isLastOdd = tutorials.length % 2 === 1 && i === tutorials.length - 1
 
                 return (
                   <motion.div
@@ -122,7 +123,10 @@ export default function TutorialesCopPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-120px' }}
                     transition={{ duration: 0.55, ease: 'easeOut' }}
-                    className="bg-white border border-gray-200 shadow-sm overflow-hidden"
+                    className={[
+                      'bg-white border border-gray-200 shadow-sm overflow-hidden',
+                      isLastOdd ? 'md:col-span-2 md:max-w-[560px] md:mx-auto' : '',
+                    ].join(' ')}
                   >
                     <div className="relative">
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
@@ -209,7 +213,7 @@ export default function TutorialesCopPage() {
                         <button
                           type="button"
                           onClick={() => setPlayingId(id)}
-                          className="mt-4 inline-flex items-center justify-center px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-900 transition font-semibold text-sm"
+                          className="mt-4 inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition font-semibold text-sm"
                         >
                           Reproducir acá
                         </button>

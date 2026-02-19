@@ -65,21 +65,21 @@ export default function CTA() {
           >
             Descubre nuestra amplia gama de productos de construcción y encuentra todo lo que necesitas en un solo lugar.
           </AnimatedParagraph>
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-auto">
               <a
                 href="/documents/fichas-tecnicas/catalogoCOP.pdf"
                 download
-                className="group bg-orange-500 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-base font-medium border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 flex items-center justify-center space-x-3 w-full sm:w-auto"
+                className="group bg-orange-500 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-base font-medium border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 inline-flex items-center justify-center space-x-3 w-auto"
               >
                 <span>DESCARGAR CATÁLOGO</span>
                 <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
               </a>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-auto">
               <Link
                 href="/contacto"
-                className="bg-orange-500 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-base font-medium border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 w-full sm:w-auto text-center block"
+                className="bg-orange-500 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-base font-medium border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 w-auto text-center inline-flex items-center justify-center"
               >
                 CONTACTAR ASESOR
               </Link>

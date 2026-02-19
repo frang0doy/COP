@@ -236,16 +236,16 @@ export default function ProductsList() {
   }, [isApplyOpen])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-10">
+    <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 sm:gap-6 lg:gap-10">
       {/* Filtro (siempre visible en desktop) */}
       <aside className="lg:sticky lg:top-24 lg:self-start">
         <div className="bg-white border border-gray-200 overflow-hidden">
-          <div className="p-4 md:p-5">
-          <div className="mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold text-black tracking-tight">
+          <div className="p-3 sm:p-4 md:p-5">
+          <div className="mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-black tracking-tight">
               Productos
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               Mostrando{' '}
               <span className="font-semibold text-black">{filteredProducts.length}</span> de{' '}
               <span className="font-semibold text-black">{totalProducts}</span>
@@ -263,7 +263,7 @@ export default function ProductsList() {
               placeholder="Buscar productos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 border border-gray-200 focus:border-black transition-colors bg-white text-sm"
+              className="w-full pl-9 pr-9 py-2 border border-gray-200 focus:border-black transition-colors bg-white text-sm"
             />
             {searchTerm && (
               <button
@@ -292,18 +292,18 @@ export default function ProductsList() {
               )}
             </div>
 
-            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+            <div className="flex lg:flex-col gap-1.5 sm:gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
               <button
                 type="button"
                 onClick={() => setSelectedCategory('Todos')}
                 className={[
-                  'shrink-0 w-full lg:w-auto text-left px-3 py-2 border transition-colors',
+                  'shrink-0 w-auto whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors',
                   selectedCategory === 'Todos'
                     ? 'border-orange-500 bg-orange-500 text-white'
                     : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
                 ].join(' ')}
               >
-                <span className="text-sm font-medium">Todos</span>
+                <span className="text-xs sm:text-sm font-medium">Todos</span>
               </button>
 
               {CATEGORY_ORDER.filter((c) => c !== 'combos').map((cat) => {
@@ -314,13 +314,13 @@ export default function ProductsList() {
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
                     className={[
-                      'shrink-0 w-full lg:w-auto text-left px-3 py-2 border transition-colors',
+                      'shrink-0 w-auto whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors',
                       isSelected
                         ? 'border-orange-500 bg-orange-500 text-white'
                         : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
                     ].join(' ')}
                   >
-                    <span className="text-sm font-medium">{CATEGORY_LABEL[cat]}</span>
+                    <span className="text-xs sm:text-sm font-medium">{CATEGORY_LABEL[cat]}</span>
                   </button>
                 )
               })}
@@ -335,7 +335,7 @@ export default function ProductsList() {
               onClick={() => setIsApplyOpen((v) => !v)}
               className={[
                 // Igualar estilo/tamaño a los botones de categorías
-                'w-full flex items-center justify-between gap-3 px-3 py-2 border transition-colors text-left',
+                'w-full flex items-center justify-between gap-3 px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors text-left',
                 isApplyOpen
                   ? 'border-orange-500 bg-white text-black'
                   : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
@@ -344,7 +344,7 @@ export default function ProductsList() {
               aria-haspopup="listbox"
               aria-expanded={isApplyOpen}
             >
-              <span className="min-w-0 flex-1 text-left text-sm font-medium text-gray-900">
+              <span className="min-w-0 flex-1 text-left text-xs sm:text-sm font-medium text-gray-900">
                 {selectedApplyArea === 'Todos'
                   ? 'Dónde aplicar'
                   : APPLY_AREA_LABEL[selectedApplyArea]}

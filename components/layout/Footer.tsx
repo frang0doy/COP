@@ -17,9 +17,9 @@ export default function Footer() {
   return (
     <footer className="bg-black text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 text-center sm:text-left">
           {/* Company Info */}
-          <div>
+          <div className="flex flex-col items-center sm:items-start">
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
@@ -36,7 +36,7 @@ export default function Footer() {
             <p className="mb-6 text-gray-400 leading-relaxed">
               Revestimientos y soluciones para la construcción. Calidad y asesoramiento técnico para profesionales.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex justify-center sm:justify-start space-x-4">
               <motion.a
                 href={instagramUrl}
                 target="_blank"
@@ -139,7 +139,7 @@ export default function Footer() {
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start space-x-3 group hover:text-orange-500 transition-colors"
+                  className="flex items-start sm:items-start justify-center sm:justify-start space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
                   <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />
@@ -153,7 +153,7 @@ export default function Footer() {
               <li>
                 <motion.a
                   href="tel:+5493515900630"
-                  className="flex items-center space-x-3 group hover:text-orange-500 transition-colors"
+                  className="flex items-center justify-center sm:justify-start space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
                   <Phone className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />
@@ -163,7 +163,7 @@ export default function Footer() {
               <li>
                 <motion.a
                   href={`mailto:${email}`}
-                  className="flex items-center space-x-3 group hover:text-orange-500 transition-colors"
+                  className="flex items-center justify-center sm:justify-start space-x-3 group hover:text-orange-500 transition-colors"
                   whileHover={{ x: 4 }}
                 >
                   <Mail className="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-orange-500 transition-colors" />

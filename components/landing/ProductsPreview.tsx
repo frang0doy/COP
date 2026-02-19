@@ -200,7 +200,7 @@ export default function ProductsPreview() {
               duration: 0.8,
               ease: [0.22, 1, 0.36, 1]
             }}
-            className="space-y-1 py-4"
+            className="space-y-1 py-4 text-center sm:text-left"
           >
             <AnimatedTitle
               as="h2"
@@ -210,7 +210,7 @@ export default function ProductsPreview() {
               RECUBRIMIENTOS DE ALTA CALIDAD
             </AnimatedTitle>
             <AnimatedParagraph
-              className="text-base md:text-lg text-gray-600 font-light leading-relaxed mb-14"
+              className="text-base md:text-lg text-gray-600 font-light leading-relaxed mb-10 sm:mb-14"
               delay={0.4}
             >
               Productos profesionales para la construcción.
@@ -220,11 +220,11 @@ export default function ProductsPreview() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="pt-4"
+              className="pt-4 flex justify-center sm:justify-start"
             >
               <Link
                 href="/productos"
-                className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-6 py-3 text-sm md:text-base font-semibold border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300"
+                className="group inline-flex items-center space-x-3 bg-orange-500 text-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm md:text-base font-semibold border border-orange-500 hover:bg-orange-600 hover:border-orange-600 transition-colors duration-300 w-auto"
               >
                 <span>VER CATÁLOGO</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -250,7 +250,7 @@ export default function ProductsPreview() {
               }
             }}
           >
-            <div className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing py-4 md:py-6">
+            <div className="relative w-full overflow-hidden cursor-grab active:cursor-grabbing py-3 sm:py-4 md:py-6">
               <motion.div
                 ref={carouselRef}
                 className="flex items-center"
@@ -285,13 +285,13 @@ export default function ProductsPreview() {
                   >
                     {/* Imagen del producto - MUY GRANDE Y CENTRADA */}
                     {product.image ? (
-                      <div className="relative w-full h-[320px] sm:h-[390px] md:h-[480px] lg:h-[560px] overflow-hidden">
+                      <div className="relative w-full h-[240px] sm:h-[390px] md:h-[480px] lg:h-[560px] overflow-hidden">
                         <Image
                           src={product.image}
                           alt={product.name}
                           fill
                           // Escalamos el contenido para que la bolsa se vea más grande y sin "caja" de shadow
-                          className="object-contain transition-transform duration-300 scale-[1.15] md:scale-[1.22] lg:scale-[1.28]"
+                          className="object-contain transition-transform duration-300 scale-100 sm:scale-[1.15] md:scale-[1.22] lg:scale-[1.28]"
                           sizes="(min-width: 1024px) 24vw, (min-width: 640px) 45vw, 90vw"
                           priority={index < 3}
                           unoptimized
