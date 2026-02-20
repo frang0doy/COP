@@ -64,10 +64,9 @@ export default function TutorialesCopPage() {
         youtubeUrl: 'https://www.youtube.com/watch?v=OxIL3WaqtBo',
       },
       {
-        title: 'Tutorial COP 05',
+        title: 'Aplicación de ESTUCOP FINO y CHUKUM sobre muro exterior',
         description:
           'Aplicación de recubrimiento decorativo ESTUCOP FINO, el cual permite ser utilizado en acabados de alta calidad y belleza, muy similar al yeso tradicional, pero con mayor fortaleza por ser base cementosa; ESTUCOP CHUKUM, que sirve para la decoración en muros exteriores e interiores, dando a estos un aspecto natural con vetas de distintas tonalidades o intensidades; y concreto aparente sobre muros externos pintados.',
-        title: 'Aplicación de ESTUCOP FINO y CHUKUM sobre muro exterior',
         youtubeUrl: 'https://www.youtube.com/watch?v=JkGkwU4a9s0',
       },
     ],
