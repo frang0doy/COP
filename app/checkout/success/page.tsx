@@ -218,6 +218,9 @@ function CheckoutSuccessContent() {
             <p className="text-xs text-blue-900/80">
               Dirección: {factoryAddressLine1}, {factoryAddressLine2}.
             </p>
+            <p className="text-xs text-blue-900/80 mt-2">
+              Importante: para coordinar el retiro, el contacto por WhatsApp es <span className="font-semibold">obligatorio</span>.
+            </p>
           </div>
         ) : deliveryMethod === 'AGREE_WITH_COMPANY' ? (
           <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">

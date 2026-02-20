@@ -64,7 +64,6 @@ export default function CheckoutPendingPage() {
 
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(false)
-  const [redirected, setRedirected] = useState(false)
 
   useEffect(() => {
     if (!orderId) return
@@ -87,19 +86,6 @@ export default function CheckoutPendingPage() {
     if (!companyWhatsapp || !whatsappText) return ''
     return `https://wa.me/${companyWhatsapp}?text=${encodeURIComponent(whatsappText)}`
   }, [companyWhatsapp, whatsappText])
-
-  // Auto-redirección a WhatsApp para coordinar el pago/entrega (solo 1 vez).
-  useEffect(() => {
-    if (redirected) return
-    if (!order) return
-    if (order.paymentMethod !== 'PAY_AT_FACTORY') return
-    if (!whatsappUrl) return
-    const t = setTimeout(() => {
-      setRedirected(true)
-      window.location.href = whatsappUrl
-    }, 700)
-    return () => clearTimeout(t)
-  }, [order, whatsappUrl, redirected])
 
   return (
     <main className="min-h-screen pt-16 bg-gray-100">
@@ -126,13 +112,18 @@ export default function CheckoutPendingPage() {
 
           {whatsappUrl ? (
             <div className="mb-6 border border-orange-200 bg-orange-50 p-4 text-left">
-              <p className="text-sm font-semibold text-orange-900">Estamos por abrir WhatsApp…</p>
+              <p className="text-sm font-semibold text-orange-900">
+                Paso obligatorio: coordinar por WhatsApp
+              </p>
               <p className="text-xs text-orange-900/80 mt-1">
-                Si no se abre automáticamente, tocá el botón de abajo.
+                Tu pedido ya quedó pendiente en la web. Para finalizar la coordinación del pago/entrega, es necesario
+                enviar este mensaje por WhatsApp.
               </p>
               <div className="mt-3 flex flex-col sm:flex-row gap-2">
                 <a
                   href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center bg-orange-600 text-white px-5 py-3 border border-orange-600 hover:bg-orange-700 hover:border-orange-700 transition font-semibold"
                 >
                   Abrir WhatsApp
@@ -158,7 +149,7 @@ export default function CheckoutPendingPage() {
             <div className="mb-6 border border-gray-200 bg-gray-50 p-4 text-left">
               <p className="text-sm font-semibold text-gray-900">WhatsApp no configurado</p>
               <p className="text-xs text-gray-600 mt-1">
-                Para redirigir automáticamente, configurá <code className="font-semibold">NEXT_PUBLIC_COMPANY_WHATSAPP</code> en Vercel (solo dígitos, ej: 5493515900630).
+                Configurá <code className="font-semibold">NEXT_PUBLIC_COMPANY_WHATSAPP</code> en Vercel (solo dígitos, ej: 5493515900630).
               </p>
             </div>
           )}

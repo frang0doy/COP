@@ -436,7 +436,7 @@ export default function CheckoutForm() {
             <div className="p-3 bg-gray-50 rounded-lg mt-3 border border-gray-200">
               <p className="text-xs text-gray-800">
                 <strong>Mayorista:</strong> también podés elegir “Pagar en fábrica / otros medios”. El pedido queda
-                pendiente hasta confirmación de COP y te vamos a redirigir a WhatsApp para coordinar.
+                pendiente hasta confirmación de COP y la coordinación por WhatsApp es obligatoria.
               </p>
             </div>
           ) : null}

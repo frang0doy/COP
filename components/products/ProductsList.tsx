@@ -295,9 +295,13 @@ export default function ProductsList() {
             <div className="flex lg:flex-col gap-1.5 sm:gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
               <button
                 type="button"
-                onClick={() => setSelectedCategory('Todos')}
+                onClick={() => {
+                  setSelectedCategory('Todos')
+                  // Evitar mezclar filtros
+                  setSelectedApplyArea('Todos')
+                }}
                 className={[
-                  'shrink-0 w-auto whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors',
+                  'shrink-0 w-auto lg:w-full whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors text-left',
                   selectedCategory === 'Todos'
                     ? 'border-orange-500 bg-orange-500 text-white'
                     : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
@@ -312,9 +316,13 @@ export default function ProductsList() {
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => {
+                      setSelectedCategory(cat)
+                      // Evitar mezclar filtros
+                      setSelectedApplyArea('Todos')
+                    }}
                     className={[
-                      'shrink-0 w-auto whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors',
+                      'shrink-0 w-auto lg:w-full whitespace-nowrap px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors text-left',
                       isSelected
                         ? 'border-orange-500 bg-orange-500 text-white'
                         : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
@@ -338,20 +346,28 @@ export default function ProductsList() {
                 'w-full flex items-center justify-between gap-3 px-2.5 py-1.5 sm:px-3 sm:py-2 border transition-colors text-left',
                 isApplyOpen
                   ? 'border-orange-500 bg-white text-black'
-                  : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
+                  : selectedApplyArea !== 'Todos'
+                    ? 'border-orange-500 bg-orange-500 text-white hover:bg-orange-600 hover:border-orange-600'
+                    : 'border-gray-200 bg-white text-black hover:border-orange-500 hover:text-orange-500',
                 'focus:outline-none focus:border-black',
               ].join(' ')}
               aria-haspopup="listbox"
               aria-expanded={isApplyOpen}
             >
-              <span className="min-w-0 flex-1 text-left text-xs sm:text-sm font-medium text-gray-900">
+              <span
+                className={[
+                  'min-w-0 flex-1 text-left text-xs sm:text-sm font-medium',
+                  !isApplyOpen && selectedApplyArea !== 'Todos' ? 'text-white' : 'text-gray-900',
+                ].join(' ')}
+              >
                 {selectedApplyArea === 'Todos'
                   ? 'Dónde aplicar'
                   : APPLY_AREA_LABEL[selectedApplyArea]}
               </span>
               <ChevronDown
                 className={[
-                  'w-4 h-4 text-gray-500 transition-transform',
+                  'w-4 h-4 transition-transform',
+                  !isApplyOpen && selectedApplyArea !== 'Todos' ? 'text-white' : 'text-gray-500',
                   isApplyOpen ? 'rotate-180' : '',
                 ].join(' ')}
               />
@@ -370,6 +386,8 @@ export default function ProductsList() {
                   aria-selected={selectedApplyArea === 'Todos'}
                   onClick={() => {
                     setSelectedApplyArea('Todos')
+                    // Evitar mezclar filtros
+                    setSelectedCategory('Todos')
                     setIsApplyOpen(false)
                   }}
                   className={[
@@ -391,6 +409,8 @@ export default function ProductsList() {
                       aria-selected={selected}
                       onClick={() => {
                         setSelectedApplyArea(k)
+                        // Evitar mezclar filtros
+                        setSelectedCategory('Todos')
                         setIsApplyOpen(false)
                       }}
                       className={[
