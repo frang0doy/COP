@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 type OrderStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'
 type PaymentMethod = 'MERCADOPAGO' | 'PAY_AT_FACTORY'
@@ -45,6 +46,11 @@ function StatusBadge({ status }: { status: OrderStatus }) {
   )
 }
 
+function extractQuoted(input: string) {
+  const m = String(input || '').match(/"([^"]+)"/)
+  return m ? m[1] : null
+}
+
 export default function AdminPedidosPage() {
   const { data: session, status } = useSession()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -57,6 +63,7 @@ export default function AdminPedidosPage() {
   const [page, setPage] = useState(1)
   const pageSize = 25
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [confirmErrorById, setConfirmErrorById] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -158,6 +165,11 @@ export default function AdminPedidosPage() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data?.error || 'No se pudo confirmar')
     setOrders((prev) => prev.map((o) => (o.id === id ? (data.order as OrderRow) : o)))
+    setConfirmErrorById((prev) => {
+      if (!prev[id]) return prev
+      const { [id]: _omit, ...rest } = prev
+      return rest
+    })
   }
 
   const reject = async (id: string) => {
@@ -467,12 +479,35 @@ export default function AdminPedidosPage() {
                                       await confirm(o.id)
                                       toast.success('Pedido confirmado (stock descontado)')
                                     } catch (e: any) {
-                                      toast.error(e?.message ?? 'Error')
+                                      const msg = String(e?.message ?? 'No se pudo confirmar')
+                                      setConfirmErrorById((prev) => ({ ...prev, [o.id]: msg }))
+                                      if (msg.toLowerCase().includes('stock insuficiente')) {
+                                        toast.error(`No se puede confirmar: ${msg}`)
+                                      } else {
+                                        toast.error(msg)
+                                      }
                                     }
                                   }}
                                 >
                                   Confirmar
                                 </button>
+                                {confirmErrorById[o.id] &&
+                                confirmErrorById[o.id].toLowerCase().includes('stock insuficiente') ? (
+                                  (() => {
+                                    const productName = extractQuoted(confirmErrorById[o.id])
+                                    return productName ? (
+                                      <Link
+                                        href={`/admin/productos?q=${encodeURIComponent(productName)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-3 py-2 rounded-lg border border-orange-200 bg-orange-50/70 text-orange-800 hover:bg-orange-50 hover:border-orange-300 transition font-semibold"
+                                        title="Abrir Admin productos para actualizar stock"
+                                      >
+                                        Actualizar stock
+                                      </Link>
+                                    ) : null
+                                  })()
+                                ) : null}
                                 <button
                                   type="button"
                                   className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:border-orange-300 hover:text-orange-800 transition focus:outline-none focus:ring-2 focus:ring-orange-100"

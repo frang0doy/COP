@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import toast from 'react-hot-toast'
@@ -41,6 +42,7 @@ function downloadCsv(filename: string, rows: Array<Record<string, any>>) {
 
 export default function AdminProductosPage() {
   const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
@@ -54,6 +56,12 @@ export default function AdminProductosPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [page, setPage] = useState(1)
   const pageSize = 25
+
+  useEffect(() => {
+    const q = (searchParams.get('q') || '').trim()
+    if (!q) return
+    setQuery((prev) => (prev.trim() ? prev : q))
+  }, [searchParams])
 
   useEffect(() => {
     if (status !== 'authenticated') return
