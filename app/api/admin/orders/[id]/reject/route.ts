@@ -38,7 +38,12 @@ export async function POST(
       setPaymentFields: order.paymentMethod === 'MERCADOPAGO',
     })
 
-    return NextResponse.json({ ok: true, order: updated })
+    const full = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    })
+
+    return NextResponse.json({ ok: true, order: full ?? updated })
   } catch (e: any) {
     const message = e?.message ? String(e.message) : 'No se pudo rechazar'
     return NextResponse.json({ error: message }, { status: 400 })
