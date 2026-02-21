@@ -115,14 +115,34 @@ export default function CheckoutForm() {
   }, [hasSavedShipping, formLooksEmpty])
 
   const payWithMercadoPago = async () => {
-    setIsProcessing(true)
-
     try {
       if (items.length === 0) {
         toast.error('Tu carrito está vacío.')
-        setIsProcessing(false)
         return
       }
+
+      const name = shippingData.name.trim()
+      const email = shippingData.email.trim()
+      const phone = shippingData.phone.trim()
+      const cuit = shippingData.cuit.trim()
+      if (name.length < 2) {
+        toast.error('Completá tu nombre.')
+        return
+      }
+      if (!email || !email.includes('@')) {
+        toast.error('Completá un email válido.')
+        return
+      }
+      if (phone.length < 3) {
+        toast.error('Completá tu teléfono.')
+        return
+      }
+      if (me?.customerType === 'WHOLESALE' && !cuit) {
+        toast.error('Completá tu CUIT.')
+        return
+      }
+
+      setIsProcessing(true)
 
       // Crear preferencia de Mercado Pago
       const response = await fetch('/api/mercadopago/create-preference', {
@@ -159,13 +179,35 @@ export default function CheckoutForm() {
   }
 
   const payAtFactory = async () => {
-    setIsProcessing(true)
     try {
       if (items.length === 0) {
         toast.error('Tu carrito está vacío.')
-        setIsProcessing(false)
         return
       }
+
+      const name = shippingData.name.trim()
+      const email = shippingData.email.trim()
+      const phone = shippingData.phone.trim()
+      const cuit = shippingData.cuit.trim()
+      if (name.length < 2) {
+        toast.error('Completá tu nombre.')
+        return
+      }
+      if (!email || !email.includes('@')) {
+        toast.error('Completá un email válido.')
+        return
+      }
+      if (phone.length < 3) {
+        toast.error('Completá tu teléfono.')
+        return
+      }
+      // Pagar en fábrica solo aplica a mayoristas aprobados; pedimos CUIT también.
+      if (!cuit) {
+        toast.error('Completá tu CUIT.')
+        return
+      }
+
+      setIsProcessing(true)
 
       const response = await fetch('/api/orders/pay-at-factory', {
         method: 'POST',
@@ -177,7 +219,10 @@ export default function CheckoutForm() {
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error(data?.error || 'No se pudo crear el pedido')
+        throw new Error(
+          data?.error ||
+            'No se pudo crear el pedido. Revisá los datos del formulario e intentá de nuevo.'
+        )
       }
 
       clearCart({ silent: true })
