@@ -17,6 +17,7 @@
 }
 
 html {
+  font-size: 14.5px;
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
 }
