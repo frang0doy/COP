@@ -8,8 +8,9 @@ import { isAdminEmail } from '@/lib/admin'
 export const dynamic = 'force-dynamic'
 
 const BodySchema = z.object({
-  action: z.enum(['approve', 'reject']),
+  action: z.enum(['approve', 'reject', 'set_discount']),
   tier: z.enum(['NEW', 'HISTORICAL']).optional(),
+  discountPercent: z.number().int().min(0).max(100).optional().nullable(),
 })
 
 export async function PATCH(
@@ -42,11 +43,17 @@ export async function PATCH(
               wholesaleStatus: 'APPROVED' as any,
               wholesaleTier: body.tier as any,
             }
-          : {
-              customerType: 'RETAIL' as any,
-              wholesaleStatus: null,
-              wholesaleTier: null,
-            },
+          : body.action === 'reject'
+            ? {
+                customerType: 'RETAIL' as any,
+                wholesaleStatus: null,
+                wholesaleTier: null,
+                wholesaleDiscountPercent: null,
+              }
+            : {
+                wholesaleDiscountPercent:
+                  typeof body.discountPercent === 'number' ? body.discountPercent : null,
+              },
       select: {
         id: true,
         email: true,
@@ -56,6 +63,7 @@ export async function PATCH(
         customerType: true,
         wholesaleStatus: true,
         wholesaleTier: true,
+        wholesaleDiscountPercent: true,
       },
     })
 

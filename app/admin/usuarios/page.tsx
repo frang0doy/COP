@@ -170,6 +170,44 @@ export default function AdminUsuariosPage() {
     return filtered.slice(start, start + pageSize)
   }, [filtered, safePage])
 
+  const [discountDraft, setDiscountDraft] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    // Mantener drafts alineados con el listado visible (sin pisar si el usuario ya tipeó).
+    setDiscountDraft((prev) => {
+      let changed = false
+      const next = { ...prev }
+      for (const u of users) {
+        if (next[u.id] !== undefined) continue
+        const v =
+          typeof u.wholesaleDiscountPercent === 'number' && Number.isFinite(u.wholesaleDiscountPercent)
+            ? String(Math.max(0, Math.floor(u.wholesaleDiscountPercent)))
+            : ''
+        next[u.id] = v
+        changed = true
+      }
+      return changed ? next : prev
+    })
+  }, [users])
+
+  const saveDiscount = async (u: UserRow) => {
+    const raw = (discountDraft[u.id] ?? '').trim()
+    const discountPercent = raw === '' ? null : Math.min(100, Math.max(0, Math.floor(Number(raw))))
+    if (raw !== '' && !Number.isFinite(Number(raw))) {
+      toast.error('Descuento inválido')
+      return
+    }
+    const res = await fetch(`/api/admin/users/${u.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'set_discount', discountPercent }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error || 'No se pudo guardar')
+    setUsers((prev) => prev.map((x) => (x.id === u.id ? (data.user as UserRow) : x)))
+    toast.success('Descuento actualizado')
+  }
+
   const downloadCsv = (filename: string, rows: Array<Record<string, any>>) => {
     const headers = Object.keys(rows[0] || {})
     const esc = (v: any) => {
@@ -366,6 +404,7 @@ export default function AdminUsuariosPage() {
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Usuario</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">CUIT</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Mayorista</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">% desc.</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Alta</th>
                     </tr>
                   </thead>
@@ -390,6 +429,34 @@ export default function AdminUsuariosPage() {
                             wholesaleTier={u.wholesaleTier}
                             wholesaleDiscountPercent={u.wholesaleDiscountPercent}
                           />
+                        </td>
+                        <td className="py-3 px-4">
+                          {u.customerType === 'WHOLESALE' ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                value={discountDraft[u.id] ?? ''}
+                                onChange={(e) => setDiscountDraft((prev) => ({ ...prev, [u.id]: e.target.value }))}
+                                inputMode="numeric"
+                                placeholder="—"
+                                className="w-20 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+                              />
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    await saveDiscount(u)
+                                  } catch (e: any) {
+                                    toast.error(e?.message ?? 'Error')
+                                  }
+                                }}
+                                className="px-3 py-2 rounded-lg bg-black text-white border-2 border-black hover:border-orange-500 hover:bg-gray-900 transition font-semibold text-xs"
+                              >
+                                Guardar
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-500">—</span>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-gray-700">
                           {new Date(u.createdAt).toLocaleDateString('es-MX')}
