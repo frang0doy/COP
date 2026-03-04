@@ -122,6 +122,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       }
     : technicalSummary
 
+  const titleParts = product.name.trim().split(/\s+/).filter(Boolean)
+  const titleFirst = titleParts[0] ?? ''
+  const titleRest = titleParts.slice(1).join(' ')
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <Link
@@ -187,8 +191,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
           <div className="mt-2 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-              <h1 className="text-2xl sm:text-4xl font-bold text-black tracking-tight sm:flex-1 sm:whitespace-nowrap sm:overflow-hidden sm:text-ellipsis">
-                {product.name}
+              <h1 className="text-2xl sm:text-4xl font-bold text-black tracking-tight sm:flex-1 min-w-0 leading-tight break-words">
+                {titleRest ? (
+                  <>
+                    <span className="block">{titleFirst}</span>
+                    <span className="block">{titleRest}</span>
+                  </>
+                ) : (
+                  titleFirst
+                )}
               </h1>
 
               <div className="flex flex-col gap-2 w-full max-w-[240px] mx-auto sm:mx-0 sm:max-w-none sm:w-[260px] shrink-0">

@@ -19,9 +19,17 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'COP - Materiales de Construcción | Líder en México',
+  title: {
+    default: 'Cop Recubrimientos',
+    template: '%s | Cop Recubrimientos',
+  },
   description: 'COP, líder en materiales de construcción en México. Encuentra pinturas, revestimientos y materiales de alta calidad para profesionales.',
   keywords: 'materiales construcción, pinturas, revestimientos, México, construcción',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default async function RootLayout({
