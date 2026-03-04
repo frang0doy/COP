@@ -126,12 +126,20 @@ export type TechnicalSummary = {
 
 const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {
   // Nombres que no matchean 1:1 con el nombre de imagen / slug normalizado
-  18: 'textucop_ficha.png', // imagen: textucopL.png
-  22: 'revoque4en1_ficha.png', // imagen: revoque_4en1.png
-  33: 'plastibond_ficha.png', // imagen: plastiband.png
-  34: 'laca_polim_mate_ficha.png', // imagen: laca_poli_mate1.png
-  35: 'laca_polim_brillosa.png', // imagen: laca_poli_brillo1.png (archivo sin _ficha)
+  16: 'marmoltex_nuevo.png', // imagen: marmolatex_nuevo.png
+  18: 'textucop_nuevo.png', // imagen: textucopL_nuevo.png
+  31: 'membrana_liquida_nuevo.png', // imagen: memb_liquida_nueva.png
+  33: 'plastibond_nuevo.png', // imagen: plastiband_nuevo.png
+  34: 'laca_poliuretanica_mate_nuevo.png', // imagen: laca_poli_mate_balde4_nuevo.png
+  35: 'laca_poliuretanica_brillosa_nuevo.png', // imagen: laca_poli_brillo_balde4_nuevo.png
+  36: 'cop_silicon_nuevo.png', // imagen: cop_silicon4_nuevo.png
+  40: 'rendimix_nuevo.png', // imagen: redimix_nuevo.png
 }
+
+const TECH_SHEET_MISSING_BY_ID = new Set<number>([
+  32, // Membrana Poliuretánica (falta subir)
+  39, // Mastercril (falta subir)
+])
 
 
 
@@ -158,6 +166,10 @@ function normalizeToSheetBase(input: string) {
 }
 
 function computeTechnicalSheet(product: Product): string | undefined {
+  if (TECH_SHEET_MISSING_BY_ID.has(product.id)) {
+    return undefined
+  }
+
   const overrideFile = TECH_SHEET_OVERRIDES_BY_ID[product.id]
   if (overrideFile) {
     return `/documents/fichas-tecnicas/${overrideFile}`
@@ -171,7 +183,7 @@ function computeTechnicalSheet(product: Product): string | undefined {
   ].filter(Boolean)
 
   for (const base of candidatesBase) {
-    return `/documents/fichas-tecnicas/${base}_ficha.png`
+    return `/documents/fichas-tecnicas/${base}_nuevo.png`
   }
 
   return undefined
