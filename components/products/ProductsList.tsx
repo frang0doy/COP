@@ -142,10 +142,17 @@ function computeApplyAreas(product: Product): ApplyAreaKey[] {
   return Array.from(out)
 }
 
+type ProductDerived = Product & {
+  __applyAreas: ApplyAreaKey[]
+  __normName: string
+  __normDescription: string
+  __normUsos: string
+}
+
 export default function ProductsList() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<ProductDerived[]>([])
   const totalProducts = products.length
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<ProductDerived[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'Todos' | CategoryKey>('Todos')
   const [selectedApplyArea, setSelectedApplyArea] = useState<'Todos' | ApplyAreaKey>('Todos')
@@ -165,8 +172,19 @@ export default function ProductsList() {
         }
         const data = (await res.json()) as Product[]
         if (cancelled) return
-        setProducts(data)
-        setFilteredProducts(data)
+        // Precargamos datos derivados para que el filtrado/búsqueda no recalculen strings ni reglas en cada tecla.
+        const enriched = data.map((p) => {
+          const usos = getProductUsos(p)
+          return {
+            ...p,
+            __applyAreas: computeApplyAreas(p),
+            __normName: normText(p.name ?? ''),
+            __normDescription: normText(p.description ?? ''),
+            __normUsos: normText(usos ?? ''),
+          }
+        })
+        setProducts(enriched)
+        setFilteredProducts(enriched)
         setLoadError(null)
       } catch (e) {
         console.error(e)
@@ -188,17 +206,14 @@ export default function ProductsList() {
 
     // Filtrar por "Dónde aplicar"
     if (selectedApplyArea !== 'Todos') {
-      filtered = filtered.filter((p) => computeApplyAreas(p).includes(selectedApplyArea))
+      filtered = filtered.filter((p) => p.__applyAreas.includes(selectedApplyArea))
     }
 
     // Filtrar por búsqueda
     if (searchTerm) {
       const q = normText(searchTerm)
       filtered = filtered.filter(
-        (p) =>
-          normText(p.name).includes(q) ||
-          normText(p.description).includes(q) ||
-          normText(getProductUsos(p)).includes(q)
+        (p) => p.__normName.includes(q) || p.__normDescription.includes(q) || p.__normUsos.includes(q)
       )
     }
 
