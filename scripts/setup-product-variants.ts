@@ -133,7 +133,7 @@ async function main() {
             description: base.description,
             image: base.image,
             technicalSheet: base.technicalSheet,
-            technicalSummary: base.technicalSummary,
+            technicalSummary: base.technicalSummary as any,
             isActive: true,
           },
         })
@@ -152,7 +152,7 @@ async function main() {
           image: base.image,
           isNew: base.isNew,
           technicalSheet: base.technicalSheet,
-          technicalSummary: base.technicalSummary,
+          technicalSummary: base.technicalSummary as any,
           isActive: true,
         },
       })
