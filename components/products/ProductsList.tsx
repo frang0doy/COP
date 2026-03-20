@@ -6,6 +6,7 @@ import { ChevronDown, Search, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CATEGORY_LABEL, CATEGORY_ORDER, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
+import type { ProductCardGroup } from './ProductCard'
 
 type ApplyAreaKey =
   | 'interiores'
@@ -149,10 +150,103 @@ type ProductDerived = Product & {
   __normUsos: string
 }
 
+type ProductVariant = ProductDerived & {
+  variantLabel: string
+}
+
+type ProductGroup = ProductCardGroup & {
+  variants: ProductVariant[]
+  __applyAreas: ApplyAreaKey[]
+  __normName: string
+  __normDescription: string
+  __normUsos: string
+}
+
+function detectGroupBaseName(productName: string): string | null {
+  const t = normText(productName)
+  if (t.includes('pastina impermeable')) return 'Pastina Impermeable'
+  if (t.includes('concreto aparente')) return 'Concreto Aparente'
+  if (t.includes('micro piscina')) return 'Micro Piscina'
+  if (t.includes('cuarzotex')) return 'Cuarzotex'
+  if (t.includes('plasticop')) return 'Plasticop'
+  if (t.includes('plastibond')) return 'Plastibond'
+  if (t.includes('laca') && t.includes('mate')) return 'Laca Poliuretanica Mate'
+  if (t.includes('laca') && (t.includes('brillos') || t.includes('brillo'))) return 'Laca Poliuretanica Brillosa'
+  if (t.includes('revoque 3 en 1') || t.includes('revoque 3en1')) return 'Revoque 3 en 1'
+  return null
+}
+
+function detectVariantLabel(productName: string, groupBaseName: string | null): string {
+  const t = normText(productName)
+  if (!groupBaseName) return 'Unica'
+
+  if (groupBaseName === 'Revoque 3 en 1') {
+    return t.includes('proyectable') ? 'Proyectable' : 'Estandar'
+  }
+
+  if (groupBaseName === 'Plasticop' || groupBaseName === 'Plastibond' || groupBaseName.startsWith('Laca')) {
+    if (/\b10\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 10 lt'
+    if (/\b4\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 4 lt'
+    if (/\b1\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 1 lt'
+  }
+
+  if (/\bgris\s+oscuro\b/.test(t)) return 'Gris oscuro'
+  if (/\bnatural\b/.test(t)) return 'Natural'
+  if (/\bblanc[oa]\b/.test(t)) return 'Blanco'
+  if (/\bgris\b/.test(t)) return 'Gris'
+
+  return 'Variante'
+}
+
+function toProductGroups(products: ProductDerived[]): ProductGroup[] {
+  const grouped = new Map<string, ProductVariant[]>()
+
+  for (const product of products) {
+    const base = detectGroupBaseName(product.name)
+    const key = base ? `group:${base}` : `single:${product.id}`
+    const next: ProductVariant = {
+      ...product,
+      variantLabel: detectVariantLabel(product.name, base),
+    }
+    grouped.set(key, [...(grouped.get(key) ?? []), next])
+  }
+
+  const out: ProductGroup[] = []
+  for (const [, variantsRaw] of grouped) {
+    const variants = variantsRaw.slice().sort((a, b) => a.id - b.id)
+    const first = variants[0]
+    const prices = variants.map((v) => v.price)
+    const minPrice = Math.min(...prices)
+    const maxPrice = Math.max(...prices)
+    const applyAreas = new Set<ApplyAreaKey>()
+    for (const v of variants) {
+      for (const area of v.__applyAreas) applyAreas.add(area)
+    }
+    const labels = variants.map((v) => v.variantLabel).join(' ')
+    out.push({
+      id: first.id,
+      name: detectGroupBaseName(first.name) ?? first.name,
+      description: first.description,
+      category: first.category,
+      image: first.image,
+      isNew: variants.some((v) => Boolean(v.isNew)),
+      variants,
+      __applyAreas: Array.from(applyAreas),
+      __normName: normText((detectGroupBaseName(first.name) ?? first.name) + ' ' + labels),
+      __normDescription: normText(first.description ?? ''),
+      __normUsos: normText(variants.map((v) => getProductUsos(v)).join(' ')),
+      minPrice,
+      maxPrice,
+    })
+  }
+
+  return out.sort((a, b) => a.id - b.id)
+}
+
 export default function ProductsList() {
-  const [products, setProducts] = useState<ProductDerived[]>([])
+  const [products, setProducts] = useState<ProductGroup[]>([])
   const totalProducts = products.length
-  const [filteredProducts, setFilteredProducts] = useState<ProductDerived[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<ProductGroup[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'Todos' | CategoryKey>('Todos')
   const [selectedApplyArea, setSelectedApplyArea] = useState<'Todos' | ApplyAreaKey>('Todos')
@@ -173,7 +267,7 @@ export default function ProductsList() {
         const data = (await res.json()) as Product[]
         if (cancelled) return
         // Precargamos datos derivados para que el filtrado/búsqueda no recalculen strings ni reglas en cada tecla.
-        const enriched = data.map((p) => {
+        const enriched: ProductDerived[] = data.map((p) => {
           const usos = getProductUsos(p)
           return {
             ...p,
@@ -183,8 +277,9 @@ export default function ProductsList() {
             __normUsos: normText(usos ?? ''),
           }
         })
-        setProducts(enriched)
-        setFilteredProducts(enriched)
+        const groupedProducts = toProductGroups(enriched)
+        setProducts(groupedProducts)
+        setFilteredProducts(groupedProducts)
         setLoadError(null)
       } catch (e) {
         console.error(e)

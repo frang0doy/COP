@@ -452,7 +452,7 @@ export default function EmpresaPage() {
               </div>
               <div>
                 <p className="font-semibold text-sm md:text-base text-black mb-1">Horario de Atención</p>
-                <p className="text-sm md:text-base text-gray-700">08:00hs a 16:30hs</p>
+                <p className="text-sm md:text-base text-gray-700">08:00 a 13:00 y de 13:30 a 16:30</p>
               </div>
             </div>
           </div>

@@ -9,7 +9,7 @@ export default function Footer() {
   const instagramUrl = 'https://www.instagram.com/coprecubrimientosar?igsh=aXpvZ3F4d2c2cTJq'
   const facebookUrl = '' // TODO: completar cuando nos pases el link de Facebook
   const email = 'pedidoscoprecubrimientos@gmail.com'
-  const addressLine1 = 'Sta. Bárbara'
+  const addressLine1 = 'Santa Barbara 3051'
   const addressLine2 = 'X5006 Córdoba, Argentina'
   const addressQuery = `${addressLine1}, ${addressLine2}`
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressQuery)}`

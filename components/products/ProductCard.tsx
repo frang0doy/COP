@@ -3,13 +3,33 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-import type { Product } from '@prisma/client'
+
+export type ProductCardVariant = {
+  id: number
+  name: string
+  price: number
+  stock: number
+  variantLabel: string
+}
+
+export type ProductCardGroup = {
+  id: number
+  name: string
+  description: string
+  image: string | null
+  isNew: boolean
+  category: string
+  variants: ProductCardVariant[]
+  minPrice: number
+  maxPrice: number
+}
 
 interface ProductCardProps {
-  product: Product
+  product: ProductCardGroup
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -51,7 +71,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="mt-auto">
               <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
-                  ${product.price.toLocaleString('es-MX')}
+                  {product.minPrice !== product.maxPrice
+                    ? `$${product.minPrice.toLocaleString('es-MX')}`
+                    : `$${product.minPrice.toLocaleString('es-MX')}`}
                 </span>
                 <Link
                   href={`/productos/${product.id}`}
