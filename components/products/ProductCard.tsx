@@ -20,8 +20,6 @@ export type ProductCardGroup = {
   isNew: boolean
   category: string
   variants: ProductCardVariant[]
-  minPrice: number
-  maxPrice: number
 }
 
 interface ProductCardProps {
@@ -29,6 +27,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  /** Misma fila que el enlace "Ver" (id del grupo): precio base en catálogo, no el de otras variantes. */
+  const listPrice = product.variants[0]?.price ?? 0
 
   return (
     <motion.div
@@ -71,9 +71,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="mt-auto">
               <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
-                  {product.minPrice !== product.maxPrice
-                    ? `$${product.minPrice.toLocaleString('es-MX')}`
-                    : `$${product.minPrice.toLocaleString('es-MX')}`}
+                  ${listPrice.toLocaleString('es-MX')}
                 </span>
                 <Link
                   href={`/productos/${product.id}`}

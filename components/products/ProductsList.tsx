@@ -172,9 +172,6 @@ function toProductGroups(products: ProductDerived[]): ProductGroup[] {
   for (const [, variantsRaw] of grouped) {
     const variants = variantsRaw.slice().sort((a, b) => a.id - b.id)
     const first = variants[0]
-    const prices = variants.map((v) => v.price)
-    const minPrice = Math.min(...prices)
-    const maxPrice = Math.max(...prices)
     const applyAreas = new Set<ApplyAreaKey>()
     for (const v of variants) {
       for (const area of v.__applyAreas) applyAreas.add(area)
@@ -192,8 +189,6 @@ function toProductGroups(products: ProductDerived[]): ProductGroup[] {
       __normName: normText((detectGroupBaseName(first.name) ?? first.name) + ' ' + labels),
       __normDescription: normText(first.description ?? ''),
       __normUsos: normText(variants.map((v) => getProductUsos(v)).join(' ')),
-      minPrice,
-      maxPrice,
     })
   }
 
