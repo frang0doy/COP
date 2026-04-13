@@ -7,41 +7,10 @@ import Link from 'next/link'
 import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
+import { detectGroupBaseName, detectVariantLabel } from './variantGrouping'
 
 interface ProductDetailProps {
   productId: string
-}
-
-function normalize(input: string) {
-  return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-}
-
-function detectGroupBaseName(productName: string): string | null {
-  const t = normalize(productName)
-  if (t.includes('pastina impermeable')) return 'Pastina Impermeable'
-  if (t.includes('concreto aparente')) return 'Concreto Aparente'
-  if (t.includes('micro piscina')) return 'Micro Piscina'
-  if (t.includes('cuarzotex')) return 'Cuarzotex'
-  if (t.includes('plasticop')) return 'Plasticop'
-  if (t.includes('plastibond')) return 'Plastibond'
-  if (t.includes('laca') && t.includes('mate')) return 'Laca Poliuretanica Mate'
-  if (t.includes('laca') && (t.includes('brillosa') || t.includes('brillo'))) return 'Laca Poliuretanica Brillosa'
-  if (t.includes('revoque 3 en 1') || t.includes('revoque 3en1')) return 'Revoque 3 en 1'
-  return null
-}
-
-function detectVariantLabel(productName: string, groupBaseName: string | null): string {
-  const t = normalize(productName)
-  if (!groupBaseName) return 'Unica'
-  if (groupBaseName === 'Revoque 3 en 1') return t.includes('proyectable') ? 'Proyectable' : 'Estandar'
-  if (/\b10\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 10 lt'
-  if (/\b4\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 4 lt'
-  if (/\b1\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 1 lt'
-  if (/\bgris\s+oscuro\b/.test(t)) return 'Gris oscuro'
-  if (/\bnatural\b/.test(t)) return 'Natural'
-  if (/\bblanc[oa]\b/.test(t)) return 'Blanco'
-  if (/\bgris\b/.test(t)) return 'Gris'
-  return 'Variante'
 }
 
 export default function ProductDetail({ productId }: ProductDetailProps) {
@@ -247,8 +216,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
           {variants.length > 1 ? (
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Variante</label>
               <select
+                aria-label="Elegir color u opción"
                 value={selectedVariantId ?? selectedProduct.id}
                 onChange={(e) => setSelectedVariantId(Number(e.target.value))}
                 className="w-full sm:max-w-sm px-3 py-2 border border-gray-200 bg-white focus:border-black transition-colors"

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { CATEGORY_LABEL, CATEGORY_ORDER, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
 import type { ProductCardGroup } from './ProductCard'
+import { normText, detectGroupBaseName, detectVariantLabel } from './variantGrouping'
 
 type ApplyAreaKey =
   | 'interiores'
@@ -32,14 +33,6 @@ const APPLY_AREA_LABEL: Record<ApplyAreaKey, string> = {
   piletas: 'Piletas',
   muros_humedos: 'Muros húmedos',
   construccion_en_seco: 'Construcciones en seco',
-}
-
-function stripDiacritics(input: string) {
-  return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-}
-
-function normText(input: string) {
-  return stripDiacritics(input).toLowerCase()
 }
 
 function getProductUsos(product: Product) {
@@ -160,42 +153,6 @@ type ProductGroup = ProductCardGroup & {
   __normName: string
   __normDescription: string
   __normUsos: string
-}
-
-function detectGroupBaseName(productName: string): string | null {
-  const t = normText(productName)
-  if (t.includes('pastina impermeable')) return 'Pastina Impermeable'
-  if (t.includes('concreto aparente')) return 'Concreto Aparente'
-  if (t.includes('micro piscina')) return 'Micro Piscina'
-  if (t.includes('cuarzotex')) return 'Cuarzotex'
-  if (t.includes('plasticop')) return 'Plasticop'
-  if (t.includes('plastibond')) return 'Plastibond'
-  if (t.includes('laca') && t.includes('mate')) return 'Laca Poliuretanica Mate'
-  if (t.includes('laca') && (t.includes('brillos') || t.includes('brillo'))) return 'Laca Poliuretanica Brillosa'
-  if (t.includes('revoque 3 en 1') || t.includes('revoque 3en1')) return 'Revoque 3 en 1'
-  return null
-}
-
-function detectVariantLabel(productName: string, groupBaseName: string | null): string {
-  const t = normText(productName)
-  if (!groupBaseName) return 'Unica'
-
-  if (groupBaseName === 'Revoque 3 en 1') {
-    return t.includes('proyectable') ? 'Proyectable' : 'Estandar'
-  }
-
-  if (groupBaseName === 'Plasticop' || groupBaseName === 'Plastibond' || groupBaseName.startsWith('Laca')) {
-    if (/\b10\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 10 lt'
-    if (/\b4\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 4 lt'
-    if (/\b1\s*(l|lt|lts|litros?)\b/.test(t)) return 'Balde 1 lt'
-  }
-
-  if (/\bgris\s+oscuro\b/.test(t)) return 'Gris oscuro'
-  if (/\bnatural\b/.test(t)) return 'Natural'
-  if (/\bblanc[oa]\b/.test(t)) return 'Blanco'
-  if (/\bgris\b/.test(t)) return 'Gris'
-
-  return 'Variante'
 }
 
 function toProductGroups(products: ProductDerived[]): ProductGroup[] {

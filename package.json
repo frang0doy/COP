@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "import:products": "tsx scripts/import-products.ts"
+    "import:products": "tsx scripts/import-products.ts",
+    "setup:variants": "tsx scripts/setup-product-variants.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -47,6 +48,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
     "rimraf": "^6.1.2",

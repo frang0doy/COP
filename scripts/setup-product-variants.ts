@@ -1,5 +1,9 @@
-import 'dotenv/config'
-import { prisma } from '../lib/prisma'
+import { config as loadEnv } from 'dotenv'
+import { resolve } from 'node:path'
+
+// Next.js usa `.env.local`; `import 'dotenv/config'` solo lee `.env`.
+loadEnv({ path: resolve(process.cwd(), '.env') })
+loadEnv({ path: resolve(process.cwd(), '.env.local'), override: true })
 
 type VariantDef = {
   sku: string
@@ -12,38 +16,138 @@ type GroupDef = {
   variants: VariantDef[]
 }
 
+const PALETTE_7: { label: string; skuSuffix: string }[] = [
+  { label: 'Blanco', skuSuffix: '' },
+  { label: 'Habano', skuSuffix: '-HABANO' },
+  { label: 'Serrano', skuSuffix: '-SERRANO' },
+  { label: 'Arena', skuSuffix: '-ARENA' },
+  { label: 'Gris eclipse', skuSuffix: '-GRI-ECL' },
+  { label: 'Gris portland', skuSuffix: '-GRI-PTL' },
+  { label: 'Verde alpes', skuSuffix: '-VD-ALP' },
+]
+
+function palette7Variants(baseSku: string, family: string): VariantDef[] {
+  return PALETTE_7.map(({ label, skuSuffix }) => ({
+    sku: skuSuffix ? `${baseSku}${skuSuffix}` : baseSku,
+    name: `${family} - ${label}`,
+  }))
+}
+
 const GROUPS: GroupDef[] = [
   {
-    baseSku: 'ADH-005',
-    matchNameIncludes: ['pastina impermeable'],
+    baseSku: 'SEL-004',
+    matchNameIncludes: ['fondo cop'],
+    variants: palette7Variants('SEL-004', 'Fondo Cop'),
+  },
+  {
+    baseSku: 'SEL-001',
+    matchNameIncludes: ['pintucop'],
+    variants: palette7Variants('SEL-001', 'Pintucop'),
+  },
+  {
+    baseSku: 'SEL-002',
+    matchNameIncludes: ['mastercril'],
+    variants: palette7Variants('SEL-002', 'Mastercril'),
+  },
+  {
+    baseSku: 'IMP-004',
+    matchNameIncludes: ['membrana liquida'],
     variants: [
-      { sku: 'ADH-005', name: 'Pastina Impermeable - Blanco' },
-      { sku: 'ADH-005-GRIS', name: 'Pastina Impermeable - Gris' },
+      { sku: 'IMP-004', name: 'Membrana Líquida - Blanco' },
+      { sku: 'IMP-004-ROJO-TIL', name: 'Membrana Líquida - Rojo tilcara' },
+    ],
+  },
+  {
+    baseSku: 'IMP-005',
+    matchNameIncludes: ['membrana poliuretan'],
+    variants: [
+      { sku: 'IMP-005', name: 'Membrana Poliuretánica - Blanco' },
+      { sku: 'IMP-005-ROJO-TIL', name: 'Membrana Poliuretánica - Rojo tilcara' },
+    ],
+  },
+  {
+    baseSku: 'REV-004',
+    matchNameIncludes: ['stone cop'],
+    variants: [
+      { sku: 'REV-004', name: 'Stone COP - Dálmata' },
+      { sku: 'REV-004-NEG', name: 'Stone COP - Negro' },
+      { sku: 'REV-004-VER', name: 'Stone COP - Verona' },
+    ],
+  },
+  {
+    baseSku: 'REV-003',
+    matchNameIncludes: ['textucop'],
+    variants: [
+      { sku: 'REV-003', name: 'TEXTUCOP - Arena' },
+      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco Tiza' },
+    ],
+  },
+  {
+    baseSku: 'REV-001',
+    matchNameIncludes: ['marmoltex'],
+    variants: palette7Variants('REV-001', 'Marmoltex'),
+  },
+  {
+    baseSku: 'EST-006',
+    matchNameIncludes: ['cuarzotex'],
+    variants: [
+      { sku: 'EST-006', name: 'CUARZOTEX - Gris natural' },
+      { sku: 'EST-006-GRIS-OSC', name: 'CUARZOTEX - Gris oscuro' },
+      { sku: 'EST-006-GRIS', name: 'CUARZOTEX - Gris plata' },
+    ],
+  },
+  {
+    baseSku: 'EST-004',
+    matchNameIncludes: ['micro piscina'],
+    variants: [
+      { sku: 'EST-004', name: 'Micro piscinas - Gris oscuro' },
+      { sku: 'EST-004-BLANCO', name: 'Micro piscinas - Blanco' },
+      { sku: 'EST-004-GRIS', name: 'Micro piscinas - Gris' },
+    ],
+  },
+  {
+    baseSku: 'EST-003',
+    matchNameIncludes: ['veneziano'],
+    variants: [
+      { sku: 'EST-003', name: 'Veneziano - Marrón' },
+      { sku: 'EST-003-ROJ', name: 'Veneziano - Rojo' },
+      { sku: 'EST-003-VERDE', name: 'Veneziano - Verde' },
+      { sku: 'EST-003-CHUK', name: 'Veneziano - Chukum' },
+      { sku: 'EST-003-AMAR', name: 'Veneziano - Amarillo' },
+      { sku: 'EST-003-AZUL', name: 'Veneziano - Azul' },
+      { sku: 'EST-003-GRIS', name: 'Veneziano - Gris' },
+      { sku: 'EST-003-NEG', name: 'Veneziano - Negro' },
+      { sku: 'EST-003-BL-MAR', name: 'Veneziano - Blanco marfil' },
     ],
   },
   {
     baseSku: 'EST-002',
     matchNameIncludes: ['concreto aparente'],
     variants: [
-      { sku: 'EST-002', name: 'Concreto Aparente - Natural' },
-      { sku: 'EST-002-GRIS-OSC', name: 'Concreto Aparente - Gris Oscuro' },
-      { sku: 'EST-002-BLANCO', name: 'Concreto Aparente - Blanco' },
+      { sku: 'EST-002', name: 'Concreto aparente - Natural' },
+      { sku: 'EST-002-GRIS-OSC', name: 'Concreto aparente - Gris oscuro' },
+      { sku: 'EST-002-BLANCO', name: 'Concreto aparente - Blanco' },
     ],
   },
   {
-    baseSku: 'EST-004',
-    matchNameIncludes: ['micro piscina', 'micro piscinas'],
+    baseSku: 'EST-001',
+    matchNameIncludes: ['microtex'],
     variants: [
-      { sku: 'EST-004', name: 'Micro Piscina - Blanco' },
-      { sku: 'EST-004-GRIS', name: 'Micro Piscina - Gris' },
+      { sku: 'EST-001', name: 'Microtex - Chukum' },
+      { sku: 'EST-001-BLANC', name: 'Microtex - Blanco' },
+      { sku: 'EST-001-GR-PER', name: 'Microtex - Gris perla' },
+      { sku: 'EST-001-GR-PLT', name: 'Microtex - Gris plata' },
+      { sku: 'EST-001-GR-OSC', name: 'Microtex - Gris oscuro' },
+      { sku: 'EST-001-GR-NAT', name: 'Microtex - Gris natural' },
+      { sku: 'EST-001-NEG', name: 'Microtex - Negro' },
     ],
   },
   {
-    baseSku: 'EST-006',
-    matchNameIncludes: ['cuarzotex'],
+    baseSku: 'ADH-005',
+    matchNameIncludes: ['pastina impermeable'],
     variants: [
-      { sku: 'EST-006', name: 'Cuarzotex - Gris Oscuro' },
-      { sku: 'EST-006-GRIS', name: 'Cuarzotex - Gris' },
+      { sku: 'ADH-005', name: 'Pastina Impermeable - Blanca' },
+      { sku: 'ADH-005-GRIS', name: 'Pastina Impermeable - Gris' },
     ],
   },
   {
@@ -96,6 +200,8 @@ function normalize(input: string) {
 }
 
 async function main() {
+  const { prisma } = await import('../lib/prisma')
+  try {
   const all = await prisma.product.findMany({ orderBy: { id: 'asc' } })
   let nextId = (all[all.length - 1]?.id ?? 0) + 1
 
@@ -112,7 +218,6 @@ async function main() {
       continue
     }
 
-    // La variante principal reaprovecha el producto base para no romper referencias.
     const primary = group.variants[0]
     await prisma.product.update({
       where: { id: base.id },
@@ -160,14 +265,12 @@ async function main() {
   }
 
   console.log('Variantes configuradas correctamente.')
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
-
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
