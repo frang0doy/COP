@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
-import { detectGroupBaseName, detectVariantLabel } from './variantGrouping'
+import { detectGroupBaseName, detectVariantLabel, normText } from './variantGrouping'
 
 interface ProductDetailProps {
   productId: string
@@ -114,9 +114,21 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const technicalSummary = (selectedProduct.technicalSummary ?? null) as any
   const technicalSummaryForCalculator = technicalSummary
 
-  const titleParts = selectedProduct.name.trim().split(/\s+/).filter(Boolean)
-  const titleFirst = titleParts[0] ?? ''
-  const titleRest = titleParts.slice(1).join(' ')
+  const groupBase = detectGroupBaseName(selectedProduct.name)
+  let titleFirst: string
+  let titleRest: string
+  if (groupBase === 'Concreto aparente') {
+    let vl = detectVariantLabel(selectedProduct.name, groupBase)
+    if (normText(selectedProduct.name) === normText('Concreto aparente')) {
+      vl = 'Natural'
+    }
+    titleFirst = 'Concreto aparente'
+    titleRest = vl === 'Natural' ? 'natural' : vl
+  } else {
+    const titleParts = selectedProduct.name.trim().split(/\s+/).filter(Boolean)
+    titleFirst = titleParts[0] ?? ''
+    titleRest = titleParts.slice(1).join(' ')
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

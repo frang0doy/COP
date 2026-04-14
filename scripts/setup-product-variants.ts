@@ -100,9 +100,9 @@ const GROUPS: GroupDef[] = [
     baseSku: 'EST-004',
     matchNameIncludes: ['micro piscina'],
     variants: [
-      { sku: 'EST-004', name: 'Micro piscinas - Gris oscuro' },
-      { sku: 'EST-004-BLANCO', name: 'Micro piscinas - Blanco' },
+      { sku: 'EST-004', name: 'Micro piscinas - Blanco' },
       { sku: 'EST-004-GRIS', name: 'Micro piscinas - Gris' },
+      { sku: 'EST-004-CHUK', name: 'Micro piscinas - Chukum' },
     ],
   },
   {
@@ -146,7 +146,7 @@ const GROUPS: GroupDef[] = [
     baseSku: 'ADH-005',
     matchNameIncludes: ['pastina impermeable'],
     variants: [
-      { sku: 'ADH-005', name: 'Pastina Impermeable - Blanca' },
+      { sku: 'ADH-005', name: 'Pastina Impermeable - Blanco' },
       { sku: 'ADH-005-GRIS', name: 'Pastina Impermeable - Gris' },
     ],
   },

@@ -177,16 +177,23 @@ function toProductGroups(products: ProductDerived[]): ProductGroup[] {
       for (const area of v.__applyAreas) applyAreas.add(area)
     }
     const labels = variants.map((v) => v.variantLabel).join(' ')
+    const groupBaseName = detectGroupBaseName(first.name)
+    // Catálogo: solo nombre de familia (sin color). Colores solo en la ficha al elegir variante.
+    const cardName = groupBaseName
+      ? groupBaseName === 'Concreto aparente'
+        ? 'Concreto aparente natural'
+        : groupBaseName
+      : first.name
     out.push({
       id: first.id,
-      name: detectGroupBaseName(first.name) ?? first.name,
+      name: cardName,
       description: first.description,
       category: first.category,
       image: first.image,
       isNew: variants.some((v) => Boolean(v.isNew)),
       variants,
       __applyAreas: Array.from(applyAreas),
-      __normName: normText((detectGroupBaseName(first.name) ?? first.name) + ' ' + labels),
+      __normName: normText(cardName + ' ' + labels),
       __normDescription: normText(first.description ?? ''),
       __normUsos: normText(variants.map((v) => getProductUsos(v)).join(' ')),
     })
