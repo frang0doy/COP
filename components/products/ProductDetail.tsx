@@ -185,9 +185,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               </h1>
 
               <div className="flex flex-col gap-2 w-full max-w-[240px] mx-auto sm:mx-0 sm:max-w-none sm:w-[260px] shrink-0">
-                {product.technicalSheet ? (
+                {selectedProduct.technicalSheet ? (
                   <a
-                    href={product.technicalSheet}
+                    href={selectedProduct.technicalSheet}
                     download
                     className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 bg-white text-xs sm:text-sm font-semibold hover:border-orange-500 transition-colors"
                     aria-label="Descargar ficha técnica"

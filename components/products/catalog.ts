@@ -124,21 +124,12 @@ export type TechnicalSummary = {
   observaciones?: string
 }
 
-const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {
-  // Nombres que no matchean 1:1 con el nombre de imagen / slug normalizado
-  16: 'marmoltex_nuevo.png', // imagen: marmolatex_nuevo.png
-  18: 'textucop_nuevo.png', // imagen: textucopL_nuevo.png
-  31: 'membrana_liquida_nuevo.png', // imagen: memb_liquida_nueva.png
-  33: 'plastibond_nuevo.png', // imagen: plastiband_nuevo.png
-  34: 'laca_poliuretanica_mate_nuevo.png', // imagen: laca_poli_mate_balde4_nuevo.png
-  35: 'laca_poliuretanica_brillosa_nuevo.png', // imagen: laca_poli_brillo_balde4_nuevo.png
-  36: 'cop_silicon_nuevo.png', // imagen: cop_silicon4_nuevo.png
-  40: 'rendimix_nuevo.png', // imagen: redimix_nuevo.png
-}
+/** Excepciones puntuales (nombre de ficha ≠ derivado de imagen). Vacío si los PDF siguen el mismo criterio que las fotos. */
+const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {}
 
+/** Sin ficha en repo (no hay PDF para este producto). */
 const TECH_SHEET_MISSING_BY_ID = new Set<number>([
-  32, // Membrana Poliuretánica (falta subir)
-  39, // Mastercril (falta subir)
+  6, // PEGACOP Acrílico (aún no hay PDF)
 ])
 
 
@@ -183,7 +174,7 @@ function computeTechnicalSheet(product: Product): string | undefined {
   ].filter(Boolean)
 
   for (const base of candidatesBase) {
-    return `/documents/fichas-tecnicas/${base}_nuevo.png`
+    return `/documents/fichas-tecnicas/${base}.pdf`
   }
 
   return undefined
@@ -245,6 +236,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Balde de 25 lt.',
     conservacion: '6 meses desde la fecha de fabricación.',
+    colores: 'Gris.',
     usos: 'Adhesivo listo para usar; elevación de mampostería en muros interiores/exteriores no estructurales.',
     observaciones: 'Nuevo producto.',
   },
@@ -1030,6 +1022,11 @@ export const PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({
 
 export function getTechnicalSummaryById(id: number): TechnicalSummary | undefined {
   return TECHNICAL_SUMMARY_BY_ID[id]
+}
+
+/** Ficha técnica según el catálogo en código (PDF); la DB puede quedar desactualizada tras cambios de fichas. */
+export function getTechnicalSheetById(id: number): string | undefined {
+  return PRODUCTS.find((p) => p.id === id)?.technicalSheet
 }
 
 

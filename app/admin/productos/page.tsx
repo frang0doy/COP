@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import toast from 'react-hot-toast'
+import { getAdminProductDisplayName } from '@/lib/admin-product-display-name'
 
 type Product = {
   id: number
@@ -124,10 +125,12 @@ export default function AdminProductosPage() {
         if (isNew === 'YES' && !n) return false
         if (isNew === 'NO' && n) return false
         if (!q) return true
+        const adminName = getAdminProductDisplayName(p).toLowerCase()
         return (
           String(p.id).includes(q) ||
           String(p.sku || '').toLowerCase().includes(q) ||
           String(p.name || '').toLowerCase().includes(q) ||
+          adminName.includes(q) ||
           String(p.category || '').toLowerCase().includes(q)
         )
       })
@@ -139,6 +142,13 @@ export default function AdminProductosPage() {
         const aa = (a.isActive ?? true) ? 1 : 0
         const bb = (b.isActive ?? true) ? 1 : 0
         return (aa - bb) * dir
+      }
+      if (sortKey === 'name') {
+        return (
+          getAdminProductDisplayName(a).localeCompare(getAdminProductDisplayName(b), 'es', {
+            sensitivity: 'base',
+          }) * dir
+        )
       }
       const av = (a as any)[sortKey]
       const bv = (b as any)[sortKey]
@@ -319,7 +329,7 @@ export default function AdminProductosPage() {
                         filtered.map((p) => ({
                           id: p.id,
                           sku: p.sku,
-                          name: p.name,
+                          name: getAdminProductDisplayName(p),
                           category: p.category,
                           price: p.price,
                           stock: p.stock,
@@ -371,7 +381,12 @@ export default function AdminProductosPage() {
                   </thead>
                   <tbody className="bg-white">
                     {pageItems.map((p) => (
-                      <AdminRow key={p.id} product={p} onSave={updateProduct} />
+                      <AdminRow
+                        key={p.id}
+                        product={p}
+                        adminDisplayName={getAdminProductDisplayName(p)}
+                        onSave={updateProduct}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -418,9 +433,11 @@ export default function AdminProductosPage() {
 
 function AdminRow({
   product,
+  adminDisplayName,
   onSave,
 }: {
   product: Product
+  adminDisplayName: string
   onSave: (id: number, patch: Partial<Product>) => Promise<void>
 }) {
   const [price, setPrice] = useState(String(product.price))
@@ -444,8 +461,11 @@ function AdminRow({
       <td className="py-3 px-4 font-semibold text-gray-900">{product.id}</td>
       <td className="py-3 px-4 text-gray-800">{product.sku}</td>
       <td className="py-3 px-4">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-900">{product.name}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-gray-900 font-medium">{adminDisplayName}</span>
+          {adminDisplayName !== product.name ? (
+            <span className="text-xs text-gray-500">Catálogo: {product.name}</span>
+          ) : null}
           {isActive ? null : (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 border border-orange-200">
               PAUSADO

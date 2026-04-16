@@ -13,6 +13,8 @@ type VariantDef = {
 type GroupDef = {
   baseSku: string
   matchNameIncludes: string[]
+  /** Si el nombre contiene alguno de estos fragmentos, no se usa como base (ej. TEXTUCOP vs acrílico). */
+  excludeNameIncludes?: string[]
   variants: VariantDef[]
 }
 
@@ -72,14 +74,16 @@ const GROUPS: GroupDef[] = [
       { sku: 'REV-004', name: 'Stone COP - Dálmata' },
       { sku: 'REV-004-NEG', name: 'Stone COP - Negro' },
       { sku: 'REV-004-VER', name: 'Stone COP - Verona' },
+      { sku: 'REV-004-PAR', name: 'Stone COP - Paraná' },
     ],
   },
   {
     baseSku: 'REV-003',
     matchNameIncludes: ['textucop'],
+    excludeNameIncludes: ['acril'],
     variants: [
       { sku: 'REV-003', name: 'TEXTUCOP - Arena' },
-      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco Tiza' },
+      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco' },
     ],
   },
   {
@@ -92,8 +96,8 @@ const GROUPS: GroupDef[] = [
     matchNameIncludes: ['cuarzotex'],
     variants: [
       { sku: 'EST-006', name: 'CUARZOTEX - Gris natural' },
+      { sku: 'EST-006-ARENA', name: 'CUARZOTEX - Arena' },
       { sku: 'EST-006-GRIS-OSC', name: 'CUARZOTEX - Gris oscuro' },
-      { sku: 'EST-006-GRIS', name: 'CUARZOTEX - Gris plata' },
     ],
   },
   {
@@ -186,8 +190,8 @@ const GROUPS: GroupDef[] = [
     baseSku: 'REQ-002',
     matchNameIncludes: ['revoque 3 en 1', 'revoque 3en1'],
     variants: [
-      { sku: 'REQ-002', name: 'Revoque 3 en 1' },
-      { sku: 'REQ-002-PROY', name: 'Revoque 3 en 1 Proyectable' },
+      { sku: 'REQ-002', name: 'Revoque 3 en 1 - Estándar' },
+      { sku: 'REQ-002-PROY', name: 'Revoque 3 en 1 - Proyectable' },
     ],
   },
 ]
@@ -210,7 +214,9 @@ async function main() {
       all.find((p) => p.sku === group.baseSku) ??
       all.find((p) => {
         const n = normalize(p.name)
-        return group.matchNameIncludes.every((part) => n.includes(normalize(part)))
+        if (!group.matchNameIncludes.every((part) => n.includes(normalize(part)))) return false
+        if (group.excludeNameIncludes?.some((ex) => n.includes(normalize(ex)))) return false
+        return true
       })
 
     if (!base) {

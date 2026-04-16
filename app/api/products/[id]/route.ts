@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { resolveProductImage } from '../image-utils'
-import { getTechnicalSummaryById } from '@/components/products/catalog'
+import { getTechnicalSheetById, getTechnicalSummaryById } from '@/components/products/catalog'
+import {
+  isPrismaConnectionError,
+  jsonProductFromCatalogId,
+  withPrismaRetry,
+} from '@/lib/product-api-fallback'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,15 +19,39 @@ export async function GET(
     return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
   }
 
-  const product = await prisma.product.findFirst({ where: { id, isActive: true } })
-  if (!product) {
-    return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
-  }
+  try {
+    const product = await withPrismaRetry(() =>
+      prisma.product.findFirst({ where: { id, isActive: true } })
+    )
+    if (!product) {
+      return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+    }
 
-  return NextResponse.json({
-    ...product,
-    image: await resolveProductImage(product.image),
-    technicalSummary: getTechnicalSummaryById(product.id) ?? product.technicalSummary,
-  })
+    return NextResponse.json({
+      ...product,
+      image: await resolveProductImage(product.image),
+      technicalSummary: getTechnicalSummaryById(product.id) ?? product.technicalSummary,
+      technicalSheet: getTechnicalSheetById(product.id) ?? product.technicalSheet,
+    })
+  } catch (e) {
+    if (!isPrismaConnectionError(e)) throw e
+
+    const fallback = await jsonProductFromCatalogId(id)
+    if (fallback) {
+      return NextResponse.json(fallback, {
+        headers: {
+          'X-Product-Fallback': 'catalog',
+        },
+      })
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          'No pudimos conectar con la base de datos. Esperá unos segundos (Neon suele despertar) y recargá.',
+      },
+      { status: 503 }
+    )
+  }
 }
 

@@ -50,13 +50,18 @@ export default async function RootLayout({
   if (cookieCountry) initialGateOpen = false
 
   if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { country: true },
-    })
-    // Si el usuario tiene país en DB, no mostramos gate.
-    // Si no lo tiene pero ya hay cookie, tampoco bloqueamos (se persiste luego del login).
-    initialGateOpen = !user?.country && !cookieCountry
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { country: true },
+      })
+      // Si el usuario tiene país en DB, no mostramos gate.
+      // Si no lo tiene pero ya hay cookie, tampoco bloqueamos (se persiste luego del login).
+      initialGateOpen = !user?.country && !cookieCountry
+    } catch {
+      // Sin DB (Neon caído, sin red, URL local mal configurada): no tumbar el sitio en dev.
+      initialGateOpen = !cookieCountry
+    }
   }
 
   return (
