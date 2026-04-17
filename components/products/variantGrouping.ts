@@ -20,7 +20,7 @@ function escapeRegex(s: string) {
 const DEFAULT_VARIANT_WHEN_NAME_IS_ONLY_FAMILY: Record<string, string> = {
   'Pastina Impermeable': 'Blanco',
   'Concreto aparente': 'Natural',
-  'Micro piscinas': 'Chukum',
+  'Micro piscinas': 'Gris',
   CUARZOTEX: 'Gris natural',
   'Membrana Poliuretánica': 'Blanco',
   'Membrana Líquida': 'Blanco',

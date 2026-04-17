@@ -74,7 +74,6 @@ const GROUPS: GroupDef[] = [
       { sku: 'REV-004', name: 'Stone COP - Dálmata' },
       { sku: 'REV-004-NEG', name: 'Stone COP - Negro' },
       { sku: 'REV-004-VER', name: 'Stone COP - Verona' },
-      { sku: 'REV-004-PAR', name: 'Stone COP - Paraná' },
     ],
   },
   {
@@ -83,7 +82,7 @@ const GROUPS: GroupDef[] = [
     excludeNameIncludes: ['acril'],
     variants: [
       { sku: 'REV-003', name: 'TEXTUCOP - Arena' },
-      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco' },
+      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco Tiza' },
     ],
   },
   {
@@ -96,7 +95,6 @@ const GROUPS: GroupDef[] = [
     matchNameIncludes: ['cuarzotex'],
     variants: [
       { sku: 'EST-006', name: 'CUARZOTEX - Gris natural' },
-      { sku: 'EST-006-ARENA', name: 'CUARZOTEX - Arena' },
       { sku: 'EST-006-GRIS-OSC', name: 'CUARZOTEX - Gris oscuro' },
     ],
   },
@@ -104,9 +102,9 @@ const GROUPS: GroupDef[] = [
     baseSku: 'EST-004',
     matchNameIncludes: ['micro piscina'],
     variants: [
-      { sku: 'EST-004', name: 'Micro piscinas - Blanco' },
-      { sku: 'EST-004-GRIS', name: 'Micro piscinas - Gris' },
-      { sku: 'EST-004-CHUK', name: 'Micro piscinas - Chukum' },
+      { sku: 'EST-004', name: 'Micro piscinas - Gris' },
+      { sku: 'EST-004-BLANCO', name: 'Micro piscinas - Blanco' },
+      { sku: 'EST-004-GRIS-OSC', name: 'Micro piscinas - Gris oscuro' },
     ],
   },
   {
@@ -203,16 +201,43 @@ function normalize(input: string) {
     .toLowerCase()
 }
 
-async function main() {
-  const { prisma } = await import('../lib/prisma')
-  try {
+function isPrismaConnectionError(e: unknown): boolean {
+  if (typeof e !== 'object' || e === null) return false
+  const anyErr = e as { code?: string; message?: string; name?: string }
+  const code = anyErr.code
+  const msg = anyErr.message ?? ''
+  const name = anyErr.name ?? ''
+  if (code === 'P1001' || code === 'P1000') return true
+  if (name.includes('PrismaClientInitializationError') && msg.includes("Can't reach database server"))
+    return true
+  if (msg.includes("Can't reach database server")) return true
+  return false
+}
+
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let last: unknown
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn()
+    } catch (e) {
+      last = e
+      if (!isPrismaConnectionError(e) || i === attempts - 1) throw e
+      const waitMs = 1200 * (i + 1)
+      console.warn(`DB sin respuesta (intento ${i + 1}/${attempts}). Reintentando en ${waitMs}ms...`)
+      await new Promise((r) => setTimeout(r, waitMs))
+    }
+  }
+  throw last
+}
+
+async function syncVariants(prisma: any) {
   const all = await prisma.product.findMany({ orderBy: { id: 'asc' } })
   let nextId = (all[all.length - 1]?.id ?? 0) + 1
 
   for (const group of GROUPS) {
     const base =
-      all.find((p) => p.sku === group.baseSku) ??
-      all.find((p) => {
+      all.find((p: any) => p.sku === group.baseSku) ??
+      all.find((p: any) => {
         const n = normalize(p.name)
         if (!group.matchNameIncludes.every((part) => n.includes(normalize(part)))) return false
         if (group.excludeNameIncludes?.some((ex) => n.includes(normalize(ex)))) return false
@@ -269,6 +294,20 @@ async function main() {
       })
     }
   }
+
+  // Desactivar SKUs que ya no deben existir como variantes
+  await prisma.product.updateMany({
+    where: {
+      sku: { in: ['REV-004-PAR', 'EST-006-ARENA', 'EST-004-CHUK', 'EST-004-GRIS'] },
+    },
+    data: { isActive: false },
+  })
+}
+
+async function main() {
+  const { prisma } = await import('../lib/prisma')
+  try {
+  await withRetry(() => syncVariants(prisma))
 
   console.log('Variantes configuradas correctamente.')
   } finally {

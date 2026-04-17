@@ -276,7 +276,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Arena, blanco y gris.',
+    colores: 'Gris, blanco y gris oscuro.',
     usos:
       'Uso en paredes/pisos/piscinas/duchas; para piscinas, aplicar sobre revoque grueso con sellado previo.',
   },
@@ -295,7 +295,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Gris natural, arena y gris oscuro.',
+    colores: 'Gris natural y gris oscuro.',
     usos:
       'Aplicación sobre revoque fino, placas de cartón yeso, base coat, fibrocemento y yeso con sellado previo.',
     observaciones: 'Nuevo producto.',
@@ -395,7 +395,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 30 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Blanco, arena.',
+    colores: 'Blanco tiza y arena.',
     usos:
       'Aplicación sobre revoque fino, revoque grueso alisado y base coat (con sellado previo).',
   },
@@ -404,7 +404,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Balde de 25 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
-    colores: 'Negro, dálmata, verona, paraná.',
+    colores: 'Negro, dálmata y verona.',
     usos: 'Aplicación sobre revoque fino (con sellado previo).',
     observaciones: 'Nuevo producto.',
   },

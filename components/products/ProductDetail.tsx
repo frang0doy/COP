@@ -114,6 +114,23 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const technicalSummary = (selectedProduct.technicalSummary ?? null) as any
   const technicalSummaryForCalculator = technicalSummary
 
+  const variantLabels =
+    variants.length > 1
+      ? Array.from(
+          new Set(
+            variants.map((v) => detectVariantLabel(v.name, detectGroupBaseName(v.name))).filter(Boolean)
+          )
+        )
+      : []
+
+  function formatSpanishList(items: string[]): string {
+    const clean = items.map((s) => s.trim()).filter(Boolean)
+    if (clean.length === 0) return ''
+    if (clean.length === 1) return clean[0]!
+    if (clean.length === 2) return `${clean[0]} y ${clean[1]}`
+    return `${clean.slice(0, -1).join(', ')} y ${clean[clean.length - 1]}`
+  }
+
   const groupBase = detectGroupBaseName(selectedProduct.name)
   let titleFirst: string
   let titleRest: string
@@ -317,13 +334,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
                   {/* Bloques tipo “ficha” */}
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    {technicalSummary.colores && (
+                    {(variantLabels.length > 0 || technicalSummary.colores) && (
                       <div className="border border-gray-200 p-4">
                         <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                           Colores del producto
                         </p>
                         <p className="text-black mt-2 line-clamp-3">
-                          {technicalSummary.colores}
+                          {variantLabels.length > 0 ? formatSpanishList(variantLabels) : technicalSummary.colores}
                         </p>
                       </div>
                     )}
