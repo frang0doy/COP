@@ -179,11 +179,7 @@ function toProductGroups(products: ProductDerived[]): ProductGroup[] {
     const labels = variants.map((v) => v.variantLabel).join(' ')
     const groupBaseName = detectGroupBaseName(first.name)
     // Catálogo: solo nombre de familia (sin color). Colores solo en la ficha al elegir variante.
-    const cardName = groupBaseName
-      ? groupBaseName === 'Concreto aparente'
-        ? 'Concreto aparente natural'
-        : groupBaseName
-      : first.name
+    const cardName = groupBaseName ? groupBaseName : first.name
     out.push({
       id: first.id,
       name: cardName,

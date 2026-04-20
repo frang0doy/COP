@@ -276,7 +276,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Gris, blanco y gris oscuro.',
+    colores: 'Gris, blanco y chukum.',
     usos:
       'Uso en paredes/pisos/piscinas/duchas; para piscinas, aplicar sobre revoque grueso con sellado previo.',
   },
@@ -295,7 +295,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Gris natural y gris oscuro.',
+    colores: 'Gris natural, gris oscuro y chukum.',
     usos:
       'Aplicación sobre revoque fino, placas de cartón yeso, base coat, fibrocemento y yeso con sellado previo.',
     observaciones: 'Nuevo producto.',
@@ -377,7 +377,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     presentacion: 'Balde de 25 lt.',
     conservacion: '12 meses desde la fecha de fabricación.',
     colores:
-      'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco.',
+      'Arena, gris eclipse, gris portland, habano, serrano, verde alpes, blanco y blanco tiza.',
     usos:
       'Aplicación sobre revoque fino/grueso alisado, placas de cartón yeso, base coat y fibrocemento (con sellado previo).',
   },

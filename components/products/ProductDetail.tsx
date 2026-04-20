@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
-import { ShoppingCart, ArrowLeft, CheckCircle, Download, XCircle, Calculator } from 'lucide-react'
+import {
+  ShoppingCart,
+  ArrowLeft,
+  CheckCircle,
+  Download,
+  XCircle,
+  Calculator,
+  X,
+  ImageIcon,
+  Palette,
+} from 'lucide-react'
 import Link from 'next/link'
 import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
 import type { Product } from '@prisma/client'
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
 import { detectGroupBaseName, detectVariantLabel, normText } from './variantGrouping'
+import { getColorSamplePath } from './productColorSamples'
 
 interface ProductDetailProps {
   productId: string
@@ -20,6 +31,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [showCalculator, setShowCalculator] = useState(false)
+  /** Solo aplica si hay foto de producto y muestra de color. */
+  const [galleryMode, setGalleryMode] = useState<'product' | 'color'>('product')
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -59,6 +73,19 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   useEffect(() => {
     setQuantity(1)
   }, [selectedVariantId])
+
+  useEffect(() => {
+    setGalleryMode('product')
+  }, [selectedVariantId])
+
+  useEffect(() => {
+    if (!lightboxSrc) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxSrc(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxSrc])
 
   if (isLoading) {
     return (
@@ -132,6 +159,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   }
 
   const groupBase = detectGroupBaseName(selectedProduct.name)
+  const variantLabelForGallery = detectVariantLabel(selectedProduct.name, groupBase)
+  const colorSampleSrc = groupBase ? getColorSamplePath(groupBase, variantLabelForGallery) : null
+  const productImageSrc = selectedProduct.image ?? ''
+  const hasColorProductToggle = Boolean(colorSampleSrc && productImageSrc)
+  const mainGallerySrc =
+    colorSampleSrc && (!productImageSrc || galleryMode === 'color') ? colorSampleSrc : productImageSrc || colorSampleSrc
+
   let titleFirst: string
   let titleRest: string
   if (groupBase === 'Concreto aparente') {
@@ -165,15 +199,88 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Columna izquierda: imagen (se estira a la altura del panel derecho) */}
-          <div className="bg-gray-50 p-4 sm:p-10 flex items-center justify-center">
-            <div className="w-full flex items-center justify-center">
-              {selectedProduct.image ? (
+          <div className="bg-gray-50 p-4 sm:p-10 flex flex-col items-center justify-center">
+            <div className="w-full flex flex-col items-center justify-center gap-4">
+              {mainGallerySrc ? (
                 <div className="w-full">
-                  <img
-                    src={selectedProduct.image}
-                    alt={selectedProduct.name}
-                    className="block w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] max-h-[420px] sm:max-h-[560px] lg:max-h-[640px] object-contain mx-auto"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setLightboxSrc(mainGallerySrc)}
+                    className="group relative w-full cursor-zoom-in rounded-sm border border-transparent p-0 text-left transition hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                    aria-label="Ver imagen ampliada"
+                  >
+                    <img
+                      src={mainGallerySrc}
+                      alt={
+                        hasColorProductToggle && galleryMode === 'color'
+                          ? `Muestra del color — ${variantLabelForGallery}`
+                          : selectedProduct.name
+                      }
+                      className="block w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] max-h-[min(70vh,640px)] sm:max-h-[min(75vh,680px)] object-contain mx-auto"
+                    />
+                    <span className="pointer-events-none absolute bottom-3 right-3 rounded bg-black/55 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white opacity-0 transition group-hover:opacity-100 sm:text-xs">
+                      Clic para ampliar
+                    </span>
+                  </button>
+
+                  {hasColorProductToggle ? (
+                    <div className="mt-4 w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] mx-auto">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                        Cambiar vista
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setGalleryMode('product')}
+                          className={[
+                            'flex items-center gap-3 border p-2 text-left transition',
+                            galleryMode === 'product'
+                              ? 'border-orange-500 bg-white ring-1 ring-orange-500/30'
+                              : 'border-gray-200 bg-white hover:border-gray-400',
+                          ].join(' ')}
+                        >
+                          <span className="relative h-14 w-14 shrink-0 overflow-hidden bg-white border border-gray-100">
+                            {productImageSrc ? (
+                              <img src={productImageSrc} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="flex h-full w-full items-center justify-center text-gray-300">
+                                <ImageIcon className="h-6 w-6" />
+                              </span>
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-black">Producto</span>
+                            <span className="block text-[11px] text-gray-500">Envase / presentación</span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGalleryMode('color')}
+                          className={[
+                            'flex items-center gap-3 border p-2 text-left transition',
+                            galleryMode === 'color'
+                              ? 'border-orange-500 bg-white ring-1 ring-orange-500/30'
+                              : 'border-gray-200 bg-white hover:border-gray-400',
+                          ].join(' ')}
+                        >
+                          <span className="relative h-14 w-14 shrink-0 overflow-hidden bg-gray-100 border border-gray-100">
+                            {colorSampleSrc ? (
+                              <img src={colorSampleSrc} alt="" className="h-full w-full object-cover" />
+                            ) : null}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-black">Muestra del color</span>
+                            <span className="block text-[11px] text-gray-500 truncate">{variantLabelForGallery}</span>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : colorSampleSrc && !productImageSrc ? (
+                    <p className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-600">
+                      <Palette className="h-4 w-4 shrink-0 text-orange-600" />
+                      Vista: muestra del color ({variantLabelForGallery})
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <span className="text-gray-400">Imagen del Producto</span>
@@ -433,6 +540,35 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         onClose={() => setShowCalculator(false)}
         technicalSummary={technicalSummaryForCalculator}
       />
+
+      {lightboxSrc ? (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista ampliada"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <div
+            className="relative flex max-h-full max-w-full flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxSrc(null)}
+              className="absolute -top-2 right-0 z-10 rounded-full bg-white/15 p-2 text-white hover:bg-white/25 sm:-top-3"
+              aria-label="Cerrar vista ampliada"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={lightboxSrc}
+              alt="Vista ampliada del producto o color"
+              className="max-h-[85vh] max-w-full object-contain"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

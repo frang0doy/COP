@@ -35,6 +35,14 @@ function palette7Variants(baseSku: string, family: string): VariantDef[] {
   }))
 }
 
+/** Marmoltex: paleta estándar + Blanco Tiza (SKU alineado con TEXTUCOP Blanco Tiza). */
+function marmoltexVariants(): VariantDef[] {
+  return [
+    ...palette7Variants('REV-001', 'Marmoltex'),
+    { sku: 'REV-001-BLZ-TIZ', name: 'Marmoltex - Blanco Tiza' },
+  ]
+}
+
 const GROUPS: GroupDef[] = [
   {
     baseSku: 'SEL-004',
@@ -88,7 +96,7 @@ const GROUPS: GroupDef[] = [
   {
     baseSku: 'REV-001',
     matchNameIncludes: ['marmoltex'],
-    variants: palette7Variants('REV-001', 'Marmoltex'),
+    variants: marmoltexVariants(),
   },
   {
     baseSku: 'EST-006',
@@ -96,6 +104,7 @@ const GROUPS: GroupDef[] = [
     variants: [
       { sku: 'EST-006', name: 'CUARZOTEX - Gris natural' },
       { sku: 'EST-006-GRIS-OSC', name: 'CUARZOTEX - Gris oscuro' },
+      { sku: 'EST-006-CHUK', name: 'CUARZOTEX - Chukum' },
     ],
   },
   {
@@ -104,7 +113,7 @@ const GROUPS: GroupDef[] = [
     variants: [
       { sku: 'EST-004', name: 'Micro piscinas - Gris' },
       { sku: 'EST-004-BLANCO', name: 'Micro piscinas - Blanco' },
-      { sku: 'EST-004-GRIS-OSC', name: 'Micro piscinas - Gris oscuro' },
+      { sku: 'EST-004-CHUK', name: 'Micro piscinas - Chukum' },
     ],
   },
   {
@@ -298,7 +307,7 @@ async function syncVariants(prisma: any) {
   // Desactivar SKUs que ya no deben existir como variantes
   await prisma.product.updateMany({
     where: {
-      sku: { in: ['REV-004-PAR', 'EST-006-ARENA', 'EST-004-CHUK', 'EST-004-GRIS'] },
+      sku: { in: ['REV-004-PAR', 'EST-006-ARENA', 'EST-004-GRIS', 'EST-004-GRIS-OSC'] },
     },
     data: { isActive: false },
   })
