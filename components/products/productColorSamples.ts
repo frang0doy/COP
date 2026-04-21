@@ -63,5 +63,11 @@ export function getColorSamplePath(groupBaseName: string | null, variantLabel: s
   if (base === normText('Veneziano')) {
     return VENEZIANO[key] ?? null
   }
+  // --- AGREGÁ ESTO ---
+  if (base === normText('Concreto Aparente')) {
+    return CONCRETO_APARENTE[key] ?? null
+  }
+  // -------------------
+  
   return null
 }
