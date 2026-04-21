@@ -22,7 +22,7 @@ const MARMOLTEX: Record<string, string> = {
   'gris eclipse': '/Foto-productos/marmoltex-color-gris-eclipse.jpeg',
   'gris portland': '/Foto-productos/marmoltex-color-gris-portalnd.jpeg',
   'verde alpes': '/Foto-productos/marmoltex-color-verdes-alpes.jpeg',
-  'blanzo tiza': '/Foto-productos/marmoltex-color-blanco-tiza.jpeg',
+  'blanco tiza': '/Foto-productos/marmoltex-color-blanco-tiza.jpeg',
 }
 
 const CONCRETO_APARENTE: Record<string, string> = {
