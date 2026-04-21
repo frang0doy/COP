@@ -25,6 +25,11 @@ const MARMOLTEX: Record<string, string> = {
   'blanzo tiza': '/Foto-productos/marmoltex-color-blanco-tiza.jpeg',
 }
 
+const CONCRETO_APARENTE: Record<string, string> = {
+  natural: '/Foto-productos/concreto aparente-color-natural.jpeg',
+  gris: '/Foto-productos/concreto aparente-color-gris.jpeg',
+}
+
 const VENEZIANO: Record<string, string> = {
   /** Marrón — clave sin tilde (normText) */
   marron: '/Foto-productos/veneziano-color-cafe-cacao.jpeg',
