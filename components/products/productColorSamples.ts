@@ -11,6 +11,7 @@ const MICROTEX: Record<string, string> = {
   'gris plata': '/Foto-productos/microtex-color-gris-plata.jpeg',
   'gris oscuro': '/Foto-productos/microtex-color-gris-oscuro.jpeg',
   'gris natural': '/Foto-productos/microtex-color-gris-natural.jpeg',
+  'negro': '/Foto-productos/microtex-color-negro.jpeg',
 }
 
 const MARMOLTEX: Record<string, string> = {
