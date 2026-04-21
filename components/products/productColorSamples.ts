@@ -27,7 +27,7 @@ const MARMOLTEX: Record<string, string> = {
 
 const CONCRETO_APARENTE: Record<string, string> = {
   'natural': '/Foto-productos/concreto-natural.jpeg',
-  'gris': '/Foto-productos/concreto-gris.jpeg',
+  'gris oscuro': '/Foto-productos/concreto-gris.jpeg',
 }
 
 const VENEZIANO: Record<string, string> = {
