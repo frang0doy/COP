@@ -26,12 +26,11 @@ const MARMOLTEX: Record<string, string> = {
 }
 
 const CONCRETO_APARENTE: Record<string, string> = {
-  Natural: '/Foto-productos/concreto aparente-color-natural.jpeg',
-  Gris: '/Foto-productos/concreto aparente-color-gris.jpeg',
+  'natural': '/Foto-productos/concreto-natural.jpeg',
+  'gris': '/Foto-productos/concreto-gris.jpeg',
 }
 
 const VENEZIANO: Record<string, string> = {
-  /** Marrón — clave sin tilde (normText) */
   marron: '/Foto-productos/veneziano-color-cafe-cacao.jpeg',
   rojo: '/Foto-productos/veneziano-color-rojo-uxmal.jpeg',
   verde: '/Foto-productos/veneziano-color-verde-agave.jpeg',
@@ -47,27 +46,33 @@ function normLabel(label: string): string {
 }
 
 /**
- * Devuelve la ruta pública de la foto de muestra del color, o null si no hay archivo para esa variante.
+ * Devuelve la ruta pública de la foto de muestra del color.
  */
 export function getColorSamplePath(groupBaseName: string | null, variantLabel: string): string | null {
   if (!groupBaseName || !variantLabel) return null
+  
   const base = normText(groupBaseName)
   const key = normLabel(variantLabel)
 
+  // 1. MICROTEX
   if (base === normText('Microtex')) {
     return MICROTEX[key] ?? null
   }
+  
+  // 2. MARMOLTEX
   if (base === normText('Marmoltex')) {
     return MARMOLTEX[key] ?? null
   }
+  
+  // 3. VENEZIANO
   if (base === normText('Veneziano')) {
     return VENEZIANO[key] ?? null
   }
-  // --- AGREGÁ ESTO ---
-  if (base === normText('Concreto Aparente')) {
+
+  // 4. CONCRETO APARENTE (Búsqueda flexible por nombre de producto)
+  if (base.includes('concreto')) {
     return CONCRETO_APARENTE[key] ?? null
   }
-  // -------------------
-  
+
   return null
 }
