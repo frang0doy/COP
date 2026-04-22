@@ -11,6 +11,7 @@ const MICROTEX: Record<string, string> = {
   'gris plata': '/Foto-productos/microtex-color-gris-plata.jpeg',
   'gris oscuro': '/Foto-productos/microtex-color-gris-oscuro.jpeg',
   'gris natural': '/Foto-productos/microtex-color-gris-natural.jpeg',
+  'negro': '/Foto-productos/microtex-color-negro.jpeg',
 }
 
 const MARMOLTEX: Record<string, string> = {
@@ -21,10 +22,15 @@ const MARMOLTEX: Record<string, string> = {
   'gris eclipse': '/Foto-productos/marmoltex-color-gris-eclipse.jpeg',
   'gris portland': '/Foto-productos/marmoltex-color-gris-portalnd.jpeg',
   'verde alpes': '/Foto-productos/marmoltex-color-verdes-alpes.jpeg',
+  'blanco tiza': '/Foto-productos/marmoltex-color-blanco-tiza.jpeg',
+}
+
+const CONCRETO_APARENTE: Record<string, string> = {
+  'natural': '/Foto-productos/concreto-natural.jpeg',
+  'gris oscuro': '/Foto-productos/concreto-gris.jpeg',
 }
 
 const VENEZIANO: Record<string, string> = {
-  /** Marrón — clave sin tilde (normText) */
   marron: '/Foto-productos/veneziano-color-cafe-cacao.jpeg',
   rojo: '/Foto-productos/veneziano-color-rojo-uxmal.jpeg',
   verde: '/Foto-productos/veneziano-color-verde-agave.jpeg',
@@ -40,21 +46,33 @@ function normLabel(label: string): string {
 }
 
 /**
- * Devuelve la ruta pública de la foto de muestra del color, o null si no hay archivo para esa variante.
+ * Devuelve la ruta pública de la foto de muestra del color.
  */
 export function getColorSamplePath(groupBaseName: string | null, variantLabel: string): string | null {
   if (!groupBaseName || !variantLabel) return null
+  
   const base = normText(groupBaseName)
   const key = normLabel(variantLabel)
 
+  // 1. MICROTEX
   if (base === normText('Microtex')) {
     return MICROTEX[key] ?? null
   }
+  
+  // 2. MARMOLTEX
   if (base === normText('Marmoltex')) {
     return MARMOLTEX[key] ?? null
   }
+  
+  // 3. VENEZIANO
   if (base === normText('Veneziano')) {
     return VENEZIANO[key] ?? null
   }
+
+  // 4. CONCRETO APARENTE (Búsqueda flexible por nombre de producto)
+  if (base.includes('concreto')) {
+    return CONCRETO_APARENTE[key] ?? null
+  }
+
   return null
 }
