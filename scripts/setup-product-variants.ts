@@ -35,7 +35,7 @@ function palette7Variants(baseSku: string, family: string): VariantDef[] {
   }))
 }
 
-/** Marmoltex: paleta estándar + Blanco Tiza (SKU alineado con TEXTUCOP Blanco Tiza). */
+/** Marmoltex: paleta estándar + Blanco Tiza. */
 function marmoltexVariants(): VariantDef[] {
   return [
     ...palette7Variants('REV-001', 'Marmoltex'),
@@ -90,7 +90,8 @@ const GROUPS: GroupDef[] = [
     excludeNameIncludes: ['acril'],
     variants: [
       { sku: 'REV-003', name: 'TEXTUCOP - Arena' },
-      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco Tiza' },
+      { sku: 'REV-003-BLZ-TIZ', name: 'TEXTUCOP - Blanco' },
+      { sku: 'REV-003-GRIS', name: 'TEXTUCOP - Gris' },
     ],
   },
   {
@@ -101,8 +102,10 @@ const GROUPS: GroupDef[] = [
   {
     baseSku: 'EST-006',
     matchNameIncludes: ['cuarzotex'],
+    // `EST-006` primero: la fila base del catálogo (id 14) conserva ese SKU (evita P2002 si GRIS-OSC ya existe en otra fila).
+    // Colores del producto: Gris oscuro, Gris plata, Gris, Blanco y Chukum.
     variants: [
-      { sku: 'EST-006', name: 'CUARZOTEX - Gris natural' },
+      { sku: 'EST-006', name: 'CUARZOTEX - Gris' },
       { sku: 'EST-006-GRIS-OSC', name: 'CUARZOTEX - Gris oscuro' },
       { sku: 'EST-006-CHUK', name: 'CUARZOTEX - Chukum' },
     ],

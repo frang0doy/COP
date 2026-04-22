@@ -295,7 +295,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 25 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Gris natural, gris oscuro y chukum.',
+    colores: 'Gris oscuro, gris plata, gris, blanco y chukum.',
     usos:
       'Aplicación sobre revoque fino, placas de cartón yeso, base coat, fibrocemento y yeso con sellado previo.',
     observaciones: 'Nuevo producto.',
@@ -395,7 +395,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     almacenaje: 'Envase original herméticamente cerrado.',
     presentacion: 'Bolsa de 30 kg.',
     conservacion: '6 meses desde la fecha de fabricación.',
-    colores: 'Blanco tiza y arena.',
+    colores: 'Blanco, gris y arena.',
     usos:
       'Aplicación sobre revoque fino, revoque grueso alisado y base coat (con sellado previo).',
   },
