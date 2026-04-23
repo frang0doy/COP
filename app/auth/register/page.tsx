@@ -183,7 +183,7 @@ export default function RegisterPage() {
                 <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
                   <p className="text-sm font-semibold text-gray-900">¿Cómo querés comprar?</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Elegí minorista o solicitá cuenta mayorista (requiere aprobación).
+                    Elegí minorista o mayorista. Los mayoristas ven la lista de precios mayorista (CUIT obligatorio).
                   </p>
 
                   <div className="mt-3 space-y-2">
@@ -216,7 +216,7 @@ export default function RegisterPage() {
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Mayorista</p>
                         <p className="text-xs text-gray-600">
-                          Tu cuenta queda pendiente hasta aprobación.
+                          Accedés al catálogo con precio mayorista donde esté definido.
                         </p>
                       </div>
                     </label>

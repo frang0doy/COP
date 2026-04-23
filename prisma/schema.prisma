@@ -15,6 +15,8 @@ model Product {
   description     String
   category        String
   price           Int
+  /// Lista mayorista (centavos/ARS entero, igual que `price`). Solo se cobra a usuarios mayoristas aprobados.
+  wholesalePrice  Int?
   stock           Int
   image           String?
   isNew           Boolean  @default(false)

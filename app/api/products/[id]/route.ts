@@ -7,6 +7,7 @@ import {
   jsonProductFromCatalogId,
   withPrismaRetry,
 } from '@/lib/product-api-fallback'
+import { shouldExposeWholesalePrice, toPublicProductJson } from '@/lib/public-product'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,8 +28,11 @@ export async function GET(
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
     }
 
+    const showWs = await shouldExposeWholesalePrice()
+    const publicP = toPublicProductJson(product, { includeWholesalePrice: showWs })
+
     return NextResponse.json({
-      ...product,
+      ...publicP,
       image: await resolveProductImage(product.image),
       technicalSummary: getTechnicalSummaryById(product.id) ?? product.technicalSummary,
       technicalSheet: getTechnicalSheetById(product.id) ?? product.technicalSheet,

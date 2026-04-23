@@ -8,6 +8,7 @@ export type ProductCardVariant = {
   id: number
   name: string
   price: number
+  wholesalePrice?: number | null
   stock: number
   variantLabel: string
 }
@@ -24,11 +25,17 @@ export type ProductCardGroup = {
 
 interface ProductCardProps {
   product: ProductCardGroup
+  /** Usuario mayorista aprobado: muestra lista mayorista si está cargada en el producto. */
+  isWholesaleViewer?: boolean
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, isWholesaleViewer }: ProductCardProps) {
   /** Misma fila que el enlace "Ver" (id del grupo): precio base en catálogo, no el de otras variantes. */
-  const listPrice = product.variants[0]?.price ?? 0
+  const v0 = product.variants[0]
+  const listPrice = v0?.price ?? 0
+  const ws = v0?.wholesalePrice
+  const displayPrice =
+    isWholesaleViewer && ws != null && Number.isFinite(ws) ? Math.floor(ws) : listPrice
 
   return (
     <motion.div
@@ -71,7 +78,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="mt-auto">
               <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
-                  ${listPrice.toLocaleString('es-MX')}
+                  ${displayPrice.toLocaleString('es-MX')}
+                  {isWholesaleViewer && ws != null && Number.isFinite(ws) ? (
+                    <span className="ml-1.5 text-[10px] sm:text-xs font-semibold text-gray-500 align-middle">
+                      mayorista
+                    </span>
+                  ) : null}
                 </span>
                 <Link
                   href={`/productos/${product.id}`}

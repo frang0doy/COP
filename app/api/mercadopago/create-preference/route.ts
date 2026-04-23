@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
-import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
+import { getDiscountPercent, getOrderLineUnitCents, isWholesaleListEligible } from '@/lib/pricing'
+import type { MarmoltexFinish } from '@/lib/marmoltex-finish'
+import { resolveOrderLineTitle } from '@/lib/marmoltex-finish'
 import { authOptions } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +34,7 @@ const BodySchema = z.object({
       z.object({
         id: z.coerce.number().int().positive(),
         quantity: z.coerce.number().int().min(1),
+        marmoltexFinish: z.enum(['CON_GRANO', 'SIN_GRANO', 'RODILLO']).optional(),
       })
     )
     .min(1),
@@ -74,6 +77,7 @@ export async function POST(request: NextRequest) {
     const normalizedItems = body.items.map((i) => ({
       id: Number(i.id),
       quantity: Math.max(1, Math.floor(Number(i.quantity))),
+      marmoltexFinish: (i.marmoltexFinish ?? undefined) as MarmoltexFinish | undefined,
     }))
 
     const ids = Array.from(new Set(normalizedItems.map((i) => i.id))).filter((id) =>
@@ -110,7 +114,7 @@ export async function POST(request: NextRequest) {
     // Se calcula siempre con el usuario autenticado.
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, email: true, customerType: true, wholesaleStatus: true, wholesaleTier: true, wholesaleDiscountPercent: true },
+      select: { id: true, email: true, customerType: true, wholesaleStatus: true },
     })
     if (!user) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
@@ -118,6 +122,11 @@ export async function POST(request: NextRequest) {
 
     const userEmail = (user.email ?? session.user.email ?? body.shipping.email).trim().toLowerCase()
     const shipping = { ...body.shipping, email: userEmail, cuit: (body.shipping.cuit ?? '').trim() }
+
+    const qtySumByProductId = new Map<number, number>()
+    for (const i of normalizedItems) {
+      qtySumByProductId.set(i.id, (qtySumByProductId.get(i.id) ?? 0) + i.quantity)
+    }
 
     for (const i of normalizedItems) {
       const product = byId.get(i.id)
@@ -135,8 +144,12 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+    }
 
-      if (i.quantity > availableStock) {
+    for (const [pid, sumQty] of qtySumByProductId) {
+      const product = byId.get(pid)!
+      const availableStock = Math.max(0, product.stock)
+      if (sumQty > availableStock) {
         return NextResponse.json(
           {
             error: `Cantidad inválida para "${product.name}". Stock disponible: ${availableStock}.`,
@@ -144,31 +157,40 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-
-      const retailSubtotal = product.price * i.quantity
-      retailTotal += retailSubtotal
-
-      // se recalcula el descuento cuando ya tenemos retailTotal
     }
-
-    const { percent } = getDiscountPercent({
-      customerType: (user.customerType as any) ?? null,
-      wholesaleStatus: (user.wholesaleStatus as any) ?? null,
-      wholesaleTier: (user.wholesaleTier as any) ?? null,
-      wholesaleDiscountPercent: (user.wholesaleDiscountPercent as any) ?? null,
-      itemsCount,
-      retailTotal,
-    })
 
     for (const i of normalizedItems) {
       const product = byId.get(i.id)!
-      const { discounted: unitPrice } = applyPercentDiscount(product.price, percent)
+      retailTotal += product.price * i.quantity
+    }
+
+    const isWholesalePricing = isWholesaleListEligible({
+      customerType: (user.customerType as any) ?? null,
+      wholesaleStatus: (user.wholesaleStatus as any) ?? null,
+    })
+
+    const { percent } = isWholesalePricing
+      ? { percent: 0 }
+      : getDiscountPercent({ itemsCount, retailTotal })
+
+    for (const i of normalizedItems) {
+      const product = byId.get(i.id)!
+      const unitPrice = getOrderLineUnitCents(
+        { price: product.price, wholesalePrice: product.wholesalePrice },
+        { isWholesaleApproved: isWholesalePricing, retailDiscountPercent: percent }
+      )
       const subtotal = unitPrice * i.quantity
       total += subtotal
 
+      const lineTitle = resolveOrderLineTitle({
+        productName: product.name,
+        sku: product.sku,
+        marmoltexFinish: i.marmoltexFinish ?? null,
+      })
+
       mpItems.push({
-        id: String(product.id),
-        title: product.name,
+        id: `${product.id}-${i.marmoltexFinish ?? 's'}`,
+        title: lineTitle,
         quantity: i.quantity,
         unit_price: unitPrice,
         currency_id: process.env.MP_CURRENCY_ID || 'ARS',
@@ -176,7 +198,7 @@ export async function POST(request: NextRequest) {
 
       orderItemsCreate.push({
         productId: product.id,
-        name: product.name,
+        name: lineTitle,
         unitPrice,
         quantity: i.quantity,
         subtotal,

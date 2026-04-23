@@ -7,7 +7,14 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
-import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
+import {
+  applyPercentDiscount,
+  getCartItemUnitCents,
+  getCartSubtotalCents,
+  getDiscountPercent,
+  isWholesaleListEligible,
+} from '@/lib/pricing'
+import { getCartLineKey } from '@/lib/marmoltex-finish'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, itemsCount } = useCart()
@@ -48,19 +55,21 @@ export default function CartPage() {
     }
   }, [session])
 
+  const isWholesaleApproved = isWholesaleListEligible({
+    customerType: me?.customerType ?? null,
+    wholesaleStatus: me?.wholesaleStatus ?? null,
+  })
+
   const discountInfo = useMemo(() => {
     if (!session) return { percent: 0, discountAmount: 0, finalTotal: total }
-    const { percent } = getDiscountPercent({
-      customerType: me?.customerType ?? null,
-      wholesaleStatus: me?.wholesaleStatus ?? null,
-      wholesaleTier: me?.wholesaleTier ?? null,
-      wholesaleDiscountPercent: me?.wholesaleDiscountPercent ?? null,
-      itemsCount,
-      retailTotal: total,
-    })
+    if (isWholesaleApproved) {
+      const sub = getCartSubtotalCents(items, true)
+      return { percent: 0, discountAmount: 0, finalTotal: sub }
+    }
+    const { percent } = getDiscountPercent({ itemsCount, retailTotal: total })
     const { discounted, discountAmount } = applyPercentDiscount(total, percent)
     return { percent, discountAmount, finalTotal: discounted }
-  }, [session, me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, me?.wholesaleDiscountPercent, itemsCount, total])
+  }, [session, isWholesaleApproved, items, itemsCount, total])
 
   if (items.length === 0) {
     return (
@@ -113,7 +122,7 @@ export default function CartPage() {
           <AnimatePresence>
             {items.map((item, index) => (
               <motion.div
-                key={item.id}
+                key={getCartLineKey(item.id, item.marmoltexFinish ?? null)}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
@@ -147,14 +156,23 @@ export default function CartPage() {
                 <div className="flex-1 w-full sm:w-auto">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
                   <p className="text-black font-bold text-lg sm:text-xl">
-                    ${item.price.toLocaleString('es-MX')}
+                    $
+                    {getCartItemUnitCents(item, isWholesaleApproved).toLocaleString('es-MX')}
+                    {isWholesaleApproved && (item.wholesalePrice ?? null) != null ? (
+                      <span className="ml-2 text-xs font-normal text-gray-500">lista mayorista</span>
+                    ) : null}
                   </p>
                 </div>
 
                 {/* Controles de cantidad */}
                 <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
                   <motion.button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    onClick={() =>
+                      updateQuantity(
+                        getCartLineKey(item.id, item.marmoltexFinish ?? null),
+                        item.quantity - 1
+                      )
+                    }
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition-colors"
@@ -163,7 +181,12 @@ export default function CartPage() {
                   </motion.button>
                   <span className="w-12 text-center font-semibold">{item.quantity}</span>
                   <motion.button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    onClick={() =>
+                      updateQuantity(
+                        getCartLineKey(item.id, item.marmoltexFinish ?? null),
+                        item.quantity + 1
+                      )
+                    }
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition-colors"
@@ -175,10 +198,15 @@ export default function CartPage() {
                 {/* Subtotal */}
                 <div className="text-right">
                   <p className="text-lg font-bold text-gray-900">
-                    ${(item.price * item.quantity).toLocaleString('es-MX')}
+                    $
+                    {(
+                      getCartItemUnitCents(item, isWholesaleApproved) * item.quantity
+                    ).toLocaleString('es-MX')}
                   </p>
                   <motion.button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() =>
+                      removeItem(getCartLineKey(item.id, item.marmoltexFinish ?? null))
+                    }
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="mt-2 text-red-600 hover:text-red-700 flex items-center space-x-1 transition-colors"
@@ -204,12 +232,18 @@ export default function CartPage() {
 
             <div className="space-y-3 mb-6">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
+                <div
+                  key={getCartLineKey(item.id, item.marmoltexFinish ?? null)}
+                  className="flex justify-between text-sm"
+                >
                   <span className="text-gray-600">
                     {item.name} x {item.quantity}
                   </span>
                   <span className="text-gray-900 font-semibold">
-                    ${(item.price * item.quantity).toLocaleString('es-MX')}
+                    $
+                    {(
+                      getCartItemUnitCents(item, isWholesaleApproved) * item.quantity
+                    ).toLocaleString('es-MX')}
                   </span>
                 </div>
               ))}
@@ -219,7 +253,13 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-700">
                   <span>Subtotal</span>
-                  <span className="font-semibold">${total.toLocaleString('es-MX')}</span>
+                  <span className="font-semibold">
+                    $
+                    {(isWholesaleApproved
+                      ? getCartSubtotalCents(items, true)
+                      : total
+                    ).toLocaleString('es-MX')}
+                  </span>
                 </div>
 
                 {session ? (

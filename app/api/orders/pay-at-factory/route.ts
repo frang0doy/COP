@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
+import { getDiscountPercent, getOrderLineUnitCents, isWholesaleListEligible } from '@/lib/pricing'
+import type { MarmoltexFinish } from '@/lib/marmoltex-finish'
+import { resolveOrderLineTitle } from '@/lib/marmoltex-finish'
 
 const ShippingSchema = z
   .object({
@@ -21,6 +23,7 @@ const BodySchema = z.object({
       z.object({
         id: z.number().int(),
         quantity: z.number().int().min(1),
+        marmoltexFinish: z.enum(['CON_GRANO', 'SIN_GRANO', 'RODILLO']).optional(),
       })
     )
     .min(1),
@@ -39,20 +42,26 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { customerType: true, wholesaleStatus: true, wholesaleTier: true, wholesaleDiscountPercent: true, email: true },
+      select: { customerType: true, wholesaleStatus: true, email: true },
     })
 
-    const canPayAtFactory =
-      user?.customerType === 'WHOLESALE' &&
-      user?.wholesaleStatus === 'APPROVED'
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
+    }
 
-    if (!canPayAtFactory) {
-      return NextResponse.json({ error: 'No autorizado para pagar en fábrica' }, { status: 403 })
+    const cuit = (body.shipping.cuit ?? '').trim()
+    if (
+      user.customerType === 'WHOLESALE' &&
+      user.wholesaleStatus === 'APPROVED' &&
+      !cuit
+    ) {
+      return NextResponse.json({ error: 'El CUIT es obligatorio para mayoristas' }, { status: 400 })
     }
 
     const normalizedItems = body.items.map((i) => ({
       id: Number(i.id),
       quantity: Math.max(1, Math.floor(Number(i.quantity))),
+      marmoltexFinish: (i.marmoltexFinish ?? undefined) as MarmoltexFinish | undefined,
     }))
 
     const ids = Array.from(new Set(normalizedItems.map((i) => i.id))).filter((id) =>
@@ -64,7 +73,11 @@ export async function POST(req: NextRequest) {
     })
     const byId = new Map(products.map((p) => [p.id, p]))
 
-    // Validación de stock (sin descontar hasta confirmación)
+    const qtySumByProductId = new Map<number, number>()
+    for (const i of normalizedItems) {
+      qtySumByProductId.set(i.id, (qtySumByProductId.get(i.id) ?? 0) + i.quantity)
+    }
+
     for (const i of normalizedItems) {
       const product = byId.get(i.id)
       if (!product) {
@@ -74,7 +87,12 @@ export async function POST(req: NextRequest) {
       if (availableStock <= 0) {
         return NextResponse.json({ error: `Sin stock para "${product.name}"` }, { status: 400 })
       }
-      if (i.quantity > availableStock) {
+    }
+
+    for (const [pid, sumQty] of qtySumByProductId) {
+      const product = byId.get(pid)!
+      const availableStock = Math.max(0, product.stock)
+      if (sumQty > availableStock) {
         return NextResponse.json(
           { error: `Cantidad inválida para "${product.name}". Stock disponible: ${availableStock}.` },
           { status: 400 }
@@ -88,14 +106,14 @@ export async function POST(req: NextRequest) {
     }, 0)
     const itemsCount = normalizedItems.reduce((sum, i) => sum + i.quantity, 0)
 
-    const { percent } = getDiscountPercent({
-      customerType: user?.customerType as any,
-      wholesaleStatus: user?.wholesaleStatus as any,
-      wholesaleTier: user?.wholesaleTier as any,
-      wholesaleDiscountPercent: (user as any)?.wholesaleDiscountPercent ?? null,
-      itemsCount,
-      retailTotal,
+    const isWholesalePricing = isWholesaleListEligible({
+      customerType: user.customerType as any,
+      wholesaleStatus: user.wholesaleStatus as any,
     })
+
+    const { percent } = isWholesalePricing
+      ? { percent: 0 }
+      : getDiscountPercent({ itemsCount, retailTotal })
 
     const orderItemsCreate: Array<{
       productId: number
@@ -108,12 +126,21 @@ export async function POST(req: NextRequest) {
     let total = 0
     for (const i of normalizedItems) {
       const product = byId.get(i.id)!
-      const { discounted: unitPrice } = applyPercentDiscount(product.price, percent)
+      const unitPrice = getOrderLineUnitCents(
+        { price: product.price, wholesalePrice: product.wholesalePrice },
+        { isWholesaleApproved: isWholesalePricing, retailDiscountPercent: percent }
+      )
       const subtotal = unitPrice * i.quantity
       total += subtotal
+      const lineTitle = resolveOrderLineTitle({
+        productName: product.name,
+        sku: product.sku,
+        marmoltexFinish: i.marmoltexFinish ?? null,
+      })
+
       orderItemsCreate.push({
         productId: product.id,
-        name: product.name,
+        name: lineTitle,
         unitPrice,
         quantity: i.quantity,
         subtotal,
@@ -122,7 +149,7 @@ export async function POST(req: NextRequest) {
 
     const discountAmount = Math.max(0, retailTotal - total)
 
-    const userEmail = (user?.email ?? session.user.email ?? body.shipping.email).trim().toLowerCase()
+    const userEmail = (user.email ?? session.user.email ?? body.shipping.email).trim().toLowerCase()
     const shipping = { ...body.shipping, email: userEmail, cuit: (body.shipping.cuit ?? '').trim() }
 
     const order = await prisma.order.create({

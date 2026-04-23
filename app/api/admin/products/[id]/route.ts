@@ -35,6 +35,7 @@ const UpdateSchema = z.object({
   description: z.string().min(1).max(5000).optional(),
   category: z.string().min(1).max(200).optional(),
   price: z.number().int().nonnegative().optional(),
+  wholesalePrice: z.union([z.number().int().nonnegative(), z.null()]).optional(),
   stock: z.number().int().nonnegative().optional(),
   image: z.string().max(500).optional().nullable(),
   isNew: z.boolean().optional(),
@@ -66,6 +67,8 @@ export async function PATCH(
         description: data.description?.trim(),
         category: data.category?.trim(),
         price: data.price,
+        wholesalePrice:
+          data.wholesalePrice === undefined ? undefined : data.wholesalePrice,
         stock: data.stock,
         image: data.image ?? undefined,
         isNew: typeof data.isNew === 'boolean' ? data.isNew : undefined,

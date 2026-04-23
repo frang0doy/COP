@@ -308,9 +308,10 @@ async function syncVariants(prisma: any) {
   }
 
   // Desactivar SKUs que ya no deben existir como variantes
+  // (EST-006-ARENA / EST-006-GRIS-PLATA se dieron de baja por DB; no van acá)
   await prisma.product.updateMany({
     where: {
-      sku: { in: ['REV-004-PAR', 'EST-006-ARENA', 'EST-004-GRIS', 'EST-004-GRIS-OSC'] },
+      sku: { in: ['REV-004-PAR', 'EST-004-GRIS', 'EST-004-GRIS-OSC'] },
     },
     data: { isActive: false },
   })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import ProductCard from './ProductCard'
 import { ChevronDown, Search, X } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -199,6 +200,9 @@ function toProductGroups(products: ProductDerived[]): ProductGroup[] {
 }
 
 export default function ProductsList() {
+  const { data: session } = useSession()
+  const [isWholesaleViewer, setIsWholesaleViewer] = useState(false)
+
   const [products, setProducts] = useState<ProductGroup[]>([])
   const totalProducts = products.length
   const [filteredProducts, setFilteredProducts] = useState<ProductGroup[]>([])
@@ -209,6 +213,26 @@ export default function ProductsList() {
   const applyButtonRef = useRef<HTMLButtonElement | null>(null)
   const applyPanelRef = useRef<HTMLDivElement | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!session?.user) {
+      setIsWholesaleViewer(false)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (cancelled) return
+      const u = data?.user
+      setIsWholesaleViewer(
+        Boolean(u?.customerType === 'WHOLESALE' && u?.wholesaleStatus === 'APPROVED')
+      )
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session])
 
   useEffect(() => {
     let cancelled = false
@@ -244,7 +268,7 @@ export default function ProductsList() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [session])
 
   useEffect(() => {
     let filtered = products
@@ -567,7 +591,7 @@ export default function ProductsList() {
                     }}
                     layout
                   >
-                    <ProductCard product={product} />
+                    <ProductCard product={product} isWholesaleViewer={isWholesaleViewer} />
                   </motion.div>
                 ))}
               </motion.div>

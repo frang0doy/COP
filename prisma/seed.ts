@@ -44,37 +44,6 @@ async function main() {
     })
   }
 
-  console.log('Seedeando CUITs mayoristas históricos...')
-  const historicalCuists: Array<{ cuit: string; discountPercent: number }> = [
-    // Nota: en la imagen hay 2 filas con CUIT pero sin descuento visible.
-    // Para no cargar datos incorrectos, esas filas NO se insertan acá.
-    { cuit: '30718555996', discountPercent: 20 },
-    { cuit: '20312254337', discountPercent: 10 },
-    { cuit: '20264536627', discountPercent: 10 },
-    { cuit: '30717332497', discountPercent: 20 },
-    { cuit: '30718903838', discountPercent: 10 },
-    { cuit: '30714199664', discountPercent: 20 },
-    { cuit: '27256107231', discountPercent: 10 },
-    { cuit: '20176757869', discountPercent: 20 },
-    { cuit: '30716042428', discountPercent: 20 },
-    { cuit: '30717584887', discountPercent: 5 },
-    { cuit: '30708805803', discountPercent: 25 },
-    { cuit: '33717534579', discountPercent: 15 },
-    { cuit: '30716232774', discountPercent: 25 },
-    { cuit: '27368493614', discountPercent: 30 },
-  ]
-
-  for (const h of historicalCuists) {
-    const cuit = String(h.cuit || '').replace(/\D+/g, '').trim()
-    if (!cuit) continue
-    const discountPercent = Math.min(100, Math.max(0, Math.floor(Number(h.discountPercent))))
-    await prisma.wholesaleHistoricalCuit.upsert({
-      where: { cuit },
-      update: { discountPercent },
-      create: { cuit, discountPercent },
-    })
-  }
-
   console.log('Seed terminado.')
 }
 

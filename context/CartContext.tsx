@@ -4,6 +4,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import toast from 'react-hot-toast'
 import { ShoppingCart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import type { MarmoltexFinish } from '@/lib/marmoltex-finish'
+import { getCartLineKey, parseMarmoltexFinish } from '@/lib/marmoltex-finish'
 
 // Sin límite fijo por producto: se limita por stock disponible.
 
@@ -11,6 +13,10 @@ export interface CartItem {
   id: number
   name: string
   price: number
+  /** Lista mayorista (si el usuario puede verla en el catálogo). */
+  wholesalePrice?: number | null
+  /** Solo Marmoltex: misma variante de color con distinto acabado = otra línea de carrito. */
+  marmoltexFinish?: MarmoltexFinish | null
   quantity: number
   image?: string
   stock: number
@@ -19,8 +25,8 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[]
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
-  removeItem: (id: number) => void
-  updateQuantity: (id: number, quantity: number) => void
+  removeItem: (lineKey: string) => void
+  updateQuantity: (lineKey: string, quantity: number) => void
   clearCart: (options?: { silent?: boolean }) => void
   itemsCount: number
   total: number
@@ -114,7 +120,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
               .map((i) => {
                 const maxAllowed = Math.max(0, i.stock ?? 0)
                 const qty = Math.max(1, Math.floor(i.quantity ?? 1))
-                return { ...i, quantity: Math.min(qty, maxAllowed || 1) }
+                const wp =
+                  (i as CartItem).wholesalePrice != null && Number.isFinite((i as CartItem).wholesalePrice ?? NaN)
+                    ? Math.floor(Number((i as CartItem).wholesalePrice))
+                    : null
+                const mf = parseMarmoltexFinish((i as CartItem).marmoltexFinish) ?? null
+                return {
+                  ...i,
+                  quantity: Math.min(qty, maxAllowed || 1),
+                  wholesalePrice: wp,
+                  marmoltexFinish: mf,
+                }
               })
           : []
 
@@ -134,7 +150,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const qty = Math.max(1, Math.floor(quantity))
 
     setItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id)
+      const newKey = getCartLineKey(item.id, item.marmoltexFinish ?? null)
+      const existingItem = prevItems.find(
+        (i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) === newKey
+      )
       const maxAllowed = Math.max(0, item.stock ?? 0)
 
       if (maxAllowed <= 0) {
@@ -142,7 +161,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           intent: 'danger',
           title: 'Sin stock',
           description: item.name,
-          toastId: `cart-stock-0-${item.id}`,
+          toastId: `cart-stock-0-${newKey}`,
         })
         return prevItems
       }
@@ -157,7 +176,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             intent: 'danger',
             title: `Stock insuficiente (disponible: ${maxAllowed})`,
             description: item.name,
-            toastId: `cart-max-${item.id}`,
+            toastId: `cart-max-${newKey}`,
           })
           return prevItems
         }
@@ -166,10 +185,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           intent: 'success',
           title: 'Cantidad actualizada en el carrito',
           description: `${item.name} (+${delta})`,
-          toastId: `cart-add-${item.id}`,
+          toastId: `cart-add-${newKey}`,
         })
         return prevItems.map((i) =>
-          i.id === item.id
+          getCartLineKey(i.id, i.marmoltexFinish ?? null) === newKey
             ? { ...i, ...item, quantity: nextQty }
             : i
         )
@@ -179,41 +198,41 @@ export function CartProvider({ children }: { children: ReactNode }) {
           intent: 'success',
           title: 'Producto agregado al carrito',
           description: `${firstQty} × ${item.name}`,
-          toastId: `cart-add-${item.id}`,
+          toastId: `cart-add-${newKey}`,
         })
-        return [...prevItems, { ...item, quantity: firstQty }]
+        return [...prevItems, { ...item, quantity: firstQty } as CartItem]
       }
     })
   }
 
-  const removeItem = (id: number) => {
+  const removeItem = (lineKey: string) => {
     setItems((prevItems) => {
-      const removed = prevItems.find((i) => i.id === id)
+      const removed = prevItems.find((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) === lineKey)
       if (removed) {
         showCartToast({
           intent: 'danger',
           title: 'Producto eliminado del carrito',
           description: removed.name,
-          toastId: `cart-remove-${removed.id}`,
+          toastId: `cart-remove-${lineKey}`,
         })
       }
-      return prevItems.filter((i) => i.id !== id)
+      return prevItems.filter((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) !== lineKey)
     })
   }
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (lineKey: string, quantity: number) => {
     if (quantity < 1) {
-      removeItem(id)
+      removeItem(lineKey)
       return
     }
 
     setItems((prevItems) => {
-      const item = prevItems.find((i) => i.id === id)
+      const item = prevItems.find((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) === lineKey)
       if (!item) return prevItems
 
       const maxAllowed = Math.max(0, item.stock ?? 0)
       if (maxAllowed <= 0) {
-        return prevItems.filter((i) => i.id !== id)
+        return prevItems.filter((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) !== lineKey)
       }
 
       const nextQty = Math.min(Math.floor(quantity), maxAllowed)
@@ -222,7 +241,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       return prevItems.map((i) =>
-        i.id === id ? { ...i, quantity: nextQty } : i
+        getCartLineKey(i.id, i.marmoltexFinish ?? null) === lineKey ? { ...i, quantity: nextQty } : i
       )
     })
   }

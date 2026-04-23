@@ -5,7 +5,14 @@ import { useCart } from '@/context/CartContext'
 import { useSession } from 'next-auth/react'
 import { CreditCard } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { applyPercentDiscount, getDiscountPercent } from '@/lib/pricing'
+import {
+  applyPercentDiscount,
+  getCartItemUnitCents,
+  getCartSubtotalCents,
+  getDiscountPercent,
+  isWholesaleListEligible,
+} from '@/lib/pricing'
+import { getCartLineKey } from '@/lib/marmoltex-finish'
 
 type Me = {
   id: string
@@ -50,22 +57,23 @@ export default function CheckoutForm() {
     [items]
   )
 
+  const isWholesaleApproved = isWholesaleListEligible({
+    customerType: me?.customerType ?? null,
+    wholesaleStatus: me?.wholesaleStatus ?? null,
+  })
+
   const discountInfo = useMemo(() => {
-    const { percent } = getDiscountPercent({
-      customerType: me?.customerType ?? null,
-      wholesaleStatus: me?.wholesaleStatus ?? null,
-      wholesaleTier: me?.wholesaleTier ?? null,
-      wholesaleDiscountPercent: me?.wholesaleDiscountPercent ?? null,
-      itemsCount,
-      retailTotal: total,
-    })
+    if (isWholesaleApproved) {
+      const sub = getCartSubtotalCents(items, true)
+      return { percent: 0, discountedTotal: sub, discountAmount: 0 }
+    }
+    const { percent } = getDiscountPercent({ itemsCount, retailTotal: total })
     const { discounted, discountAmount } = applyPercentDiscount(total, percent)
     return { percent, discountedTotal: discounted, discountAmount }
-  }, [me?.customerType, me?.wholesaleStatus, me?.wholesaleTier, me?.wholesaleDiscountPercent, itemsCount, total])
+  }, [isWholesaleApproved, items, itemsCount, total])
 
-  const canPayAtFactory =
-    me?.customerType === 'WHOLESALE' &&
-    me?.wholesaleStatus === 'APPROVED'
+  /** Cualquier usuario autenticado (el checkout ya exige sesión). */
+  const canPayAtFactory = Boolean(session?.user)
 
   const hasSavedShipping = useMemo(() => {
     if (!me) return false
@@ -154,6 +162,7 @@ export default function CheckoutForm() {
           items: items.map((item) => ({
             id: item.id,
             quantity: item.quantity,
+            ...(item.marmoltexFinish ? { marmoltexFinish: item.marmoltexFinish } : {}),
           })),
           shipping: shippingData,
         }),
@@ -201,8 +210,7 @@ export default function CheckoutForm() {
         toast.error('Completá tu teléfono.')
         return
       }
-      // Pagar en fábrica solo aplica a mayoristas aprobados; pedimos CUIT también.
-      if (!cuit) {
+      if (me?.customerType === 'WHOLESALE' && !cuit) {
         toast.error('Completá tu CUIT.')
         return
       }
@@ -213,7 +221,11 @@ export default function CheckoutForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+          items: items.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            ...(item.marmoltexFinish ? { marmoltexFinish: item.marmoltexFinish } : {}),
+          })),
           shipping: shippingData,
         }),
       })
@@ -436,12 +448,18 @@ export default function CheckoutForm() {
 
           <div className="space-y-3 mb-6">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
+              <div
+                key={getCartLineKey(item.id, item.marmoltexFinish ?? null)}
+                className="flex justify-between text-sm"
+              >
                 <span className="text-gray-600">
                   {item.name} x {item.quantity}
                 </span>
                 <span className="text-gray-900 font-semibold">
-                  ${(item.price * item.quantity).toLocaleString('es-MX')}
+                  $
+                  {(getCartItemUnitCents(item, isWholesaleApproved) * item.quantity).toLocaleString(
+                    'es-MX'
+                  )}
                 </span>
               </div>
             ))}
@@ -451,7 +469,13 @@ export default function CheckoutForm() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-gray-700">
                 <span>Subtotal</span>
-                <span className="font-semibold">${total.toLocaleString('es-MX')}</span>
+                <span className="font-semibold">
+                  $
+                  {(isWholesaleApproved
+                    ? getCartSubtotalCents(items, true)
+                    : total
+                  ).toLocaleString('es-MX')}
+                </span>
               </div>
               {discountInfo.percent > 0 ? (
                 <div className="flex justify-between text-sm text-gray-700">
@@ -480,8 +504,8 @@ export default function CheckoutForm() {
           {canPayAtFactory ? (
             <div className="p-3 bg-gray-50 rounded-lg mt-3 border border-gray-200">
               <p className="text-xs text-gray-800">
-                <strong>Mayorista:</strong> también podés elegir “Pagar en fábrica / otros medios”. El pedido queda
-                pendiente hasta confirmación de COP y la coordinación por WhatsApp es obligatoria.
+                También podés elegir “Pagar en fábrica / otros medios”. El pedido queda pendiente hasta confirmación de
+                COP y la coordinación por WhatsApp es obligatoria.
               </p>
             </div>
           ) : null}

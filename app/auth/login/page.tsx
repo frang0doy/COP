@@ -158,7 +158,7 @@ function LoginForm() {
               <div className="h-1 w-12 bg-orange-500/70 rounded-full mb-4" />
               <h3 className="text-lg font-bold text-white">¿Cómo querés comprar?</h3>
               <p className="text-sm text-gray-300 mt-2">
-                Elegí minorista o solicitá cuenta mayorista (requiere aprobación).
+                Elegí minorista o mayorista. Los mayoristas ven precios mayoristas donde estén cargados.
               </p>
 
               <div className="mt-4 space-y-2">
@@ -191,7 +191,7 @@ function LoginForm() {
                   <div>
                     <p className="text-sm font-semibold text-white">Mayorista</p>
                     <p className="text-xs text-gray-300">
-                      Tu cuenta queda pendiente hasta aprobación.
+                      Usás la lista mayorista (CUIT obligatorio).
                     </p>
                   </div>
                 </label>

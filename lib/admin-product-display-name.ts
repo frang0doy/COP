@@ -8,7 +8,6 @@ const ADMIN_DISPLAY_NAME_OVERRIDE_BY_SKU: Record<string, string> = {
   'REV-003-BLZ-TIZ': 'Textucop Blanco',
   'REV-003-GRIS': 'Textucop Gris',
   'EST-006-GRIS-OSC': 'Cuarzotex Gris oscuro',
-  'EST-006-GRIS-PLATA': 'Cuarzotex Gris plata',
   'EST-006': 'Cuarzotex Gris',
   'EST-006-BLANCO': 'Cuarzotex Blanco',
   'EST-006-CHUK': 'Cuarzotex Chukum',

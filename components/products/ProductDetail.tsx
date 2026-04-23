@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { useCart } from '@/context/CartContext'
 import {
   ShoppingCart,
@@ -19,12 +20,23 @@ import type { Product } from '@prisma/client'
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
 import { detectGroupBaseName, detectVariantLabel, normText } from './variantGrouping'
 import { getColorSamplePath } from './productColorSamples'
+import {
+  isMarmoltexGroupBaseName,
+  MARMOLTEX_FINISH_OPTIONS,
+  marmoltexCartName,
+  type MarmoltexFinish,
+} from '@/lib/marmoltex-finish'
 
 interface ProductDetailProps {
   productId: string
 }
 
 export default function ProductDetail({ productId }: ProductDetailProps) {
+  const { data: session } = useSession()
+  const [me, setMe] = useState<{
+    customerType?: 'RETAIL' | 'WHOLESALE' | null
+    wholesaleStatus?: 'PENDING' | 'APPROVED' | null
+  } | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
   const [variants, setVariants] = useState<Product[]>([])
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
@@ -34,6 +46,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   /** Solo aplica si hay foto de producto y muestra de color. */
   const [galleryMode, setGalleryMode] = useState<'product' | 'color'>('product')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [marmoltexFinish, setMarmoltexFinish] = useState<MarmoltexFinish>('CON_GRANO')
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -68,10 +81,35 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     return () => {
       cancelled = true
     }
-  }, [productId])
+  }, [productId, session])
+
+  useEffect(() => {
+    if (!session?.user) {
+      setMe(null)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/me', { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (cancelled) return
+      if (res.ok) {
+        setMe({
+          customerType: data?.user?.customerType ?? null,
+          wholesaleStatus: data?.user?.wholesaleStatus ?? null,
+        })
+      } else {
+        setMe(null)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session])
 
   useEffect(() => {
     setQuantity(1)
+    setMarmoltexFinish('CON_GRANO')
   }, [selectedVariantId])
 
   useEffect(() => {
@@ -117,11 +155,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   const handleAddToCart = () => {
     if (maxAllowed <= 0) return
+    const wp = (selectedProduct as Product & { wholesalePrice?: number | null }).wholesalePrice
+    const groupBase = detectGroupBaseName(selectedProduct.name)
+    const isMarmoltex = isMarmoltexGroupBaseName(groupBase)
     addItem(
       {
-        id: product.id,
-        name: selectedProduct.name,
+        id: selectedProduct.id,
+        name: isMarmoltex
+          ? marmoltexCartName(selectedProduct.name, marmoltexFinish)
+          : selectedProduct.name,
         price: selectedProduct.price,
+        wholesalePrice: wp ?? null,
+        marmoltexFinish: isMarmoltex ? marmoltexFinish : null,
         image: selectedProduct.image ?? undefined,
         stock: selectedProduct.stock,
       },
@@ -159,6 +204,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   }
 
   const groupBase = detectGroupBaseName(selectedProduct.name)
+  const showMarmoltexFinish = isMarmoltexGroupBaseName(groupBase)
   const variantLabelForGallery = detectVariantLabel(selectedProduct.name, groupBase)
   const colorSampleSrc = groupBase ? getColorSamplePath(groupBase, variantLabelForGallery) : null
   const productImageSrc = selectedProduct.image ?? ''
@@ -346,9 +392,31 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               </div>
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-black mb-4 sm:mb-6">
-            ${selectedProduct.price.toLocaleString('es-MX')}
-          </p>
+          {(() => {
+            const ws = (selectedProduct as Product & { wholesalePrice?: number | null }).wholesalePrice
+            const isWsUser =
+              me?.customerType === 'WHOLESALE' && me?.wholesaleStatus === 'APPROVED'
+            const showWs = isWsUser && ws != null && Number.isFinite(ws)
+            return (
+              <div className="mb-4 sm:mb-6">
+                {showWs ? (
+                  <>
+                    <p className="text-xl sm:text-2xl font-bold text-black">
+                      ${Math.floor(ws!).toLocaleString('es-MX')}{' '}
+                      <span className="text-sm font-semibold text-gray-600">lista mayorista</span>
+                    </p>
+                    <p className="text-sm text-gray-500 line-through">
+                      ${selectedProduct.price.toLocaleString('es-MX')} lista público
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold text-black">
+                    ${selectedProduct.price.toLocaleString('es-MX')}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
 
           {variants.length > 1 ? (
             <div className="mb-5">
@@ -361,6 +429,30 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 {variants.map((variant) => (
                   <option key={variant.id} value={variant.id}>
                     {detectVariantLabel(variant.name, detectGroupBaseName(variant.name))}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {showMarmoltexFinish ? (
+            <div className="mb-5">
+              <label
+                htmlFor="marmoltex-finish"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Presentación / aplicación
+              </label>
+              <select
+                id="marmoltex-finish"
+                aria-label="Presentación Marmoltex"
+                value={marmoltexFinish}
+                onChange={(e) => setMarmoltexFinish(e.target.value as MarmoltexFinish)}
+                className="w-full sm:max-w-sm px-3 py-2 border border-gray-200 bg-white focus:border-black transition-colors"
+              >
+                {MARMOLTEX_FINISH_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
                   </option>
                 ))}
               </select>

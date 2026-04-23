@@ -38,24 +38,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'El CUIT es obligatorio para mayoristas' }, { status: 400 })
     }
 
-    let wholesaleTier: 'NEW' | 'HISTORICAL' | null = null
-    let wholesaleDiscountPercent: number | null = null
-    const wholesaleStatus = customerType === 'WHOLESALE' ? ('APPROVED' as const) : null
-
-    if (customerType === 'WHOLESALE') {
-      const historical = await prisma.wholesaleHistoricalCuit.findUnique({
-        where: { cuit },
-        select: { discountPercent: true },
-      })
-      if (historical) {
-        wholesaleTier = 'HISTORICAL'
-        wholesaleDiscountPercent = historical.discountPercent
-      } else {
-        wholesaleTier = 'NEW'
-        wholesaleDiscountPercent = 10
-      }
-    }
-
     const user = await prisma.user.create({
       data: {
         email,
@@ -64,9 +46,9 @@ export async function POST(req: NextRequest) {
         customerType: customerType as any,
         ...(customerType === 'WHOLESALE'
           ? {
-              wholesaleStatus: wholesaleStatus as any,
-              wholesaleTier: wholesaleTier as any,
-              wholesaleDiscountPercent,
+              wholesaleStatus: 'APPROVED' as any,
+              wholesaleTier: null,
+              wholesaleDiscountPercent: null,
               cuit,
             }
           : {}),

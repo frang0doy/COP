@@ -7,6 +7,7 @@ import {
   jsonProductListFromCatalog,
   withPrismaRetry,
 } from '@/lib/product-api-fallback'
+import { shouldExposeWholesalePrice, toPublicProductJson } from '@/lib/public-product'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,13 +20,18 @@ export async function GET() {
       })
     )
 
+    const showWs = await shouldExposeWholesalePrice()
+
     const withResolvedImages = await Promise.all(
-      products.map(async (p) => ({
-        ...p,
-        image: await resolveProductImage(p.image),
-        technicalSummary: getTechnicalSummaryById(p.id) ?? p.technicalSummary,
-        technicalSheet: getTechnicalSheetById(p.id) ?? p.technicalSheet,
-      }))
+      products.map(async (p) => {
+        const base = toPublicProductJson(p, { includeWholesalePrice: showWs })
+        return {
+          ...base,
+          image: await resolveProductImage(p.image),
+          technicalSummary: getTechnicalSummaryById(p.id) ?? p.technicalSummary,
+          technicalSheet: getTechnicalSheetById(p.id) ?? p.technicalSheet,
+        }
+      })
     )
 
     return NextResponse.json(withResolvedImages)

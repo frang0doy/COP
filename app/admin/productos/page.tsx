@@ -14,12 +14,13 @@ type Product = {
   name: string
   category: string
   price: number
+  wholesalePrice?: number | null
   stock: number
   isNew?: boolean | null
   isActive?: boolean | null
 }
 
-type SortKey = 'id' | 'sku' | 'name' | 'category' | 'price' | 'stock' | 'isActive'
+type SortKey = 'id' | 'sku' | 'name' | 'category' | 'price' | 'wholesalePrice' | 'stock' | 'isActive'
 
 function downloadCsv(filename: string, rows: Array<Record<string, any>>) {
   const headers = Object.keys(rows[0] || {})
@@ -306,6 +307,7 @@ export default function AdminProductosPage() {
                       <option value="name">Nombre</option>
                       <option value="category">Categoría</option>
                       <option value="price">Precio</option>
+                      <option value="wholesalePrice">Precio mayorista</option>
                       <option value="stock">Stock</option>
                       <option value="isActive">Activo</option>
                     </select>
@@ -332,6 +334,7 @@ export default function AdminProductosPage() {
                           name: getAdminProductDisplayName(p),
                           category: p.category,
                           price: p.price,
+                          wholesalePrice: p.wholesalePrice ?? '',
                           stock: p.stock,
                           isActive: (p.isActive ?? true) ? '1' : '0',
                           isNew: p.isNew ? '1' : '0',
@@ -375,6 +378,9 @@ export default function AdminProductosPage() {
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Nombre</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Categoría</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Precio</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">
+                        Mayorista
+                      </th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Stock</th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase text-right">Acciones</th>
                     </tr>
@@ -441,18 +447,31 @@ function AdminRow({
   onSave: (id: number, patch: Partial<Product>) => Promise<void>
 }) {
   const [price, setPrice] = useState(String(product.price))
+  const [wholesalePrice, setWholesalePrice] = useState(
+    product.wholesalePrice != null ? String(product.wholesalePrice) : ''
+  )
   const [stock, setStock] = useState(String(product.stock))
   const [isActive, setIsActive] = useState(Boolean(product.isActive ?? true))
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setPrice(String(product.price))
+    setWholesalePrice(product.wholesalePrice != null ? String(product.wholesalePrice) : '')
     setStock(String(product.stock))
     setIsActive(Boolean(product.isActive ?? true))
-  }, [product.price, product.stock, product.isActive])
+  }, [product.price, product.wholesalePrice, product.stock, product.isActive])
 
+  const parsedWs = (() => {
+    const t = wholesalePrice.trim()
+    if (t === '') return { n: null as number | null, invalid: false }
+    const v = Number(t)
+    if (!Number.isFinite(v) || v < 0) return { n: null as number | null, invalid: true }
+    return { n: Math.floor(v), invalid: false }
+  })()
   const dirty =
     Number(price) !== product.price ||
+    parsedWs.invalid ||
+    parsedWs.n !== (product.wholesalePrice ?? null) ||
     Number(stock) !== product.stock ||
     Boolean(product.isActive ?? true) !== isActive
 
@@ -480,6 +499,16 @@ function AdminRow({
           onChange={(e) => setPrice(e.target.value)}
           className="w-28 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
           inputMode="numeric"
+        />
+      </td>
+      <td className="py-3 px-4">
+        <input
+          value={wholesalePrice}
+          onChange={(e) => setWholesalePrice(e.target.value)}
+          placeholder="—"
+          className="w-28 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+          inputMode="numeric"
+          title="Precio mayorista (vacío = usar lista pública para mayoristas)"
         />
       </td>
       <td className="py-3 px-4">
@@ -519,7 +548,17 @@ function AdminRow({
             onClick={async () => {
               try {
                 setSaving(true)
-                await onSave(product.id, { price: Number(price), stock: Number(stock), isActive })
+                const ws = wholesalePrice.trim() === '' ? null : Math.floor(Number(wholesalePrice))
+                if (wholesalePrice.trim() !== '' && (!Number.isFinite(ws) || (ws as number) < 0)) {
+                  toast.error('Precio mayorista inválido')
+                  return
+                }
+                await onSave(product.id, {
+                  price: Number(price),
+                  wholesalePrice: wholesalePrice.trim() === '' ? null : (ws as number),
+                  stock: Number(stock),
+                  isActive,
+                })
                 toast.success('Guardado')
               } catch (e: any) {
                 toast.error(e?.message ?? 'Error al guardar')
