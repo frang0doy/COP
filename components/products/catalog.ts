@@ -108,10 +108,14 @@ export interface Product {
   category: CategoryKey
   stock: number
   image?: string
+  /** Fotos adicionales solo en ficha (la portada sigue siendo `image`). */
+  galleryImages?: string[]
   sku: string
   technicalSheet?: string
   technicalSummary?: TechnicalSummary
   isNew?: boolean
+  /** Si es true, en la ficha no se muestra el párrafo largo bajo el precio (queda en infografía). */
+  hideDetailDescription?: boolean
 }
 
 export type TechnicalSummary = {
@@ -122,6 +126,8 @@ export type TechnicalSummary = {
   colores?: string
   usos?: string
   observaciones?: string
+  /** Texto de producto/composición en infografía (sin repetir presentación ni usos). */
+  caracteristicas?: string
 }
 
 /** Excepciones puntuales (nombre de ficha ≠ derivado de imagen). Vacío si los PDF siguen el mismo criterio que las fotos. */
@@ -130,6 +136,7 @@ const TECH_SHEET_OVERRIDES_BY_ID: Record<number, string> = {}
 /** Sin ficha en repo (no hay PDF para este producto). */
 const TECH_SHEET_MISSING_BY_ID = new Set<number>([
   6, // PEGACOP Acrílico (aún no hay PDF)
+  43, // Malla fibra de vidrio
 ])
 
 
@@ -367,6 +374,14 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     colores: 'Blanco o gris.',
     usos:
       'Mortero para alisar y nivelar superficies, preparando la base para pintura (con sellado previo).',
+    observaciones: 'Nuevo producto.',
+  },
+  43: {
+    presentacion: 'Malla 90 g/m².',
+    caracteristicas:
+      'Tejido elástico y antideslizante, con recubrimiento de resina álcali-resistente. Contribuye a prevenir microfisuras en diversas superficies.',
+    usos:
+      'Refuerzo de micropiso, revoque fino y sistemas EIFS; reduce fisuras y grietas en soportes tratados.',
     observaciones: 'Nuevo producto.',
   },
 
@@ -1012,6 +1027,19 @@ const RAW_PRODUCTS: Product[] = [
     // Usamos el catálogo PDF como “ficha” por defecto (podemos reemplazarlo por una ficha propia cuando la tengas).
     technicalSheet: '/documents/fichas-tecnicas/catalogoCOP.pdf',
   },
+  {
+    id: 43,
+    name: 'Malla Fibra de Vidrio',
+    description: 'Malla de fibra de vidrio 90 g/m² para refuerzo de revestimientos.',
+    price: 1200,
+    category: 'revoques',
+    stock: 40,
+    sku: 'MAL-001',
+    isNew: true,
+    hideDetailDescription: true,
+    image: '/Foto-productos/fibra-de-vidrio-2.jpeg',
+    galleryImages: ['/Foto-productos/fibra-de-vidrio-1.jpeg'],
+  },
 ]
 
 export const PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({
@@ -1027,6 +1055,15 @@ export function getTechnicalSummaryById(id: number): TechnicalSummary | undefine
 /** Ficha técnica según el catálogo en código (PDF); la DB puede quedar desactualizada tras cambios de fichas. */
 export function getTechnicalSheetById(id: number): string | undefined {
   return PRODUCTS.find((p) => p.id === id)?.technicalSheet
+}
+
+/** Rutas públicas de fotos extra (ficha); la portada del catálogo es `image` en catálogo/BD. */
+export function getGalleryImagePathsById(id: number): string[] {
+  return PRODUCTS.find((p) => p.id === id)?.galleryImages ?? []
+}
+
+export function productHidesDetailDescription(id: number): boolean {
+  return Boolean(PRODUCTS.find((p) => p.id === id)?.hideDetailDescription)
 }
 
 

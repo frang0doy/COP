@@ -79,11 +79,6 @@ export default function ProductCard({ product, isWholesaleViewer }: ProductCardP
               <div className="flex items-center justify-between gap-3 mt-3">
                 <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
                   ${displayPrice.toLocaleString('es-MX')}
-                  {isWholesaleViewer && ws != null && Number.isFinite(ws) ? (
-                    <span className="ml-1.5 text-[10px] sm:text-xs font-semibold text-gray-500 align-middle">
-                      mayorista
-                    </span>
-                  ) : null}
                 </span>
                 <Link
                   href={`/productos/${product.id}`}

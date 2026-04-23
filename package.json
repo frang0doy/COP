@@ -16,7 +16,7 @@
     "prisma:migrate": "prisma migrate dev",
     "db:push": "node scripts/prisma-with-env.cjs db push",
     "prisma:studio": "prisma studio",
-    "db:seed": "prisma db seed",
+    "db:seed": "node scripts/prisma-with-env.cjs db seed",
     "import:products": "tsx scripts/import-products.ts",
     "setup:variants": "tsx scripts/setup-product-variants.ts",
     "delete:products": "tsx scripts/delete-obsolete-products.ts"

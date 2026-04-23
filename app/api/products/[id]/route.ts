@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { resolveProductImage } from '../image-utils'
-import { getTechnicalSheetById, getTechnicalSummaryById } from '@/components/products/catalog'
+import {
+  getGalleryImagePathsById,
+  getTechnicalSheetById,
+  getTechnicalSummaryById,
+} from '@/components/products/catalog'
 import {
   isPrismaConnectionError,
   jsonProductFromCatalogId,
@@ -30,10 +34,18 @@ export async function GET(
 
     const showWs = await shouldExposeWholesalePrice()
     const publicP = toPublicProductJson(product, { includeWholesalePrice: showWs })
+    const galleryPaths = getGalleryImagePathsById(product.id)
+    const galleryImages =
+      galleryPaths.length > 0
+        ? (await Promise.all(galleryPaths.map((rel) => resolveProductImage(rel)))).filter(
+            (u): u is string => Boolean(u)
+          )
+        : undefined
 
     return NextResponse.json({
       ...publicP,
       image: await resolveProductImage(product.image),
+      ...(galleryImages?.length ? { galleryImages } : {}),
       technicalSummary: getTechnicalSummaryById(product.id) ?? product.technicalSummary,
       technicalSheet: getTechnicalSheetById(product.id) ?? product.technicalSheet,
     })

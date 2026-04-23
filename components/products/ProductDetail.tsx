@@ -15,7 +15,12 @@ import {
   Palette,
 } from 'lucide-react'
 import Link from 'next/link'
-import { CATEGORY_LABEL, CATEGORY_THEME, type CategoryKey } from './catalog'
+import {
+  CATEGORY_LABEL,
+  CATEGORY_THEME,
+  productHidesDetailDescription,
+  type CategoryKey,
+} from './catalog'
 import type { Product } from '@prisma/client'
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
 import { detectGroupBaseName, detectVariantLabel, normText } from './variantGrouping'
@@ -45,6 +50,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [showCalculator, setShowCalculator] = useState(false)
   /** Solo aplica si hay foto de producto y muestra de color. */
   const [galleryMode, setGalleryMode] = useState<'product' | 'color'>('product')
+  /** Índice en `uniqueProductPhotos` cuando el producto tiene varias fotos (sin contar muestra de color). */
+  const [productPhotoIndex, setProductPhotoIndex] = useState(0)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [marmoltexFinish, setMarmoltexFinish] = useState<MarmoltexFinish>('CON_GRANO')
   const { addItem } = useCart()
@@ -110,6 +117,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   useEffect(() => {
     setQuantity(1)
     setMarmoltexFinish('CON_GRANO')
+    setProductPhotoIndex(0)
   }, [selectedVariantId])
 
   useEffect(() => {
@@ -208,9 +216,16 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const variantLabelForGallery = detectVariantLabel(selectedProduct.name, groupBase)
   const colorSampleSrc = groupBase ? getColorSamplePath(groupBase, variantLabelForGallery) : null
   const productImageSrc = selectedProduct.image ?? ''
+  const rawGallery = (selectedProduct as { galleryImages?: string[] | null }).galleryImages ?? []
+  const uniqueProductPhotos = Array.from(new Set([productImageSrc, ...rawGallery].filter(Boolean)))
+  const hasMultiProductPhotos = uniqueProductPhotos.length > 1
+  const primaryProductSrc =
+    uniqueProductPhotos[Math.min(productPhotoIndex, uniqueProductPhotos.length - 1)] ?? productImageSrc
   const hasColorProductToggle = Boolean(colorSampleSrc && productImageSrc)
   const mainGallerySrc =
-    colorSampleSrc && (!productImageSrc || galleryMode === 'color') ? colorSampleSrc : productImageSrc || colorSampleSrc
+    colorSampleSrc && (!productImageSrc || galleryMode === 'color')
+      ? colorSampleSrc
+      : primaryProductSrc || colorSampleSrc
 
   let titleFirst: string
   let titleRest: string
@@ -268,6 +283,34 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       Clic para ampliar
                     </span>
                   </button>
+
+                  {hasMultiProductPhotos && galleryMode === 'product' ? (
+                    <div className="mt-4 w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] mx-auto">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                        Más fotos del producto
+                      </p>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        {uniqueProductPhotos.map((src, i) => (
+                          <button
+                            key={`${src}-${i}`}
+                            type="button"
+                            onClick={() => setProductPhotoIndex(i)}
+                            className={[
+                              'flex items-center gap-2 border p-1.5 transition sm:p-2',
+                              productPhotoIndex === i
+                                ? 'border-orange-500 bg-white ring-1 ring-orange-500/30'
+                                : 'border-gray-200 bg-white hover:border-gray-400',
+                            ].join(' ')}
+                            aria-label={i === 0 ? 'Vista principal' : `Foto ${i + 1}`}
+                          >
+                            <span className="relative h-14 w-14 shrink-0 overflow-hidden bg-white border border-gray-100">
+                              <img src={src} alt="" className="h-full w-full object-cover" />
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {hasColorProductToggle ? (
                     <div className="mt-4 w-full max-w-[520px] sm:max-w-[600px] lg:max-w-[680px] mx-auto">
@@ -459,9 +502,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             </div>
           ) : null}
 
-          <div className="mb-5 sm:mb-6">
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">{selectedProduct.description}</p>
-          </div>
+          {!productHidesDetailDescription(selectedProduct.id) ? (
+            <div className="mb-5 sm:mb-6">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                {selectedProduct.description}
+              </p>
+            </div>
+          ) : null}
 
           {/* INFOGRAFÍA (estilo ficha, inspirado en la referencia) */}
           {technicalSummary && (
@@ -497,6 +544,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       <p className="text-2xl sm:text-3xl font-bold text-black mt-1">
                         {technicalSummary.presentacion}
                       </p>
+                    </div>
+                  )}
+
+                  {technicalSummary.caracteristicas && (
+                    <div className="mt-5 border border-gray-200 p-4">
+                      <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
+                        Características
+                      </p>
+                      <p className="text-black mt-2 leading-relaxed">{technicalSummary.caracteristicas}</p>
                     </div>
                   )}
 

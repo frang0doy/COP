@@ -1,4 +1,9 @@
-import { PRODUCTS, getTechnicalSheetById, getTechnicalSummaryById } from '@/components/products/catalog'
+import {
+  PRODUCTS,
+  getGalleryImagePathsById,
+  getTechnicalSheetById,
+  getTechnicalSummaryById,
+} from '@/components/products/catalog'
 import { resolveProductImage } from '@/app/api/products/image-utils'
 
 /** P1001 = can't reach database (Neon dormido, red, etc.) */
@@ -31,6 +36,13 @@ export async function jsonProductFromCatalogId(id: number) {
   if (!p) return null
 
   const image = await resolveProductImage(p.image)
+  const galleryPaths = getGalleryImagePathsById(p.id)
+  const galleryImages =
+    galleryPaths.length > 0
+      ? (await Promise.all(galleryPaths.map((rel) => resolveProductImage(rel)))).filter(
+          (u): u is string => Boolean(u)
+        )
+      : undefined
   return {
     id: p.id,
     sku: p.sku,
@@ -41,6 +53,7 @@ export async function jsonProductFromCatalogId(id: number) {
     wholesalePrice: null as number | null,
     stock: p.stock,
     image,
+    ...(galleryImages?.length ? { galleryImages } : {}),
     isNew: Boolean(p.isNew),
     technicalSheet: getTechnicalSheetById(p.id) ?? p.technicalSheet ?? null,
     technicalSummary: getTechnicalSummaryById(p.id) ?? p.technicalSummary ?? null,
