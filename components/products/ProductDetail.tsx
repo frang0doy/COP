@@ -443,15 +443,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             return (
               <div className="mb-4 sm:mb-6">
                 {showWs ? (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-black">
-                      ${Math.floor(ws!).toLocaleString('es-MX')}{' '}
-                      <span className="text-sm font-semibold text-gray-600">lista mayorista</span>
-                    </p>
-                    <p className="text-sm text-gray-500 line-through">
-                      ${selectedProduct.price.toLocaleString('es-MX')} lista público
-                    </p>
-                  </>
+                
                 ) : (
                   <p className="text-xl sm:text-2xl font-bold text-black">
                     ${selectedProduct.price.toLocaleString('es-MX')}
