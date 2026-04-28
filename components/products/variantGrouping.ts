@@ -37,6 +37,7 @@ const DEFAULT_VARIANT_WHEN_NAME_IS_ONLY_FAMILY: Record<string, string> = {
   'Laca Poliuretanica Mate': 'Balde 4 lt',
   'Laca Poliuretanica Brillosa': 'Balde 4 lt',
   'Revoque 3 en 1': 'Estándar',
+  'Malla Fibra de Vidrio': 'Rollo 50 mts',
 }
 
 function defaultLabelForBareFamilyName(groupBaseName: string): string {
@@ -86,6 +87,8 @@ export function detectGroupBaseName(productName: string): string | null {
   if (t.includes('laca') && (t.includes('brillosa') || t.includes('brillo') || t.includes('brillos')))
     return 'Laca Poliuretanica Brillosa'
   if (t.includes('revoque 3 en 1') || t.includes('revoque 3en1')) return 'Revoque 3 en 1'
+  if (t.includes('malla fibra de vidrio') || t.includes('malla de fibra de vidrio'))
+    return 'Malla Fibra de Vidrio'
   return null
 }
 

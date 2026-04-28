@@ -64,6 +64,7 @@ export default function AdminPedidosPage() {
   const pageSize = 25
   const [detailId, setDetailId] = useState<string | null>(null)
   const [confirmErrorById, setConfirmErrorById] = useState<Record<string, string>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -179,6 +180,14 @@ export default function AdminPedidosPage() {
     setOrders((prev) => prev.map((o) => (o.id === id ? (data.order as OrderRow) : o)))
   }
 
+  const removePendingMercadoPago = async (id: string) => {
+    const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error || 'No se pudo eliminar')
+    setOrders((prev) => prev.filter((o) => o.id !== id))
+    if (detailId === id) setDetailId(null)
+  }
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -191,6 +200,9 @@ export default function AdminPedidosPage() {
 
   const pendingFactoryCount = orders.filter(
     (o) => o.status === 'PENDING' && o.paymentMethod === 'PAY_AT_FACTORY'
+  ).length
+  const pendingMercadoPagoCount = orders.filter(
+    (o) => o.status === 'PENDING' && o.paymentMethod === 'MERCADOPAGO'
   ).length
 
   return (
@@ -319,6 +331,30 @@ export default function AdminPedidosPage() {
                   />
                   <span className="select-none">Ver solo pendientes “Pagar en fábrica”</span>
                 </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOnlyPendingFactory(false)
+                      setStatusFilter('PENDING')
+                      setMethodFilter('MERCADOPAGO')
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50/70 text-orange-800 hover:bg-orange-50 hover:border-orange-300 transition text-xs font-semibold"
+                  >
+                    Ver pendientes Mercado Pago ({pendingMercadoPagoCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOnlyPendingFactory(false)
+                      setStatusFilter('ALL')
+                      setMethodFilter('ALL')
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-orange-300 hover:text-orange-800 transition text-xs font-semibold"
+                  >
+                    Ver todos
+                  </button>
+                </div>
                 {!onlyPendingFactory ? (
                   <div className="flex flex-wrap items-end gap-2">
                     <div>
@@ -523,6 +559,29 @@ export default function AdminPedidosPage() {
                                   Rechazar
                                 </button>
                               </>
+                            ) : o.status === 'PENDING' && o.paymentMethod === 'MERCADOPAGO' ? (
+                              <button
+                                type="button"
+                                disabled={deletingId === o.id}
+                                className="px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 transition focus:outline-none focus:ring-2 focus:ring-red-100 disabled:opacity-60"
+                                onClick={async () => {
+                                  const ok = window.confirm(
+                                    `¿Eliminar el pedido #${o.number ?? o.id}? Esta acción no se puede deshacer.`
+                                  )
+                                  if (!ok) return
+                                  try {
+                                    setDeletingId(o.id)
+                                    await removePendingMercadoPago(o.id)
+                                    toast.success('Pedido eliminado')
+                                  } catch (e: any) {
+                                    toast.error(e?.message ?? 'Error')
+                                  } finally {
+                                    setDeletingId((current) => (current === o.id ? null : current))
+                                  }
+                                }}
+                              >
+                                {deletingId === o.id ? 'Eliminando...' : 'Eliminar pedido'}
+                              </button>
                             ) : (
                               <span className="text-xs text-gray-500">—</span>
                             )}

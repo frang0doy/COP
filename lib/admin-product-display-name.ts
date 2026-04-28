@@ -18,6 +18,8 @@ const ADMIN_DISPLAY_NAME_OVERRIDE_BY_SKU: Record<string, string> = {
   'ADH-005': 'pastina impermeable - Blanca',
   'EST-002': 'Concreto Aparente Natural',
   'EST-005': 'Pasta Chukum - Chukum',
+  'MAL-001': 'Malla Fibra de Vidrio - Rollo 50 mts',
+  'MAL-001-MT': 'Malla Fibra de Vidrio - x metro',
 }
 
 /**

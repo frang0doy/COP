@@ -54,6 +54,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [productPhotoIndex, setProductPhotoIndex] = useState(0)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [marmoltexFinish, setMarmoltexFinish] = useState<MarmoltexFinish>('CON_GRANO')
+  const [meterQuantity, setMeterQuantity] = useState(1)
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -116,6 +117,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   useEffect(() => {
     setQuantity(1)
+    setMeterQuantity(1)
     setMarmoltexFinish('CON_GRANO')
     setProductPhotoIndex(0)
   }, [selectedVariantId])
@@ -213,6 +215,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   const groupBase = detectGroupBaseName(selectedProduct.name)
   const showMarmoltexFinish = isMarmoltexGroupBaseName(groupBase)
+  const isMallaFibraGroup = groupBase === 'Malla Fibra de Vidrio'
+  const rollVariant = isMallaFibraGroup
+    ? variants.find((v) => normText(detectVariantLabel(v.name, groupBase)).includes('rollo')) ?? null
+    : null
+  const meterVariant = isMallaFibraGroup
+    ? variants.find((v) => normText(detectVariantLabel(v.name, groupBase)).includes('metro')) ?? null
+    : null
   const variantLabelForGallery = detectVariantLabel(selectedProduct.name, groupBase)
   const colorSampleSrc = groupBase ? getColorSamplePath(groupBase, variantLabelForGallery) : null
   const productImageSrc = selectedProduct.image ?? ''
@@ -461,7 +470,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             )
           })()}
 
-          {variants.length > 1 ? (
+          {variants.length > 1 && !isMallaFibraGroup ? (
             <div className="mb-5">
               <select
                 aria-label="Elegir color u opción"
@@ -475,6 +484,75 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </option>
                 ))}
               </select>
+            </div>
+          ) : null}
+
+          {isMallaFibraGroup && rollVariant && meterVariant ? (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (rollVariant.stock <= 0) return
+                  const wp = (rollVariant as Product & { wholesalePrice?: number | null }).wholesalePrice
+                  addItem(
+                    {
+                      id: rollVariant.id,
+                      name: rollVariant.name,
+                      price: rollVariant.price,
+                      wholesalePrice: wp ?? null,
+                      image: rollVariant.image ?? undefined,
+                      stock: rollVariant.stock,
+                    },
+                    1
+                  )
+                }}
+                disabled={rollVariant.stock <= 0}
+                className={`px-3 py-2 border-2 font-semibold transition-colors ${
+                  rollVariant.stock > 0
+                    ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
+                    : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
+                }`}
+              >
+                Agregar 1 rollo
+              </button>
+              <input
+                type="number"
+                min="1"
+                max={Math.max(1, meterVariant.stock)}
+                value={meterQuantity}
+                onChange={(e) => {
+                  const val = Number.parseInt(e.target.value, 10) || 1
+                  setMeterQuantity(Math.max(1, Math.min(val, Math.max(1, meterVariant.stock))))
+                }}
+                className="w-20 px-2 py-2 border border-gray-200 bg-white text-center"
+                aria-label="Metros"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (meterVariant.stock <= 0) return
+                  const wp = (meterVariant as Product & { wholesalePrice?: number | null }).wholesalePrice
+                  addItem(
+                    {
+                      id: meterVariant.id,
+                      name: meterVariant.name,
+                      price: meterVariant.price,
+                      wholesalePrice: wp ?? null,
+                      image: meterVariant.image ?? undefined,
+                      stock: meterVariant.stock,
+                    },
+                    meterQuantity
+                  )
+                }}
+                disabled={meterVariant.stock <= 0}
+                className={`px-3 py-2 border-2 font-semibold transition-colors ${
+                  meterVariant.stock > 0
+                    ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
+                    : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
+                }`}
+              >
+                Agregar metros
+              </button>
             </div>
           ) : null}
 
@@ -592,7 +670,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     {(variantLabels.length > 0 || technicalSummary.colores) && (
                       <div className="border border-gray-200 p-4">
                         <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
-                          Colores del producto
+                          {isMallaFibraGroup ? 'Presentaciones disponibles' : 'Colores del producto'}
                         </p>
                         <p className="text-black mt-2 line-clamp-3">
                           {variantLabels.length > 0 ? formatSpanishList(variantLabels) : technicalSummary.colores}
@@ -629,56 +707,60 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             </div>
           </div>
 
-          {/* Cantidad y agregar al carrito */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cantidad
-            </label>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center border-2 border-black rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                  className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  max={maxAllowed || 1}
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 1
-                    setQuantity(Math.max(1, Math.min(val, maxAllowed || 1)))
-                  }}
-                  className="w-20 text-center border-0 focus:ring-0 bg-transparent"
-                />
-                <button
-                  onClick={() => setQuantity(Math.min((maxAllowed || 1), quantity + 1))}
-                  disabled={maxAllowed <= 0 || quantity >= (maxAllowed || 1)}
-                  className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
-                >
-                  +
-                </button>
+          {!isMallaFibraGroup ? (
+            <>
+              {/* Cantidad y agregar al carrito */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Cantidad
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center border-2 border-black rounded-lg">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max={maxAllowed || 1}
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1
+                        setQuantity(Math.max(1, Math.min(val, maxAllowed || 1)))
+                      }}
+                      className="w-20 text-center border-0 focus:ring-0 bg-transparent"
+                    />
+                    <button
+                      onClick={() => setQuantity(Math.min((maxAllowed || 1), quantity + 1))}
+                      disabled={maxAllowed <= 0 || quantity >= (maxAllowed || 1)}
+                      className="px-4 py-2 hover:bg-black hover:text-white transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={maxAllowed <= 0}
-            className={`w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 font-semibold text-lg transition-colors duration-200 ${
-              maxAllowed > 0
-                ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
-                : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
-            }`}
-          >
-            <ShoppingCart className="w-5 h-5" />
-            <span>
-              {maxAllowed > 0 ? `Agregar ${quantity} al Carrito` : 'Sin stock'}
-            </span>
-          </button>
+              <button
+                onClick={handleAddToCart}
+                disabled={maxAllowed <= 0}
+                className={`w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 font-semibold text-lg transition-colors duration-200 ${
+                  maxAllowed > 0
+                    ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
+                    : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
+                }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <span>
+                  {maxAllowed > 0 ? `Agregar ${quantity} al Carrito` : 'Sin stock'}
+                </span>
+              </button>
+            </>
+          ) : null}
           </div>
         </div>
       </div>

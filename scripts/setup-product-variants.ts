@@ -204,6 +204,14 @@ const GROUPS: GroupDef[] = [
       { sku: 'REQ-002-PROY', name: 'Revoque 3 en 1 - Proyectable' },
     ],
   },
+  {
+    baseSku: 'MAL-001',
+    matchNameIncludes: ['malla', 'fibra', 'vidrio'],
+    variants: [
+      { sku: 'MAL-001', name: 'Malla Fibra de Vidrio - Rollo 50 mts' },
+      { sku: 'MAL-001-MT', name: 'Malla Fibra de Vidrio - x metro' },
+    ],
+  },
 ]
 
 function normalize(input: string) {

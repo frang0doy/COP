@@ -377,7 +377,7 @@ const TECHNICAL_SUMMARY_BY_ID: Record<number, TechnicalSummary> = {
     observaciones: 'Nuevo producto.',
   },
   43: {
-    presentacion: 'Malla 90 g/m².',
+    presentacion: 'Rollo de 50 mts (90 g/m²). También disponible por metro.',
     caracteristicas:
       'Tejido elástico y antideslizante, con recubrimiento de resina álcali-resistente. Contribuye a prevenir microfisuras en diversas superficies.',
     usos:
@@ -1029,8 +1029,9 @@ const RAW_PRODUCTS: Product[] = [
   },
   {
     id: 43,
-    name: 'Malla Fibra de Vidrio',
-    description: 'Malla de fibra de vidrio 90 g/m² para refuerzo de revestimientos.',
+    name: 'Malla Fibra de Vidrio - Rollo 50 mts',
+    description:
+      'Malla de fibra de vidrio 90 g/m² para refuerzo de revestimientos. Presentación base: rollo de 50 mts. También disponible por metro.',
     price: 1200,
     category: 'revoques',
     stock: 40,
