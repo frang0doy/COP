@@ -8,6 +8,7 @@ import {
   withPrismaRetry,
 } from '@/lib/product-api-fallback'
 import { shouldExposeWholesalePrice, toPublicProductJson } from '@/lib/public-product'
+import { publicMeterConsumeField } from '@/lib/meter-stock-pool'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,7 @@ export async function GET() {
       prisma.product.findMany({
         where: { isActive: true },
         orderBy: { id: 'asc' },
+        include: { meterStockPool: true },
       })
     )
 
@@ -25,8 +27,11 @@ export async function GET() {
     const withResolvedImages = await Promise.all(
       products.map(async (p) => {
         const base = toPublicProductJson(p, { includeWholesalePrice: showWs })
+        const poolMeters = p.meterStockPool ? Math.max(0, p.meterStockPool.meters) : base.stock
         return {
           ...base,
+          stock: p.meterStockPoolId != null ? poolMeters : base.stock,
+          ...publicMeterConsumeField(p),
           image: await resolveProductImage(p.image),
           technicalSummary: getTechnicalSummaryById(p.id) ?? p.technicalSummary,
           technicalSheet: getTechnicalSheetById(p.id) ?? p.technicalSheet,

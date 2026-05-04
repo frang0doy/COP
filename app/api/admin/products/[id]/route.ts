@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { syncProductsStockMirrors } from '@/lib/meter-stock-pool'
 import { isAdminEmail } from '@/lib/admin'
 
 export const dynamic = 'force-dynamic'
@@ -59,22 +60,37 @@ export async function PATCH(
     const json = await req.json()
     const data = UpdateSchema.parse(json)
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        sku: data.sku?.trim(),
-        name: data.name?.trim(),
-        description: data.description?.trim(),
-        category: data.category?.trim(),
-        price: data.price,
-        wholesalePrice:
-          data.wholesalePrice === undefined ? undefined : data.wholesalePrice,
-        stock: data.stock,
-        image: data.image ?? undefined,
-        isNew: typeof data.isNew === 'boolean' ? data.isNew : undefined,
-        technicalSheet: data.technicalSheet ?? undefined,
-        isActive: typeof data.isActive === 'boolean' ? data.isActive : undefined,
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const existing = await tx.product.findUnique({ where: { id } })
+
+      let poolStockHandled = false
+      const poolId = existing?.meterStockPoolId
+      if (poolId != null && typeof data.stock === 'number') {
+        await syncProductsStockMirrors({
+          tx,
+          poolId,
+          meters: data.stock,
+        })
+        poolStockHandled = true
+      }
+
+      return tx.product.update({
+        where: { id },
+        data: {
+          sku: data.sku?.trim(),
+          name: data.name?.trim(),
+          description: data.description?.trim(),
+          category: data.category?.trim(),
+          price: data.price,
+          wholesalePrice:
+            data.wholesalePrice === undefined ? undefined : data.wholesalePrice,
+          ...(poolStockHandled ? {} : data.stock !== undefined ? { stock: data.stock } : {}),
+          image: data.image ?? undefined,
+          isNew: typeof data.isNew === 'boolean' ? data.isNew : undefined,
+          technicalSheet: data.technicalSheet ?? undefined,
+          isActive: typeof data.isActive === 'boolean' ? data.isActive : undefined,
+        },
+      })
     })
 
     return NextResponse.json({ product: updated })

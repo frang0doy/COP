@@ -12,6 +12,7 @@ import {
   withPrismaRetry,
 } from '@/lib/product-api-fallback'
 import { shouldExposeWholesalePrice, toPublicProductJson } from '@/lib/public-product'
+import { publicMeterConsumeField } from '@/lib/meter-stock-pool'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +27,10 @@ export async function GET(
 
   try {
     const product = await withPrismaRetry(() =>
-      prisma.product.findFirst({ where: { id, isActive: true } })
+      prisma.product.findFirst({
+        where: { id, isActive: true },
+        include: { meterStockPool: true },
+      })
     )
     if (!product) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
@@ -34,6 +38,11 @@ export async function GET(
 
     const showWs = await shouldExposeWholesalePrice()
     const publicP = toPublicProductJson(product, { includeWholesalePrice: showWs })
+    const poolMeters = product.meterStockPool
+      ? Math.max(0, product.meterStockPool.meters)
+      : publicP.stock
+    const publicWithMeters =
+      product.meterStockPoolId != null ? { ...publicP, stock: poolMeters } : publicP
     const galleryPaths = getGalleryImagePathsById(product.id)
     const galleryImages =
       galleryPaths.length > 0
@@ -43,7 +52,8 @@ export async function GET(
         : undefined
 
     return NextResponse.json({
-      ...publicP,
+      ...publicWithMeters,
+      ...publicMeterConsumeField(product),
       image: await resolveProductImage(product.image),
       ...(galleryImages?.length ? { galleryImages } : {}),
       technicalSummary: getTechnicalSummaryById(product.id) ?? product.technicalSummary,

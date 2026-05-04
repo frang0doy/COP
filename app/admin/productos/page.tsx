@@ -18,6 +18,8 @@ type Product = {
   stock: number
   isNew?: boolean | null
   isActive?: boolean | null
+  meterStockPoolId?: number | null
+  meterConsumePerQty?: number | null
 }
 
 type SortKey = 'id' | 'sku' | 'name' | 'category' | 'price' | 'wholesalePrice' | 'stock' | 'isActive'
@@ -179,7 +181,20 @@ export default function AdminProductosPage() {
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data?.error || 'No se pudo guardar')
-    setProducts((prev) => prev.map((p) => (p.id === id ? (data.product as Product) : p)))
+    const saved = data.product as Product
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id === id) return saved
+        if (
+          saved.meterStockPoolId != null &&
+          p.meterStockPoolId === saved.meterStockPoolId &&
+          typeof patch.stock === 'number'
+        ) {
+          return { ...p, stock: saved.stock }
+        }
+        return p
+      })
+    )
   }
 
   if (status === 'loading') {
@@ -381,7 +396,9 @@ export default function AdminProductosPage() {
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">
                         Mayorista
                       </th>
-                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">Stock</th>
+                      <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase">
+                        Stock
+                      </th>
                       <th className="py-3 px-4 text-xs font-bold tracking-wide text-gray-600 uppercase text-right">Acciones</th>
                     </tr>
                   </thead>
@@ -512,12 +529,24 @@ function AdminRow({
         />
       </td>
       <td className="py-3 px-4">
-        <input
-          value={stock}
-          onChange={(e) => setStock(e.target.value)}
-          className="w-24 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
-          inputMode="numeric"
-        />
+        <div className="flex flex-col gap-1">
+          {product.meterStockPoolId != null ? (
+            <span className="text-[11px] font-semibold text-orange-800 bg-orange-50 border border-orange-100 rounded px-2 py-0.5 w-fit">
+              Metros · pool compartido
+            </span>
+          ) : null}
+          <input
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+            className="w-24 px-2.5 py-2 border border-gray-200 rounded-lg focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition bg-white"
+            inputMode="numeric"
+            title={
+              product.meterStockPoolId != null
+                ? 'Cantidad en metros; al guardar se actualiza el mismo stock para todos los SKU del pool'
+                : undefined
+            }
+          />
+        </div>
       </td>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2 justify-end">

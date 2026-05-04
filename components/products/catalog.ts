@@ -1034,7 +1034,8 @@ const RAW_PRODUCTS: Product[] = [
       'Malla de fibra de vidrio 90 g/m² para refuerzo de revestimientos. Presentación base: rollo de 50 mts. También disponible por metro.',
     price: 1200,
     category: 'revoques',
-    stock: 40,
+    /// Fallback catálogo en código (DB caída): metros totales (= 40 rollos × 50 m).
+    stock: 2000,
     sku: 'MAL-001',
     isNew: true,
     hideDetailDescription: true,

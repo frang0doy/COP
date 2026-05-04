@@ -22,6 +22,8 @@ import {
   type CategoryKey,
 } from './catalog'
 import type { Product } from '@prisma/client'
+
+type ProductWithMeter = Product & { meterConsumePerCartQty?: number }
 import ConsumptionCalculatorModal from './ConsumptionCalculatorModal'
 import { detectGroupBaseName, detectVariantLabel, normText } from './variantGrouping'
 import { getColorSamplePath } from './productColorSamples'
@@ -222,6 +224,17 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const meterVariant = isMallaFibraGroup
     ? variants.find((v) => normText(detectVariantLabel(v.name, groupBase)).includes('metro')) ?? null
     : null
+  const poolMetersMalla =
+    isMallaFibraGroup && rollVariant && meterVariant
+      ? Math.max(0, rollVariant.stock, meterVariant.stock)
+      : null
+  const rollMetersPerUnit =
+    rollVariant != null
+      ? Math.max(1, (rollVariant as ProductWithMeter).meterConsumePerCartQty ?? 50)
+      : 50
+  const canSellFullRoll = poolMetersMalla != null && poolMetersMalla >= rollMetersPerUnit
+  const meterConsumePerUnit =
+    meterVariant != null ? Math.max(1, (meterVariant as ProductWithMeter).meterConsumePerCartQty ?? 1) : 1
   const variantLabelForGallery = detectVariantLabel(selectedProduct.name, groupBase)
   const colorSampleSrc = groupBase ? getColorSamplePath(groupBase, variantLabelForGallery) : null
   const productImageSrc = selectedProduct.image ?? ''
@@ -481,12 +494,17 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             </div>
           ) : null}
 
-          {isMallaFibraGroup && rollVariant && meterVariant ? (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
+          {isMallaFibraGroup && rollVariant && meterVariant && poolMetersMalla != null ? (
+            <div className="mb-4 flex flex-col gap-2">
+              <p className="text-xs text-gray-600">
+                Mismo inventario en metros para rollo y venta por metro. Un rollo descuenta{' '}
+                {rollMetersPerUnit} m; cada metro vendido descuenta {meterConsumePerUnit} m.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  if (rollVariant.stock <= 0) return
+                  if (!canSellFullRoll || poolMetersMalla <= 0) return
                   const wp = (rollVariant as Product & { wholesalePrice?: number | null }).wholesalePrice
                   addItem(
                     {
@@ -495,28 +513,29 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       price: rollVariant.price,
                       wholesalePrice: wp ?? null,
                       image: rollVariant.image ?? undefined,
-                      stock: rollVariant.stock,
+                      stock: poolMetersMalla,
+                      meterConsumePerCartQty: rollMetersPerUnit,
                     },
                     1
                   )
                 }}
-                disabled={rollVariant.stock <= 0}
+                disabled={!canSellFullRoll || poolMetersMalla <= 0}
                 className={`px-3 py-2 border-2 font-semibold transition-colors ${
-                  rollVariant.stock > 0
+                  canSellFullRoll && poolMetersMalla > 0
                     ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
                     : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
                 }`}
               >
-                Agregar 1 rollo
+                Agregar 1 rollo ({rollMetersPerUnit} m)
               </button>
               <input
                 type="number"
                 min="1"
-                max={Math.max(1, meterVariant.stock)}
+                max={Math.max(1, poolMetersMalla)}
                 value={meterQuantity}
                 onChange={(e) => {
                   const val = Number.parseInt(e.target.value, 10) || 1
-                  setMeterQuantity(Math.max(1, Math.min(val, Math.max(1, meterVariant.stock))))
+                  setMeterQuantity(Math.max(1, Math.min(val, Math.max(1, poolMetersMalla))))
                 }}
                 className="w-20 px-2 py-2 border border-gray-200 bg-white text-center"
                 aria-label="Metros"
@@ -524,7 +543,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <button
                 type="button"
                 onClick={() => {
-                  if (meterVariant.stock <= 0) return
+                  if (poolMetersMalla <= 0) return
                   const wp = (meterVariant as Product & { wholesalePrice?: number | null }).wholesalePrice
                   addItem(
                     {
@@ -533,20 +552,22 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       price: meterVariant.price,
                       wholesalePrice: wp ?? null,
                       image: meterVariant.image ?? undefined,
-                      stock: meterVariant.stock,
+                      stock: poolMetersMalla,
+                      meterConsumePerCartQty: meterConsumePerUnit,
                     },
                     meterQuantity
                   )
                 }}
-                disabled={meterVariant.stock <= 0}
+                disabled={poolMetersMalla <= 0}
                 className={`px-3 py-2 border-2 font-semibold transition-colors ${
-                  meterVariant.stock > 0
+                  poolMetersMalla > 0
                     ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600'
                     : 'bg-gray-200 text-gray-500 border-gray-200 cursor-not-allowed'
                 }`}
               >
                 Agregar metros
               </button>
+              </div>
             </div>
           ) : null}
 
@@ -690,14 +711,46 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           {/* Especificaciones */}
           <div className="mb-6 space-y-2">
             <div className="flex items-center space-x-2">
-              {availableStock > 0 ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              {isMallaFibraGroup && poolMetersMalla != null ? (
+                <>
+                  {poolMetersMalla > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span
+                    className={
+                      poolMetersMalla > 0 ? 'text-gray-800 font-semibold' : 'text-red-700 font-semibold'
+                    }
+                  >
+                    {poolMetersMalla > 0 ? (
+                      <>
+                        Stock disponible: {poolMetersMalla} m
+                        {canSellFullRoll
+                          ? ` (hasta ${Math.floor(poolMetersMalla / rollMetersPerUnit)} rollos de ${rollMetersPerUnit} m)`
+                          : poolMetersMalla > 0
+                            ? ` — solo por metro (menos de ${rollMetersPerUnit} m para un rollo completo)`
+                            : null}
+                      </>
+                    ) : (
+                      'Sin stock'
+                    )}
+                  </span>
+                </>
               ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
+                <>
+                  {availableStock > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span
+                    className={availableStock > 0 ? 'text-gray-800 font-semibold' : 'text-red-700 font-semibold'}
+                  >
+                    {availableStock > 0 ? `Stock disponible: ${availableStock}` : 'Sin stock'}
+                  </span>
+                </>
               )}
-              <span className={availableStock > 0 ? 'text-gray-800 font-semibold' : 'text-red-700 font-semibold'}>
-                {availableStock > 0 ? `Stock disponible: ${availableStock}` : 'Sin stock'}
-              </span>
             </div>
           </div>
 

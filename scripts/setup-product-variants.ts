@@ -323,6 +323,36 @@ async function syncVariants(prisma: any) {
     },
     data: { isActive: false },
   })
+
+  await ensureMallaFibraMeterPool(prisma)
+}
+
+/** Malla fibra: mismo inventario en metros para rollo y x metro (script idempotente tras migraciones). */
+async function ensureMallaFibraMeterPool(prisma: any) {
+  try {
+    const roll = await prisma.product.findUnique({ where: { sku: 'MAL-001' } })
+    const mt = await prisma.product.findUnique({ where: { sku: 'MAL-001-MT' } })
+    if (!roll || !mt) return
+
+    let pool = await prisma.meterStockPool.findUnique({ where: { key: 'MAL_FIBRA' } })
+    if (!pool) {
+      const initialMeters = Math.max(0, Math.floor(Number(roll.stock) || 0))
+      pool = await prisma.meterStockPool.create({
+        data: { key: 'MAL_FIBRA', meters: initialMeters, updatedAt: new Date() },
+      })
+    }
+    const meters = Math.max(0, Math.floor(pool.meters))
+    await prisma.product.update({
+      where: { id: roll.id },
+      data: { meterStockPoolId: pool.id, meterConsumePerQty: 50, stock: meters },
+    })
+    await prisma.product.update({
+      where: { id: mt.id },
+      data: { meterStockPoolId: pool.id, meterConsumePerQty: 1, stock: meters },
+    })
+  } catch (e) {
+    console.warn('[setup-product-variants] Pool MAL_FIBRA omitido (¿migración vieja?):', e)
+  }
 }
 
 async function main() {

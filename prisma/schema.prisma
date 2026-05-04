@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model MeterStockPool {
+  id     Int    @id @default(autoincrement())
+  /// Clave estable única por material (ej. MAL_FIBRA).
+  key    String @unique
+  meters Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
 model Product {
   /// Mantengo el ID explícito para que coincida con las URLs actuales (/productos/:id)
   id              Int      @id
@@ -23,6 +35,13 @@ model Product {
   technicalSheet  String?
   technicalSummary Json?
   isActive        Boolean  @default(true)
+
+  /// Inventario compartido en metros (ej. rollo + x metro mismo material).
+  meterStockPoolId   Int?
+  /// Metros que descuenta cada unidad del carrito (rollo 50, x metro 1).
+  meterConsumePerQty Int?
+
+  meterStockPool MeterStockPool? @relation(fields: [meterStockPoolId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

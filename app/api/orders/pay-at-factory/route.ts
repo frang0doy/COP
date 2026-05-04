@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { checkoutStockValidationError } from '@/lib/meter-stock-pool'
 import { getDiscountPercent, getOrderLineUnitCents, isWholesaleListEligible } from '@/lib/pricing'
 import type { MarmoltexFinish } from '@/lib/marmoltex-finish'
 import { resolveOrderLineTitle } from '@/lib/marmoltex-finish'
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
 
     const products = await prisma.product.findMany({
       where: { id: { in: ids } },
+      include: { meterStockPool: true },
     })
     const byId = new Map(products.map((p) => [p.id, p]))
 
@@ -83,21 +85,11 @@ export async function POST(req: NextRequest) {
       if (!product) {
         return NextResponse.json({ error: `Producto no encontrado (id: ${i.id})` }, { status: 400 })
       }
-      const availableStock = Math.max(0, product.stock)
-      if (availableStock <= 0) {
-        return NextResponse.json({ error: `Sin stock para "${product.name}"` }, { status: 400 })
-      }
     }
 
-    for (const [pid, sumQty] of qtySumByProductId) {
-      const product = byId.get(pid)!
-      const availableStock = Math.max(0, product.stock)
-      if (sumQty > availableStock) {
-        return NextResponse.json(
-          { error: `Cantidad inválida para "${product.name}". Stock disponible: ${availableStock}.` },
-          { status: 400 }
-        )
-      }
+    const checkoutErr = checkoutStockValidationError(qtySumByProductId, [...byId.values()])
+    if (checkoutErr) {
+      return NextResponse.json({ error: checkoutErr }, { status: 400 })
     }
 
     const retailTotal = normalizedItems.reduce((sum, i) => {

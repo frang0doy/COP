@@ -44,6 +44,30 @@ async function main() {
     })
   }
 
+  try {
+    const roll = await prisma.product.findUnique({ where: { sku: 'MAL-001' } })
+    const mt = await prisma.product.findUnique({ where: { sku: 'MAL-001-MT' } })
+    if (roll && mt) {
+      let pool = await prisma.meterStockPool.findUnique({ where: { key: 'MAL_FIBRA' } })
+      if (!pool) {
+        pool = await prisma.meterStockPool.create({
+          data: { key: 'MAL_FIBRA', meters: Math.max(0, roll.stock), updatedAt: new Date() },
+        })
+      }
+      const meters = Math.max(0, pool.meters)
+      await prisma.product.update({
+        where: { id: roll.id },
+        data: { meterStockPoolId: pool.id, meterConsumePerQty: 50, stock: meters },
+      })
+      await prisma.product.update({
+        where: { id: mt.id },
+        data: { meterStockPoolId: pool.id, meterConsumePerQty: 1, stock: meters },
+      })
+    }
+  } catch {
+    // Migración antigua sin MeterStockPool
+  }
+
   console.log('Seed terminado.')
 }
 

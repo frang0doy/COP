@@ -19,7 +19,10 @@ export interface CartItem {
   marmoltexFinish?: MarmoltexFinish | null
   quantity: number
   image?: string
+  /** Unidades vendibles; si hay `meterConsumePerCartQty`, es el total de metros del pool compartido. */
   stock: number
+  /** Malla fibra: metros que descuenta cada unidad del carrito (rollo = 50, x metro = 1). */
+  meterConsumePerCartQty?: number
 }
 
 interface CartContextType {
@@ -33,6 +36,60 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
+
+function isMeterPoolCartLine(i: Pick<CartItem, 'meterConsumePerCartQty'>): boolean {
+  return typeof i.meterConsumePerCartQty === 'number' && i.meterConsumePerCartQty > 0
+}
+
+function syncPoolStockMetersAcrossCart(items: CartItem[], incomingMeters: number): CartItem[] {
+  const m = Math.max(0, Math.floor(incomingMeters))
+  return items.map((line) => (isMeterPoolCartLine(line) ? { ...line, stock: m } : line))
+}
+
+function meterReservedByOtherLines(items: CartItem[], excludeLineKey: string | null): number {
+  let sum = 0
+  for (const line of items) {
+    if (!isMeterPoolCartLine(line)) continue
+    const k = getCartLineKey(line.id, line.marmoltexFinish ?? null)
+    if (excludeLineKey && k === excludeLineKey) continue
+    sum += Math.max(1, Math.floor(line.quantity)) * (line.meterConsumePerCartQty ?? 1)
+  }
+  return sum
+}
+
+function maxQtyMeterLine(
+  poolMetersSnapshot: number,
+  consumePerQty: number,
+  items: CartItem[],
+  excludeLineKey: string | null
+): number {
+  const rem = poolMetersSnapshot - meterReservedByOtherLines(items, excludeLineKey)
+  if (rem <= 0 || !Number.isFinite(rem)) return 0
+  const c = Math.max(1, Math.floor(consumePerQty))
+  return Math.floor(rem / c)
+}
+
+function clampMeterPoolLinesInCart(items: CartItem[]): CartItem[] {
+  const poolLines = items.filter(isMeterPoolCartLine)
+  if (poolLines.length === 0) return items
+  const snap = Math.min(...poolLines.map((i) => Math.max(0, i.stock ?? 0)))
+  const adjusted: CartItem[] = []
+  for (const line of items) {
+    if (!isMeterPoolCartLine(line)) {
+      adjusted.push(line)
+      continue
+    }
+    const lk = getCartLineKey(line.id, line.marmoltexFinish ?? null)
+    const maxQ = maxQtyMeterLine(snap, line.meterConsumePerCartQty ?? 1, items, lk)
+    if (maxQ <= 0) continue
+    adjusted.push({
+      ...line,
+      stock: snap,
+      quantity: Math.min(Math.max(1, Math.floor(line.quantity)), maxQ),
+    })
+  }
+  return adjusted
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
@@ -114,7 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (savedCart) {
       try {
         const parsed = JSON.parse(savedCart) as CartItem[]
-        const sanitized = Array.isArray(parsed)
+        const sanitizedRaw = Array.isArray(parsed)
           ? parsed
               .filter((i) => i && typeof i.id === 'number')
               .map((i) => {
@@ -134,6 +191,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
               })
           : []
 
+        const sanitized = clampMeterPoolLinesInCart(sanitizedRaw as CartItem[])
+
         setItems(sanitized)
       } catch (error) {
         console.error('Error loading cart:', error)
@@ -150,11 +209,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const qty = Math.max(1, Math.floor(quantity))
 
     setItems((prevItems) => {
+      const poolSnap = Math.max(0, item.stock ?? 0)
+      const isPool = isMeterPoolCartLine(item)
+      const working = isPool ? syncPoolStockMetersAcrossCart(prevItems, poolSnap) : prevItems
+
       const newKey = getCartLineKey(item.id, item.marmoltexFinish ?? null)
-      const existingItem = prevItems.find(
+      const existingItem = working.find(
         (i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) === newKey
       )
-      const maxAllowed = Math.max(0, item.stock ?? 0)
+
+      const consume = item.meterConsumePerCartQty ?? 1
+      const maxAllowed = isPool
+        ? maxQtyMeterLine(
+            poolSnap,
+            consume,
+            working,
+            existingItem ? newKey : null
+          )
+        : Math.max(0, item.stock ?? 0)
 
       if (maxAllowed <= 0) {
         showCartToast({
@@ -165,7 +237,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         })
         return prevItems
       }
-      
+
       if (existingItem) {
         const desired = existingItem.quantity + qty
         const nextQty = Math.min(desired, maxAllowed)
@@ -174,7 +246,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (delta <= 0) {
           showCartToast({
             intent: 'danger',
-            title: `Stock insuficiente (disponible: ${maxAllowed})`,
+            title: `Stock insuficiente (máx. ${maxAllowed} para esta presentación)`,
             description: item.name,
             toastId: `cart-max-${newKey}`,
           })
@@ -187,11 +259,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           description: `${item.name} (+${delta})`,
           toastId: `cart-add-${newKey}`,
         })
-        return prevItems.map((i) =>
+        const merged = working.map((i) =>
           getCartLineKey(i.id, i.marmoltexFinish ?? null) === newKey
             ? { ...i, ...item, quantity: nextQty }
             : i
         )
+        return isPool ? syncPoolStockMetersAcrossCart(merged, poolSnap) : merged
       } else {
         const firstQty = Math.min(qty, maxAllowed)
         showCartToast({
@@ -200,7 +273,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           description: `${firstQty} × ${item.name}`,
           toastId: `cart-add-${newKey}`,
         })
-        return [...prevItems, { ...item, quantity: firstQty } as CartItem]
+        const appended = [...working, { ...item, quantity: firstQty } as CartItem]
+        return isPool ? syncPoolStockMetersAcrossCart(appended, poolSnap) : appended
       }
     })
   }
@@ -230,7 +304,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const item = prevItems.find((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) === lineKey)
       if (!item) return prevItems
 
-      const maxAllowed = Math.max(0, item.stock ?? 0)
+      const isPool = isMeterPoolCartLine(item)
+      const poolSnap = Math.max(0, item.stock ?? 0)
+      const maxAllowed = isPool
+        ? maxQtyMeterLine(
+            poolSnap,
+            item.meterConsumePerCartQty ?? 1,
+            prevItems,
+            lineKey
+          )
+        : Math.max(0, item.stock ?? 0)
+
       if (maxAllowed <= 0) {
         return prevItems.filter((i) => getCartLineKey(i.id, i.marmoltexFinish ?? null) !== lineKey)
       }
