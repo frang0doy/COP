@@ -177,7 +177,7 @@ export default function CountryGate() {
                   ¿Dónde querés comprar?
                 </h1>
                 <p className="text-sm text-gray-700 mt-2 text-center sm:text-left">
-                  Elegí tu país para ver precios y datos correspondientes. Por ahora está disponible Argentina.
+                  Elegí tu país para ver precios y datos correspondientes.
                 </p>
 
                 <div className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3">
@@ -190,13 +190,20 @@ export default function CountryGate() {
                       setCountry(c)
                     }}
                   />
-                  <CountryButton code="MX" label="México" enabled={false} />
+                  <CountryButton
+                    code="MX"
+                    label="México"
+                    enabled
+                    onSelect={() => {
+                      window.open('https://www.coprecubrimientos.com/', '_blank')
+                    }}
+                  />
                   <CountryButton code="CU" label="Cuba" enabled={false} />
                 </div>
 
                 <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-gray-200 text-center sm:text-left">
                   <p className="text-xs text-gray-600">
-                    México y Cuba: <span className="font-semibold">Próximamente disponible</span>.
+                    Cuba: <span className="font-semibold">Próximamente disponible</span>.
                   </p>
                 </div>
               </div>
