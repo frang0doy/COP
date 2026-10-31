@@ -263,7 +263,7 @@ export default function CountryGate({ initialGateOpen }: Props) {
               </h2>
               <p className="text-sm text-black/70 mt-2">{subtitle}</p>
               <p className="text-xs text-black/60 mt-1">
-                Por ahora está disponible <span className="font-semibold">Argentina</span>.
+                Disponibles: <span className="font-semibold">Argentina</span> y <span className="font-semibold">México</span>.
               </p>
 
               <div className="mt-6 space-y-3">
@@ -287,21 +287,23 @@ export default function CountryGate({ initialGateOpen }: Props) {
                   <span className="text-sm font-semibold text-orange-600">Elegir</span>
                 </button>
 
-                {/* México (deshabilitado) */}
-                <div className="w-full flex items-center justify-between px-4 py-3 border border-black/10 opacity-50 cursor-not-allowed">
+                {/* México */}
+                <button
+                  type="button"
+                  onClick={() => window.open('https://www.coprecubrimientos.com/', '_blank')}
+                  className="w-full flex items-center justify-between px-4 py-3 border border-black/10 hover:border-orange-500 hover:bg-orange-500/5 transition"
+                >
                   <div className="flex items-center gap-3">
-                    <span
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 shadow-sm"
-                    >
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10 shadow-sm">
                       <FlagIcon code="MX" />
                     </span>
                     <div className="text-left">
                       <div className="text-base font-semibold text-black">México</div>
-                      <div className="text-xs text-black/60">Próximamente disponible</div>
+                      <div className="text-xs text-black/60">Disponible</div>
                     </div>
                   </div>
-                  <span className="text-sm font-semibold text-black/40">Elegir</span>
-                </div>
+                  <span className="text-sm font-semibold text-orange-600">Elegir</span>
+                </button>
 
                 {/* Cuba (deshabilitado) */}
                 <div className="w-full flex items-center justify-between px-4 py-3 border border-black/10 opacity-50 cursor-not-allowed">
@@ -322,7 +324,7 @@ export default function CountryGate({ initialGateOpen }: Props) {
 
               <div className="mt-6 flex items-center justify-between">
                 <p className="text-xs text-black/60">
-                  México y Cuba: <span className="font-semibold">próximamente</span>.
+                  Cuba: <span className="font-semibold">próximamente</span>.
                 </p>
                 <p className="text-xs text-black/50">
                   {selectedCountry ? `Seleccionado: ${COUNTRY_LABEL[selectedCountry] ?? selectedCountry}` : ''}
